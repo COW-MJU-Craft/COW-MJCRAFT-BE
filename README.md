@@ -1,4 +1,12 @@
-# Welcome to your organization's demo respository
-This code repository (or "repo") is designed to demonstrate the best GitHub has to offer with the least amount of noise.
+# cowmjucraft-backend
 
-The repo includes an `index.html` file (so it can render a web page), two GitHub Actions workflows, and a CSS stylesheet dependency.
+명지공방 웹사이트의 백엔드 서버입니다.  
+명지대학교 중앙 동아리 **COW**에서 개발·운영하는 프로젝트입니다.
+
+---
+
+## 📌 프로젝트 소개
+
+**cowmjucraft**는 명지공방의 서비스 운영을 위한 웹 애플리케이션으로,  
+본 레포지토리는 Spring Boot 기반의 **백엔드 API 서버**를 담당합니다.
+

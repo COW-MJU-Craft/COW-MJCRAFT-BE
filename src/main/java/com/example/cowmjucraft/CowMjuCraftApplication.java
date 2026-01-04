@@ -1,13 +1,13 @@
-package com.example.mj_craft;
+package com.example.cowmjucraft;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class SpringSecurityFifthApplication {
+public class CowMjuCraftApplication {
 
 	public static void main(String[] args) {
-		SpringApplication.run(SpringSecurityFifthApplication.class, args);
+		SpringApplication.run(CowMjuCraftApplication.class, args);
 	}
 
 }
