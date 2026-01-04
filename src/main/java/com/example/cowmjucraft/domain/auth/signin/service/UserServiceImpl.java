@@ -1,9 +1,9 @@
-package com.example.mj_craft.service;
+package com.example.cowmjucraft.domain.auth.signin.service;
 
-import com.example.mj_craft.domain.Role;
-import com.example.mj_craft.domain.User;
-import com.example.mj_craft.dto.UserDTO;
-import com.example.mj_craft.repository.UserRepository;
+import com.example.cowmjucraft.domain.auth.signin.domain.Role;
+import com.example.cowmjucraft.domain.auth.signin.domain.User;
+import com.example.cowmjucraft.domain.auth.signin.dto.UserDTO;
+import com.example.cowmjucraft.domain.auth.signin.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;

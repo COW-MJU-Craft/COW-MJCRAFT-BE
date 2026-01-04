@@ -1,6 +1,6 @@
-package com.example.mj_craft.dto;
+package com.example.cowmjucraft.domain.auth.signin.dto;
 
-import com.example.mj_craft.domain.Role;
+import com.example.cowmjucraft.domain.auth.signin.domain.Role;
 import lombok.Getter;
 import lombok.Setter;
 

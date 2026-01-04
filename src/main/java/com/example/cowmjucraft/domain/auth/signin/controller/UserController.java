@@ -1,7 +1,7 @@
-package com.example.mj_craft.controller;
+package com.example.cowmjucraft.domain.auth.signin.controller;
 
-import com.example.mj_craft.dto.UserDTO;
-import com.example.mj_craft.service.UserService;
+import com.example.cowmjucraft.domain.auth.signin.dto.UserDTO;
+import com.example.cowmjucraft.domain.auth.signin.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;

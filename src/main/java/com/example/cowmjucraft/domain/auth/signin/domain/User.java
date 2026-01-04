@@ -1,4 +1,4 @@
-package com.example.mj_craft.domain;
+package com.example.cowmjucraft.domain.auth.signin.domain;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
