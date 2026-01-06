@@ -1,0 +1,71 @@
+name: Build & Deploy to EC2 (SSM + Docker)
+
+on:
+  push:
+    branches: [ "main" ]
+
+concurrency:
+  group: deploy-main
+  cancel-in-progress: true
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    env:
+      APP_NAME: cowmjucraft
+      IMAGE: yunjin1213/cowmjucraft
+      TAG_LATEST: latest
+      ENV_FILE: /home/ec2-user/cowmjucraft/prod.env
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # 1) DockerHub 로그인
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      # 2) 이미지 빌드 & 푸시 (latest + 커밋SHA 태그)
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and Push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: |
+            ${{ env.IMAGE }}:${{ env.TAG_LATEST }}
+            ${{ env.IMAGE }}:${{ github.sha }}
+
+      # 3) AWS 자격증명 세팅
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      # 4) SSM으로 EC2에 배포 명령 실행 (docker pull/stop/rm/run)
+      - name: Deploy on EC2 via SSM
+        run: |
+          aws ssm send-command \
+            --instance-ids "${{ secrets.EC2_INSTANCE_ID }}" \
+            --document-name "AWS-RunShellScript" \
+            --comment "Deploy cowmjucraft from GitHub Actions" \
+            --parameters commands="[
+              \"set -e\",
+              \"APP_NAME=${{ env.APP_NAME }}\",
+              \"IMAGE=${{ env.IMAGE }}:${{ env.TAG_LATEST }}\",
+              \"ENV_FILE=${{ env.ENV_FILE }}\",
+              \"sudo docker pull \$IMAGE\",
+              \"sudo docker stop \$APP_NAME || true\",
+              \"sudo docker rm \$APP_NAME || true\",
+              \"sudo docker run -d --name \$APP_NAME --restart always -p 8080:8080 --env-file \$ENV_FILE \$IMAGE\",
+              \"sudo docker ps --filter name=\$APP_NAME\"
+            ]" \
+            --output text
