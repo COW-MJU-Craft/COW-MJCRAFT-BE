@@ -21,7 +21,7 @@ public class JwtTokenProvider {
             @Value("${jwt.secret}") String secret,
             @Value("${jwt.expiration-seconds}") long expirationSeconds
     ) {
-        this.key = Keys.hmacShaKeyFor(Decoders.BASE64.decode(secret));
+        this.key = Keys.hmacShaKeyFor(Decoders.BASE64URL.decode(secret));
         this.expirationSeconds = expirationSeconds;
     }
 
