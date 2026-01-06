@@ -1,6 +1,6 @@
 package com.example.cowmjucraft.global.config.jwt;
 
-import com.example.cowmjucraft.domain.auth.domain.entity.Role;
+import com.example.cowmjucraft.domain.account.entity.Role;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;

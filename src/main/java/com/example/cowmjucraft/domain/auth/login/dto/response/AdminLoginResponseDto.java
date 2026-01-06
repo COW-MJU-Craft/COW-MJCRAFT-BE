@@ -1,7 +1,7 @@
 package com.example.cowmjucraft.domain.auth.login.dto.response;
 
-import com.example.cowmjucraft.domain.auth.domain.entity.Role;
-import com.example.cowmjucraft.domain.auth.domain.entity.User;
+import com.example.cowmjucraft.domain.account.entity.Role;
+import com.example.cowmjucraft.domain.account.entity.User;
 
 public record AdminLoginResponseDto(
         String userId,

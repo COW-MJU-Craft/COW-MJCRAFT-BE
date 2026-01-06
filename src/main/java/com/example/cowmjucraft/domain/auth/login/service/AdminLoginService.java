@@ -1,8 +1,8 @@
 package com.example.cowmjucraft.domain.auth.login.service;
 
-import com.example.cowmjucraft.domain.auth.domain.entity.Role;
-import com.example.cowmjucraft.domain.auth.domain.entity.User;
-import com.example.cowmjucraft.domain.auth.domain.repository.UserRepository;
+import com.example.cowmjucraft.domain.account.entity.Role;
+import com.example.cowmjucraft.domain.account.entity.User;
+import com.example.cowmjucraft.domain.account.repository.UserRepository;
 import com.example.cowmjucraft.domain.auth.login.dto.request.AdminLoginRequestDto;
 import com.example.cowmjucraft.domain.auth.login.dto.response.AdminLoginResponseDto;
 import com.example.cowmjucraft.global.config.jwt.JwtTokenProvider;

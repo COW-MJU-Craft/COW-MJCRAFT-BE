@@ -1,10 +1,10 @@
 package com.example.cowmjucraft.domain.auth.signup.service;
 
-import com.example.cowmjucraft.domain.auth.domain.entity.Role;
-import com.example.cowmjucraft.domain.auth.domain.entity.User;
+import com.example.cowmjucraft.domain.account.entity.Role;
+import com.example.cowmjucraft.domain.account.entity.User;
 import com.example.cowmjucraft.domain.auth.signup.dto.request.SignupRequest;
 import com.example.cowmjucraft.domain.auth.signup.dto.response.SignupResponse;
-import com.example.cowmjucraft.domain.auth.domain.repository.UserRepository;
+import com.example.cowmjucraft.domain.account.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;

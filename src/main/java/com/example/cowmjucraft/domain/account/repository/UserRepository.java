@@ -1,6 +1,6 @@
-package com.example.cowmjucraft.domain.auth.domain.repository;
+package com.example.cowmjucraft.domain.account.repository;
 
-import com.example.cowmjucraft.domain.auth.domain.entity.User;
+import com.example.cowmjucraft.domain.account.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;
