@@ -16,32 +16,22 @@ jobs:
       APP_NAME: cowmjucraft
       IMAGE: yunjin1213/cowmjucraft
       TAG_LATEST: latest
-
-      # EC2에 생성할 env 파일 경로 (유저 홈 말고 /opt 권장)
       ENV_DIR: /opt/cowmjucraft
       ENV_FILE: /opt/cowmjucraft/prod.env
-
-      # 컨테이너 포트/호스트 포트 (필요하면 바꿔)
       HOST_PORT: "8080"
       CONTAINER_PORT: "8080"
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      # 1) DockerHub 로그인
-      - name: Login to Docker Hub
-        uses: docker/login-action@v3
+      - uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      # 2) 이미지 빌드 & 푸시 (latest + commit sha)
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+      - uses: docker/setup-buildx-action@v3
 
-      - name: Build and Push
-        uses: docker/build-push-action@v6
+      - uses: docker/build-push-action@v6
         with:
           context: .
           push: true
@@ -49,63 +39,53 @@ jobs:
             ${{ env.IMAGE }}:${{ env.TAG_LATEST }}
             ${{ env.IMAGE }}:${{ github.sha }}
 
-      # 3) AWS 자격증명 세팅
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
+      - uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
-      # 4) SSM으로 EC2에 배포 + 결과 대기/출력
-      - name: Deploy on EC2 via SSM (wait & show output)
-        shell: bash
+      - shell: bash
         run: |
-          set -euo pipefail
+          set -e
 
           COMMAND_ID=$(aws ssm send-command \
             --instance-ids "${{ secrets.EC2_INSTANCE_ID }}" \
             --document-name "AWS-RunShellScript" \
-            --comment "Deploy ${{ env.APP_NAME }} from GitHub Actions" \
-            --parameters commands="[
-              \"set -e\",
+            --parameters commands='[
+              "set -e",
+              "sudo mkdir -p /opt/cowmjucraft",
+              "sudo rm -f /opt/cowmjucraft/prod.env",
 
-              \"APP_NAME=${{ env.APP_NAME }}\",
-              \"IMAGE=${{ env.IMAGE }}:${{ env.TAG_LATEST }}\",
-              \"ENV_DIR=${{ env.ENV_DIR }}\",
-              \"ENV_FILE=${{ env.ENV_FILE }}\",
+              "echo SPRING_PROFILES_ACTIVE=prod | sudo tee /opt/cowmjucraft/prod.env",
+              "echo SPRING_DATASOURCE_URL=${{ secrets.SPRING_DATASOURCE_URL }} | sudo tee -a /opt/cowmjucraft/prod.env",
+              "echo SPRING_DATASOURCE_USERNAME=${{ secrets.SPRING_DATASOURCE_USERNAME }} | sudo tee -a /opt/cowmjucraft/prod.env",
+              "echo SPRING_DATASOURCE_PASSWORD=${{ secrets.SPRING_DATASOURCE_PASSWORD }} | sudo tee -a /opt/cowmjucraft/prod.env",
+              "echo ADMIN_USER_ID=${{ secrets.ADMIN_USER_ID }} | sudo tee -a /opt/cowmjucraft/prod.env",
+              "echo ADMIN_PASSWORD=${{ secrets.ADMIN_PASSWORD }} | sudo tee -a /opt/cowmjucraft/prod.env",
+              "echo JWT_SECRET=${{ secrets.JWT_SECRET }} | sudo tee -a /opt/cowmjucraft/prod.env",
+              "echo JWT_EXPIRATION_SECONDS=${{ secrets.JWT_EXPIRATION_SECONDS }} | sudo tee -a /opt/cowmjucraft/prod.env",
 
-              \"sudo mkdir -p ${{ env.ENV_DIR }}\",
-              \"sudo rm -f ${{ env.ENV_FILE }}\",
+              "echo AWS_REGION=${{ secrets.AWS_REGION }} | sudo tee -a /opt/cowmjucraft/prod.env",
+              "echo AWS_S3_BUCKET=${{ secrets.AWS_S3_BUCKET }} | sudo tee -a /opt/cowmjucraft/prod.env",
+              "echo AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }} | sudo tee -a /opt/cowmjucraft/prod.env",
+              "echo AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }} | sudo tee -a /opt/cowmjucraft/prod.env",
 
-              \"echo 'SPRING_PROFILES_ACTIVE=prod' | sudo tee ${{ env.ENV_FILE }} > /dev/null\",
-              \"echo 'SPRING_DATASOURCE_URL=${{ secrets.SPRING_DATASOURCE_URL }}' | sudo tee -a ${{ env.ENV_FILE }} > /dev/null\",
-              \"echo 'SPRING_DATASOURCE_USERNAME=${{ secrets.SPRING_DATASOURCE_USERNAME }}' | sudo tee -a ${{ env.ENV_FILE }} > /dev/null\",
-              \"echo 'SPRING_DATASOURCE_PASSWORD=${{ secrets.SPRING_DATASOURCE_PASSWORD }}' | sudo tee -a ${{ env.ENV_FILE }} > /dev/null\",
-              \"echo 'ADMIN_USER_ID=${{ secrets.ADMIN_USER_ID }}' | sudo tee -a ${{ env.ENV_FILE }} > /dev/null\",
-              \"echo 'ADMIN_PASSWORD=${{ secrets.ADMIN_PASSWORD }}' | sudo tee -a ${{ env.ENV_FILE }} > /dev/null\",
-              \"echo 'JWT_SECRET=${{ secrets.JWT_SECRET }}' | sudo tee -a ${{ env.ENV_FILE }} > /dev/null\",
-              \"echo 'JWT_EXPIRATION_SECONDS=${{ secrets.JWT_EXPIRATION_SECONDS }}' | sudo tee -a ${{ env.ENV_FILE }} > /dev/null\",
+              "sudo chmod 600 /opt/cowmjucraft/prod.env",
 
-              \"sudo chmod 600 ${{ env.ENV_FILE }}\",
-
-              \"sudo docker pull ${{ env.IMAGE }}:${{ env.TAG_LATEST }}\",
-              \"sudo docker stop ${{ env.APP_NAME }} || true\",
-              \"sudo docker rm ${{ env.APP_NAME }} || true\",
-              \"sudo docker run -d --name ${{ env.APP_NAME }} --restart always -p ${{ env.HOST_PORT }}:${{ env.CONTAINER_PORT }} --env-file ${{ env.ENV_FILE }} ${{ env.IMAGE }}:${{ env.TAG_LATEST }}\",
-              \"sudo docker ps --filter name=${{ env.APP_NAME }}\"
-            ]" \
+              "sudo docker pull yunjin1213/cowmjucraft:latest",
+              "sudo docker stop cowmjucraft || true",
+              "sudo docker rm cowmjucraft || true",
+              "sudo docker run -d --name cowmjucraft --restart always -p 8080:8080 --env-file /opt/cowmjucraft/prod.env yunjin1213/cowmjucraft:latest",
+              "sudo docker ps --filter name=cowmjucraft"
+            ]' \
             --query "Command.CommandId" \
             --output text)
 
-          echo "SSM CommandId: $COMMAND_ID"
-
-          # 명령 실행 완료까지 대기
           aws ssm wait command-executed \
             --command-id "$COMMAND_ID" \
             --instance-id "${{ secrets.EC2_INSTANCE_ID }}"
 
-          # 결과(표준출력/에러/상태) 출력
           aws ssm get-command-invocation \
             --command-id "$COMMAND_ID" \
             --instance-id "${{ secrets.EC2_INSTANCE_ID }}" \
