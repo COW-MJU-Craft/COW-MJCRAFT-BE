@@ -18,6 +18,9 @@ public record AdminAccountUpdateRequestDto(
         String newUserId,
         
         @Schema(example = "new-password1234")
-        String newPassword
+        String newPassword,
+
+        @Schema(example = "admin@example.com")
+        String newEmail
 ) {
 }

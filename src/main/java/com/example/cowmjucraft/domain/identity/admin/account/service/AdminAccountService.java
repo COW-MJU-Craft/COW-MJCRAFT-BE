@@ -41,6 +41,15 @@ public class AdminAccountService {
             admin.updatePassword(passwordEncoder.encode(request.newPassword()));
         }
 
+        if (StringUtils.hasText(request.newEmail())) {
+            String trimmedEmail = request.newEmail().trim();
+            if (!trimmedEmail.equals(admin.getEmail())
+                    && adminRepository.existsByEmail(trimmedEmail)) {
+                throw new ResponseStatusException(HttpStatus.CONFLICT, "Duplicated email");
+            }
+            admin.updateEmail(trimmedEmail);
+        }
+
         return AdminLoginResponseDto.from(admin);
     }
 }
