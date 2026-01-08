@@ -45,42 +45,44 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
-      - shell: bash
+      - name: Deploy on EC2 via SSM (create env safely)
+        shell: bash
         run: |
-          set -e
+          set -euo pipefail
 
           COMMAND_ID=$(aws ssm send-command \
             --instance-ids "${{ secrets.EC2_INSTANCE_ID }}" \
             --document-name "AWS-RunShellScript" \
+            --comment "Deploy ${{ env.APP_NAME }} from GitHub Actions" \
             --parameters commands='[
               "set -e",
               "sudo mkdir -p /opt/cowmjucraft",
-              "sudo rm -f /opt/cowmjucraft/prod.env",
-
-              "echo SPRING_PROFILES_ACTIVE=prod | sudo tee /opt/cowmjucraft/prod.env",
-              "echo SPRING_DATASOURCE_URL=${{ secrets.SPRING_DATASOURCE_URL }} | sudo tee -a /opt/cowmjucraft/prod.env",
-              "echo SPRING_DATASOURCE_USERNAME=${{ secrets.SPRING_DATASOURCE_USERNAME }} | sudo tee -a /opt/cowmjucraft/prod.env",
-              "echo SPRING_DATASOURCE_PASSWORD=${{ secrets.SPRING_DATASOURCE_PASSWORD }} | sudo tee -a /opt/cowmjucraft/prod.env",
-              "echo ADMIN_USER_ID=${{ secrets.ADMIN_USER_ID }} | sudo tee -a /opt/cowmjucraft/prod.env",
-              "echo ADMIN_PASSWORD=${{ secrets.ADMIN_PASSWORD }} | sudo tee -a /opt/cowmjucraft/prod.env",
-              "echo JWT_SECRET=${{ secrets.JWT_SECRET }} | sudo tee -a /opt/cowmjucraft/prod.env",
-              "echo JWT_EXPIRATION_SECONDS=${{ secrets.JWT_EXPIRATION_SECONDS }} | sudo tee -a /opt/cowmjucraft/prod.env",
-
-              "echo AWS_REGION=${{ secrets.AWS_REGION }} | sudo tee -a /opt/cowmjucraft/prod.env",
-              "echo AWS_S3_BUCKET=${{ secrets.AWS_S3_BUCKET }} | sudo tee -a /opt/cowmjucraft/prod.env",
-              "echo AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }} | sudo tee -a /opt/cowmjucraft/prod.env",
-              "echo AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }} | sudo tee -a /opt/cowmjucraft/prod.env",
-
+              "sudo tee /opt/cowmjucraft/prod.env > /dev/null << '\''EOF'\''",
+              "SPRING_PROFILES_ACTIVE=prod",
+              "SPRING_DATASOURCE_URL=${{ secrets.SPRING_DATASOURCE_URL }}",
+              "SPRING_DATASOURCE_USERNAME=${{ secrets.SPRING_DATASOURCE_USERNAME }}",
+              "SPRING_DATASOURCE_PASSWORD=${{ secrets.SPRING_DATASOURCE_PASSWORD }}",
+              "ADMIN_USER_ID=${{ secrets.ADMIN_USER_ID }}",
+              "ADMIN_PASSWORD=${{ secrets.ADMIN_PASSWORD }}",
+              "JWT_SECRET=${{ secrets.JWT_SECRET }}",
+              "JWT_EXPIRATION_SECONDS=${{ secrets.JWT_EXPIRATION_SECONDS }}",
+              "AWS_REGION=${{ secrets.AWS_REGION }}",
+              "AWS_S3_BUCKET=${{ secrets.AWS_S3_BUCKET }}",
+              "AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}",
+              "AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}",
+              "EOF",
               "sudo chmod 600 /opt/cowmjucraft/prod.env",
-
               "sudo docker pull yunjin1213/cowmjucraft:latest",
               "sudo docker stop cowmjucraft || true",
               "sudo docker rm cowmjucraft || true",
               "sudo docker run -d --name cowmjucraft --restart always -p 8080:8080 --env-file /opt/cowmjucraft/prod.env yunjin1213/cowmjucraft:latest",
-              "sudo docker ps --filter name=cowmjucraft"
+              "sudo docker ps --filter name=cowmjucraft",
+              "sudo grep -n '\''SPRING_DATASOURCE_URL'\'' /opt/cowmjucraft/prod.env || true"
             ]' \
             --query "Command.CommandId" \
             --output text)
+
+          echo "SSM CommandId: $COMMAND_ID"
 
           aws ssm wait command-executed \
             --command-id "$COMMAND_ID" \
