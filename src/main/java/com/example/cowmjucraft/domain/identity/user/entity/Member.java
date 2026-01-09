@@ -1,5 +1,6 @@
 package com.example.cowmjucraft.domain.identity.user.entity;
 
+import com.example.cowmjucraft.domain.identity.Role;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -26,6 +27,10 @@ public class Member {
 
     @Column(nullable = false)
     private String password;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private Role role = Role.ROLE_USER;
 
     public Member(String userId, String userName, String email, String password) {
         this.userId = userId;
