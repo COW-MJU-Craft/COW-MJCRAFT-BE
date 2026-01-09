@@ -1,5 +1,9 @@
 package com.example.cowmjucraft.global.config.jwt;
 
+import com.example.cowmjucraft.domain.accounts.Role;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jws;
+import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
@@ -25,27 +29,52 @@ public class JwtTokenProvider {
     }
 
     public String generateAdminToken(String loginId) {
-        return generateToken(loginId, "ADMIN");
+        return generateToken(loginId, Role.ROLE_ADMIN);
     }
 
     public String generateMemberToken(String userId) {
-        return generateToken(userId, "MEMBER");
+        return generateToken(userId, Role.ROLE_USER);
     }
 
-    private String generateToken(String subject, String type) {
+    private String generateToken(String subject, Role role) {
         Date now = new Date();
         Date expiry = new Date(now.getTime() + expirationSeconds * 1000);
 
         return Jwts.builder()
                 .setSubject(subject)
-                .claim("typ", type)
+                .claim("role", role.name())
                 .setIssuedAt(now)
                 .setExpiration(expiry)
                 .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
     }
 
+    public boolean validateToken(String token) {
+        try {
+            parseClaims(token);
+            return true;
+        } catch (JwtException | IllegalArgumentException e) {
+            return false;
+        }
+    }
+
+    public String getSubject(String token) {
+        return parseClaims(token).getBody().getSubject();
+    }
+
+    public String getRole(String token) {
+        Object role = parseClaims(token).getBody().get("role");
+        return role == null ? null : role.toString();
+    }
+
     public long getExpirationSeconds() {
         return expirationSeconds;
+    }
+
+    private Jws<Claims> parseClaims(String token) {
+        return Jwts.parserBuilder()
+                .setSigningKey(key)
+                .build()
+                .parseClaimsJws(token);
     }
 }
