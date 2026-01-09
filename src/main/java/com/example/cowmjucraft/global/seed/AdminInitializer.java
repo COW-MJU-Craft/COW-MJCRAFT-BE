@@ -1,7 +1,7 @@
 package com.example.cowmjucraft.global.seed;
 
-import com.example.cowmjucraft.domain.identity.admin.entity.Admin;
-import com.example.cowmjucraft.domain.identity.admin.repository.AdminRepository;
+import com.example.cowmjucraft.domain.accounts.admin.entity.Admin;
+import com.example.cowmjucraft.domain.accounts.admin.repository.AdminRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
