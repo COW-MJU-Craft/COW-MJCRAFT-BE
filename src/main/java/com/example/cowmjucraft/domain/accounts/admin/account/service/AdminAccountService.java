@@ -3,7 +3,7 @@ package com.example.cowmjucraft.domain.accounts.admin.account.service;
 import com.example.cowmjucraft.domain.accounts.admin.entity.Admin;
 import com.example.cowmjucraft.domain.accounts.admin.repository.AdminRepository;
 import com.example.cowmjucraft.domain.accounts.admin.account.dto.request.AdminAccountUpdateRequestDto;
-import com.example.cowmjucraft.domain.accounts.admin.login.dto.response.AdminLoginResponseDto;
+import com.example.cowmjucraft.domain.accounts.admin.account.dto.response.AdminAccountResponseDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -20,7 +20,7 @@ public class AdminAccountService {
     private final AdminRepository adminRepository;
     private final PasswordEncoder passwordEncoder;
 
-    public AdminLoginResponseDto updateAdminAccount(AdminAccountUpdateRequestDto request) {
+    public AdminAccountResponseDto updateAdminAccount(AdminAccountUpdateRequestDto request) {
         Admin admin = adminRepository.findByLoginId(request.currentUserId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid credentials"));
 
@@ -41,6 +41,6 @@ public class AdminAccountService {
             admin.updatePassword(passwordEncoder.encode(request.newPassword()));
         }
 
-        return AdminLoginResponseDto.from(admin);
+        return AdminAccountResponseDto.from(admin);
     }
 }

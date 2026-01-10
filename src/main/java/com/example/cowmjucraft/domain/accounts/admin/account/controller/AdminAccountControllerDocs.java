@@ -1,7 +1,7 @@
 package com.example.cowmjucraft.domain.accounts.admin.account.controller;
 
 import com.example.cowmjucraft.domain.accounts.admin.account.dto.request.AdminAccountUpdateRequestDto;
-import com.example.cowmjucraft.domain.accounts.admin.login.dto.response.AdminLoginResponseDto;
+import com.example.cowmjucraft.domain.accounts.admin.account.dto.response.AdminAccountResponseDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -19,10 +19,10 @@ public interface AdminAccountControllerDocs {
             description = "현재 관리자 자격 증명을 확인한 후 userId/비밀번호를 변경합니다."
     )
     @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "변경 성공", content = @Content(schema = @Schema(implementation = AdminLoginResponseDto.class))),
+            @ApiResponse(responseCode = "200", description = "변경 성공", content = @Content(schema = @Schema(implementation = AdminAccountResponseDto.class))),
             @ApiResponse(responseCode = "401", description = "유효하지 않은 자격 증명"),
             @ApiResponse(responseCode = "403", description = "ADMIN 권한 아님"),
             @ApiResponse(responseCode = "409", description = "userId 중복")
     })
-    AdminLoginResponseDto updateAdminAccount(@Valid @RequestBody AdminAccountUpdateRequestDto request);
+    AdminAccountResponseDto updateAdminAccount(@Valid @RequestBody AdminAccountUpdateRequestDto request);
 }

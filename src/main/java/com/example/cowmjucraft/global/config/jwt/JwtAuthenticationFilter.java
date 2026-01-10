@@ -2,7 +2,6 @@ package com.example.cowmjucraft.global.config.jwt;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.HttpHeaders;
@@ -16,7 +15,6 @@ import java.util.List;
 
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
-    private static final String ACCESS_TOKEN_COOKIE = "access_token";
     private static final String BEARER_PREFIX = "Bearer ";
 
     private final JwtTokenProvider jwtTokenProvider;
@@ -66,20 +64,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private String resolveToken(HttpServletRequest request) {
         String header = request.getHeader(HttpHeaders.AUTHORIZATION);
         if (header != null && header.startsWith(BEARER_PREFIX)) {
-            // TODO: Swagger 테스트 안정성을 위해 Bearer 인증을 우선 사용함; 추후 우선순위 재검토 필요.
-            // TODO: API 도메인에 HTTPS 적용 완료 후 prod 환경에서 Bearer 인증 차단 고려 (현재는 테스트 편의 목적).
             return header.substring(BEARER_PREFIX.length());
-        }
-
-        Cookie[] cookies = request.getCookies();
-        if (cookies == null) {
-            return null;
-        }
-
-        for (Cookie cookie : cookies) {
-            if (ACCESS_TOKEN_COOKIE.equals(cookie.getName())) {
-                return cookie.getValue();
-            }
         }
 
         return null;
