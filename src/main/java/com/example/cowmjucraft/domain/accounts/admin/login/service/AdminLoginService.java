@@ -1,7 +1,6 @@
 package com.example.cowmjucraft.domain.accounts.admin.login.service;
 
 import com.example.cowmjucraft.domain.accounts.admin.login.dto.request.AdminLoginRequestDto;
-import com.example.cowmjucraft.domain.accounts.admin.login.dto.response.AdminLoginResponseDto;
 import com.example.cowmjucraft.domain.accounts.admin.entity.Admin;
 import com.example.cowmjucraft.domain.accounts.admin.repository.AdminRepository;
 import com.example.cowmjucraft.global.config.jwt.JwtTokenProvider;
@@ -30,13 +29,12 @@ public class AdminLoginService {
         }
 
         String token = jwtTokenProvider.generateAdminToken(admin.getLoginId());
-        AdminLoginResponseDto response = AdminLoginResponseDto.from(admin);
 
-        return new LoginResult(response, token, jwtTokenProvider.getExpirationSeconds());
+        return new LoginResult(admin, token, jwtTokenProvider.getExpirationSeconds());
     }
 
     public record LoginResult(
-            AdminLoginResponseDto admin,
+            Admin admin,
             String token,
             long expiresInSeconds
     ) {

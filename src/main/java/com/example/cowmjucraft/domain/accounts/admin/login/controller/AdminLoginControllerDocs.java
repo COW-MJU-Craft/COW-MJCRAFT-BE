@@ -1,7 +1,7 @@
 package com.example.cowmjucraft.domain.accounts.admin.login.controller;
 
 import com.example.cowmjucraft.domain.accounts.admin.login.dto.request.AdminLoginRequestDto;
-import com.example.cowmjucraft.domain.accounts.admin.login.dto.response.AdminLoginTokenResponseDto;
+import com.example.cowmjucraft.domain.accounts.admin.login.dto.response.AdminLoginResponseDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -17,12 +17,12 @@ public interface AdminLoginControllerDocs {
 
     @Operation(
             summary = "관리자 로그인",
-            description = "userId/password로 로그인 후 JWT를 HttpOnly + Secure 쿠키로 반환합니다. Swagger 테스트는 Authorize 없이도 호출 가능합니다."
+            description = "userId/password로 로그인 후 JWT를 응답 바디에 반환합니다. Swagger Authorize에 Bearer 토큰으로 입력해 테스트하세요."
     )
     @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "로그인 성공", content = @Content(schema = @Schema(implementation = AdminLoginTokenResponseDto.class))),
+            @ApiResponse(responseCode = "200", description = "로그인 성공", content = @Content(schema = @Schema(implementation = AdminLoginResponseDto.class))),
             @ApiResponse(responseCode = "401", description = "유효하지 않은 자격 증명"),
             @ApiResponse(responseCode = "403", description = "ADMIN 권한 아님")
     })
-    ResponseEntity<AdminLoginTokenResponseDto> login(@Valid @RequestBody AdminLoginRequestDto request);
+    ResponseEntity<AdminLoginResponseDto> login(@Valid @RequestBody AdminLoginRequestDto request);
 }
