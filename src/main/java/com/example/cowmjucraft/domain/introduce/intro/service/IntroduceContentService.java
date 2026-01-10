@@ -28,11 +28,16 @@ public class IntroduceContentService {
         IntroduceAdminRequestDto safeRequest =
                 Objects.requireNonNull(request, "request must not be null");
 
+        // TODO: replace 방식 대신 단일 row 업데이트로 개선해 이력/잠금 이슈를 줄일 수 있음.
         introduceContentRepository.deleteAllInBatch();
 
+        // TODO: mediaId 존재/ACTIVE/usageType 일치 검증을 도입해 잘못된 참조를 사전에 차단하는 방식 검토 필요.
+        // TODO: PENDING/DELETED 상태의 Media 정리를 위한 배치/비동기 정책을 Media 도메인에 추가 검토 필요.
         IntroduceContent content = new IntroduceContent(
                 safeRequest.title(),
-                safeRequest.content()
+                safeRequest.content(),
+                safeRequest.logoMediaId(),
+                safeRequest.bannerMediaId()
         );
 
         introduceContentRepository.save(content);

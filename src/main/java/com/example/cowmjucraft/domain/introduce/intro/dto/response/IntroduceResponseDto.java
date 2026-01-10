@@ -16,12 +16,20 @@ public record IntroduceResponseDto(
                 description = "소개 본문",
                 example = "명지공방은 학생들이 함께 만드는 공방 서비스입니다."
         )
-        String content
+        String content,
+
+        @Schema(description = "소개 로고 이미지 mediaId (필요 시 /api/media/{id}/url 호출)", example = "1")
+        Long logoMediaId,
+
+        @Schema(description = "소개 배너 이미지 mediaId (필요 시 /api/media/{id}/url 호출)", example = "2")
+        Long bannerMediaId
 ) {
     public static IntroduceResponseDto from(IntroduceContent content) {
         return new IntroduceResponseDto(
                 content.getTitle(),
-                content.getContent()
+                content.getContent(),
+                content.getLogoMediaId(),
+                content.getBannerMediaId()
         );
     }
 }

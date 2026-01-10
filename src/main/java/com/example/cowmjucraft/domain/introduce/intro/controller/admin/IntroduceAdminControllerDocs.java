@@ -20,6 +20,7 @@ public interface IntroduceAdminControllerDocs {
             명지공방 소개 내용을 전체 교체합니다.
             - 요청으로 들어온 내용이 최종 상태가 됩니다.
             - 등록/수정을 PUT 하나로 처리합니다.
+            - 이미지는 Media API로 presign 발급 → S3 업로드 → activate 완료 후, 여기에는 mediaId만 연결합니다.
             """
     )
     @ApiResponses({

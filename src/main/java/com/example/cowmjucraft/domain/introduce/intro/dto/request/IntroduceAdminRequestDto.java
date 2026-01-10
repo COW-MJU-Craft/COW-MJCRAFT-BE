@@ -2,6 +2,7 @@ package com.example.cowmjucraft.domain.introduce.intro.dto.request;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Positive;
 
 @Schema(description = "명지공방 소개 관리자 요청 DTO")
 public record IntroduceAdminRequestDto(
@@ -18,6 +19,14 @@ public record IntroduceAdminRequestDto(
                 description = "소개 본문",
                 example = "명지공방은 학생들이 함께 만드는 공방 서비스입니다."
         )
-        String content
+        String content,
+
+        @Positive
+        @Schema(description = "소개 로고 이미지 mediaId (없으면 null)", example = "1")
+        Long logoMediaId,
+
+        @Positive
+        @Schema(description = "소개 배너 이미지 mediaId (없으면 null)", example = "2")
+        Long bannerMediaId
 ) {
 }
