@@ -18,7 +18,7 @@ public class IntroduceAdminController implements IntroduceAdminControllerDocs {
 
     private final IntroduceContentService introduceContentService;
 
-    @PutMapping("/introduce")
+    @PutMapping("/introduce/information")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @Override
     public void replaceIntroduceContent(@Valid @RequestBody IntroduceAdminRequestDto request) {

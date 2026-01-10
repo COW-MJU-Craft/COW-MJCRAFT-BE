@@ -32,8 +32,7 @@ public class IntroduceContentService {
 
         IntroduceContent content = new IntroduceContent(
                 safeRequest.title(),
-                safeRequest.content(),
-                safeRequest.imageUrl()
+                safeRequest.content()
         );
 
         introduceContentRepository.save(content);

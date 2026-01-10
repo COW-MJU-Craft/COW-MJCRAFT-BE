@@ -14,7 +14,7 @@ public class IntroduceController implements IntroduceControllerDocs {
 
     private final IntroduceContentService introduceContentService;
 
-    @GetMapping("/introduce")
+    @GetMapping("/introduce/information")
     @Override
     public IntroduceResponseDto getIntroduceContent() {
         return introduceContentService.getIntroduceContent();

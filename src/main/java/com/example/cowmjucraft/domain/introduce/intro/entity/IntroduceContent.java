@@ -28,12 +28,8 @@ public class IntroduceContent {
     @Column(nullable = false)
     private String content;
 
-    @Column
-    private String imageUrl;
-
-    public IntroduceContent(String title, String content, String imageUrl) {
+    public IntroduceContent(String title, String content) {
         this.title = title;
         this.content = content;
-        this.imageUrl = imageUrl;
     }
 }

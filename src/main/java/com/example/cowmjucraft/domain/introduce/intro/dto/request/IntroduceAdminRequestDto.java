@@ -18,12 +18,6 @@ public record IntroduceAdminRequestDto(
                 description = "소개 본문",
                 example = "명지공방은 학생들이 함께 만드는 공방 서비스입니다."
         )
-        String content,
-
-        @Schema(
-                description = "대표 이미지 URL",
-                example = "https://example.com/introduce/cover.jpg"
-        )
-        String imageUrl
+        String content
 ) {
 }
