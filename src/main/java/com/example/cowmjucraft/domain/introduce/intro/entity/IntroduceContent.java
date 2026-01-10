@@ -28,8 +28,16 @@ public class IntroduceContent {
     @Column(nullable = false)
     private String content;
 
-    public IntroduceContent(String title, String content) {
+    @Column
+    private Long logoMediaId;
+
+    @Column
+    private Long bannerMediaId;
+
+    public IntroduceContent(String title, String content, Long logoMediaId, Long bannerMediaId) {
         this.title = title;
         this.content = content;
+        this.logoMediaId = logoMediaId;
+        this.bannerMediaId = bannerMediaId;
     }
 }
