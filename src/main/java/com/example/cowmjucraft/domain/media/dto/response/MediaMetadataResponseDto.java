@@ -18,7 +18,9 @@ public record MediaMetadataResponseDto(
         @io.swagger.v3.oas.annotations.media.Schema(description = "공개 범위", example = "PUBLIC")
         MediaVisibility visibility,
         @io.swagger.v3.oas.annotations.media.Schema(description = "생성 시각", example = "2024-01-01T12:00:00")
-        LocalDateTime createdAt
+        LocalDateTime createdAt,
+        @io.swagger.v3.oas.annotations.media.Schema(description = "수정 시각", example = "2024-01-02T12:00:00")
+        LocalDateTime updatedAt
 ) {
     public static MediaMetadataResponseDto from(Media media) {
         return new MediaMetadataResponseDto(
@@ -27,7 +29,8 @@ public record MediaMetadataResponseDto(
                 media.getContentType(),
                 media.getUsageType(),
                 media.getVisibility(),
-                media.getCreatedAt()
+                media.getCreatedAt(),
+                media.getUpdatedAt()
         );
     }
 }
