@@ -5,21 +5,28 @@ import java.time.LocalDateTime;
 import com.example.cowmjucraft.domain.media.entity.Media;
 import com.example.cowmjucraft.domain.media.entity.MediaUsageType;
 import com.example.cowmjucraft.domain.media.entity.MediaVisibility;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 public record MediaMetadataResponseDto(
-        @io.swagger.v3.oas.annotations.media.Schema(description = "미디어 ID", example = "1")
+        @Schema(description = "미디어 ID", example = "1")
         Long mediaId,
-        @io.swagger.v3.oas.annotations.media.Schema(description = "원본 파일명", example = "intro-banner.png")
+
+        @Schema(description = "원본 파일명", example = "intro-banner.png")
         String originalFileName,
-        @io.swagger.v3.oas.annotations.media.Schema(description = "Content-Type", example = "image/png")
+
+        @Schema(description = "Content-Type", example = "image/png")
         String contentType,
-        @io.swagger.v3.oas.annotations.media.Schema(description = "미디어 사용처 유형", example = "INTRO")
+
+        @Schema(description = "미디어 사용처 유형", example = "INTRO")
         MediaUsageType usageType,
-        @io.swagger.v3.oas.annotations.media.Schema(description = "공개 범위", example = "PUBLIC")
+
+        @Schema(description = "공개 범위", example = "PUBLIC")
         MediaVisibility visibility,
-        @io.swagger.v3.oas.annotations.media.Schema(description = "생성 시각", example = "2024-01-01T12:00:00")
+
+        @Schema(description = "생성 시각", example = "2024-01-01T12:00:00")
         LocalDateTime createdAt,
-        @io.swagger.v3.oas.annotations.media.Schema(description = "수정 시각", example = "2024-01-02T12:00:00")
+
+        @Schema(description = "수정 시각", example = "2024-01-02T12:00:00")
         LocalDateTime updatedAt
 ) {
     public static MediaMetadataResponseDto from(Media media) {
