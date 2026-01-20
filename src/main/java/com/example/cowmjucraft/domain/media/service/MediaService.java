@@ -44,7 +44,8 @@ public class MediaService {
         // TODO: presign 만료 시간이 S3PresignService와 MediaService에 분산됨; 만료 정책을 단일 설정으로 통합 고려.
         S3PresignService.PresignPutResult presign = s3PresignService.presignPut(
                 originalFileName,
-                request.contentType()
+                request.contentType(),
+                request.usageType()
         );
 
         return new AdminMediaPresignResponseDto(
