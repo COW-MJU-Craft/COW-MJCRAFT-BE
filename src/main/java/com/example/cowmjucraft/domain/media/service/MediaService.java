@@ -47,17 +47,7 @@ public class MediaService {
                 request.contentType()
         );
 
-        Media media = new Media(
-                presign.key(),
-                originalFileName,
-                request.contentType(),
-                request.usageType(),
-                request.visibility()
-        );
-        mediaRepository.save(media);
-
         return new AdminMediaPresignResponseDto(
-                media.getId(),
                 presign.key(),
                 presign.uploadUrl(),
                 expireSeconds
@@ -75,17 +65,6 @@ public class MediaService {
     public MediaMetadataResponseDto getPublicMetadata(Long mediaId) {
         Media media = getPublicActiveMedia(mediaId);
         return MediaMetadataResponseDto.from(media);
-    }
-
-    public void activate(Long mediaId) {
-        // TODO: 현재는 수동 호출 방식; introduce/project 저장 성공 시 내부 서비스에서 자동 활성화되도록 연결 개선 필요.
-        Media media = getMediaOrThrow(mediaId);
-        if (media.getStatus() == MediaStatus.DELETED) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Media not found");
-        }
-        if (media.getStatus() != MediaStatus.ACTIVE) {
-            media.activate();
-        }
     }
 
     public void delete(Long mediaId) {

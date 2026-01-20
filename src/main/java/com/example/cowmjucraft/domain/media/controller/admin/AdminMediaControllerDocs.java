@@ -19,7 +19,7 @@ public interface AdminMediaControllerDocs {
 
     @Operation(
             summary = "업로드용 presign 발급",
-            description = "presign 발급 → S3에 직접 PUT 업로드 → 성공 후 activate 호출 흐름을 위한 첫 단계입니다."
+            description = "presign 발급 → S3에 직접 PUT 업로드 흐름을 위한 첫 단계입니다. presign은 Media 엔티티를 생성하지 않으며, 업로드 후 Media 생성 및 도메인 연결은 추후 도메인 API에서 처리합니다."
     )
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "발급 성공", content = @Content(schema = @Schema(implementation = AdminMediaPresignResponseDto.class))),
@@ -28,19 +28,6 @@ public interface AdminMediaControllerDocs {
             @ApiResponse(responseCode = "403", description = "ADMIN 권한 아님")
     })
     AdminMediaPresignResponseDto presign(@Valid @RequestBody AdminMediaPresignRequestDto request);
-
-    @Operation(
-            summary = "미디어 활성화",
-            description = "도메인(소개/프로젝트) 저장 성공 후 mediaId를 기준으로 상태를 ACTIVE로 전환합니다."
-    )
-    @ApiResponses({
-            @ApiResponse(responseCode = "204", description = "활성화 완료"),
-            @ApiResponse(responseCode = "400", description = "요청 값 오류"),
-            @ApiResponse(responseCode = "401", description = "인증 실패"),
-            @ApiResponse(responseCode = "403", description = "ADMIN 권한 아님"),
-            @ApiResponse(responseCode = "404", description = "대상 미디어 없음")
-    })
-    void activate(@PathVariable Long mediaId);
 
     @Operation(
             summary = "미디어 삭제",

@@ -27,16 +27,9 @@ public class AdminMediaController implements AdminMediaControllerDocs {
         return mediaService.presignUpload(request);
     }
 
-    @PostMapping("/{mediaId}/activate")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    @Override
-    public void activate(@PathVariable Long mediaId) {
-        mediaService.activate(mediaId);
-    }
-
     @DeleteMapping("/{mediaId}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
     @Override
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     public void delete(@PathVariable Long mediaId) {
         mediaService.delete(mediaId);
     }
