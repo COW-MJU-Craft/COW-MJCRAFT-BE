@@ -67,4 +67,20 @@ public class Media extends BaseTimeEntity {
         this.status = MediaStatus.DELETED;
     }
 
+    public boolean isDeleted() {
+        return this.status == MediaStatus.DELETED;
+    }
+
+    public boolean isActive() {
+        return this.status == MediaStatus.ACTIVE;
+    }
+
+    public boolean isPublic() {
+        return this.visibility == MediaVisibility.PUBLIC;
+    }
+
+    public boolean isPubliclyVisible() {
+        return isActive() && isPublic();
+    }
+
 }
