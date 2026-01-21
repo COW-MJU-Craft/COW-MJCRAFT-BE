@@ -5,8 +5,6 @@ import com.example.cowmjucraft.domain.media.dto.response.AdminMediaPresignRespon
 import com.example.cowmjucraft.domain.media.dto.response.MediaMetadataResponseDto;
 import com.example.cowmjucraft.domain.media.dto.response.MediaPresignUrlResponseDto;
 import com.example.cowmjucraft.domain.media.entity.Media;
-import com.example.cowmjucraft.domain.media.entity.MediaStatus;
-import com.example.cowmjucraft.domain.media.entity.MediaVisibility;
 import com.example.cowmjucraft.domain.media.repository.MediaRepository;
 import com.example.cowmjucraft.global.cloud.S3ObjectService;
 import com.example.cowmjucraft.global.cloud.S3PresignService;
@@ -41,10 +39,10 @@ public class MediaService {
                 ? "file"
                 : request.originalFileName();
 
-        // TODO: presign 만료 시간이 S3PresignService와 MediaService에 분산됨; 만료 정책을 단일 설정으로 통합 고려.
         S3PresignService.PresignPutResult presign = s3PresignService.presignPut(
                 originalFileName,
-                request.contentType()
+                request.contentType(),
+                request.usageType()
         );
 
         return new AdminMediaPresignResponseDto(
@@ -69,19 +67,17 @@ public class MediaService {
 
     public void delete(Long mediaId) {
         Media media = getMediaOrThrow(mediaId);
-        if (media.getStatus() == MediaStatus.DELETED) {
+        if (media.isDeleted()) {
             return;
         }
 
         media.markDeleted();
-        // TODO: S3 삭제 실패 시 DB 상태와 S3 실제 객체가 불일치할 수 있음; 재시도/비동기 처리로 안정성 개선 필요.
         s3ObjectService.delete(media.getKey());
     }
 
     private Media getPublicActiveMedia(Long mediaId) {
         Media media = getMediaOrThrow(mediaId);
-        // TODO: ACTIVE + PUBLIC만 노출하고 나머지는 404로 숨겨 리소스 존재를 노출하지 않도록 함(보안 의도).
-        if (media.getStatus() != MediaStatus.ACTIVE || media.getVisibility() != MediaVisibility.PUBLIC) {
+        if (!media.isPubliclyVisible()) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Media not found");
         }
         return media;
