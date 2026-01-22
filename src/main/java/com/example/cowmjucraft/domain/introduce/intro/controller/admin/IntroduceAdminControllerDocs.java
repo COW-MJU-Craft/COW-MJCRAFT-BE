@@ -11,7 +11,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 
 import jakarta.validation.Valid;
 
-@Tag(name = "Introduce - Content (Admin)", description = "명지공방 소개 관리자 API")
+@Tag(name = "Introduce - Admin", description = "명지공방 소개 관리자 API")
 public interface IntroduceAdminControllerDocs {
 
     @Operation(

@@ -15,7 +15,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import jakarta.validation.Valid;
 import java.util.List;
 
-@Tag(name = "Feedback (Admin)", description = "건의사항 관리자 API")
+@Tag(name = "Feedback - Admin", description = "건의사항 관리자 API")
 public interface FeedbackAdminControllerDocs {
 
     @Operation(

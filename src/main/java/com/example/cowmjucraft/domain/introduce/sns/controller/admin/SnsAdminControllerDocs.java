@@ -13,7 +13,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.Valid;
 import java.util.List;
 
-@Tag(name = "Introduce - SNS (Admin)", description = "SNS 소개 관리자 API")
+@Tag(name = "Introduce - Admin", description = "SNS 소개 관리자 API")
 public interface SnsAdminControllerDocs {
 
     @Operation(

@@ -8,7 +8,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 
-@Tag(name = "Introduce - Content (Public)", description = "명지공방 소개 조회 API")
+@Tag(name = "Introduce - Public", description = "명지공방 소개 조회 API")
 public interface IntroduceControllerDocs {
 
     @Operation(

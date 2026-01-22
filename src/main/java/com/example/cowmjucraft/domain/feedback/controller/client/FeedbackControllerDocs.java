@@ -11,7 +11,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 
 import jakarta.validation.Valid;
 
-@Tag(name = "Feedback (Public)", description = "건의사항 등록 API")
+@Tag(name = "Feedback - Public", description = "건의사항 등록 API")
 public interface FeedbackControllerDocs {
 
     @Operation(

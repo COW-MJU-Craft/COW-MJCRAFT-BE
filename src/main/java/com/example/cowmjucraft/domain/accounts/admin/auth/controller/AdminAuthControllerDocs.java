@@ -12,7 +12,7 @@ import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestBody;
 
-@Tag(name = "Admin Auth", description = "관리자 인증 API")
+@Tag(name = "Auth - Admin", description = "관리자 인증 API")
 public interface AdminAuthControllerDocs {
 
     @Operation(

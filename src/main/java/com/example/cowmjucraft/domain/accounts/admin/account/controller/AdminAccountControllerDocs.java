@@ -11,7 +11,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.RequestBody;
 
-@Tag(name = "Admin Account", description = "관리자 계정 수정 API")
+@Tag(name = "Account - Admin", description = "관리자 계정 수정 API")
 public interface AdminAccountControllerDocs {
 
     @Operation(
