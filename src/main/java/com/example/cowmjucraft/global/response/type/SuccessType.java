@@ -12,7 +12,7 @@ public enum SuccessType {
     NO_CONTENT(204, "요청에 성공하였습니다."),
 
     MEDIA_PRESIGN_CREATED(200, "Presign URL 발급 완료"),
-    MEDIA_DELETED(204, "미디어 삭제 완료");
+    MEDIA_DELETED(200, "미디어 삭제 완료");
 
     private final int httpStatusCode;
     private final String message;

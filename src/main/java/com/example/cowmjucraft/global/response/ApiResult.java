@@ -11,7 +11,7 @@ import lombok.Builder;
 @Builder
 @Schema(description = "응답 객체")
 @JsonPropertyOrder({"resultType", "httpStatusCode", "code", "message", "data"})
-public record ApiResponse<T>(
+public record ApiResult<T>(
 
         @Schema(description = "응답 타입", example = "SUCCESS")
         ResultType resultType,
@@ -30,8 +30,8 @@ public record ApiResponse<T>(
         T data
 ) {
 
-    public static <T> ApiResponse<T> success(SuccessType successType, T data) {
-        return ApiResponse.<T>builder()
+    public static <T> ApiResult<T> success(SuccessType successType, T data) {
+        return ApiResult.<T>builder()
                 .resultType(ResultType.SUCCESS)
                 .httpStatusCode(successType.getHttpStatusCode())
                 .code(null)
@@ -40,12 +40,12 @@ public record ApiResponse<T>(
                 .build();
     }
 
-    public static ApiResponse<?> success(SuccessType successType) {
+    public static ApiResult<?> success(SuccessType successType) {
         return success(successType, null);
     }
 
-    public static <T> ApiResponse<T> error(ErrorType errorType, String message, T data) {
-        return ApiResponse.<T>builder()
+    public static <T> ApiResult<T> error(ErrorType errorType, String message, T data) {
+        return ApiResult.<T>builder()
                 .resultType(ResultType.FAIL)
                 .httpStatusCode(errorType.getHttpStatusCode())
                 .code(errorType.getCode())
@@ -54,15 +54,15 @@ public record ApiResponse<T>(
                 .build();
     }
 
-    public static ApiResponse<?> error(ErrorType errorType) {
+    public static ApiResult<?> error(ErrorType errorType) {
         return error(errorType, errorType.getMessage(), null);
     }
 
-    public static ApiResponse<?> error(ErrorType errorType, String message) {
+    public static ApiResult<?> error(ErrorType errorType, String message) {
         return error(errorType, message, null);
     }
 
-    public static <T> ApiResponse<T> error(ErrorType errorType, T data) {
+    public static <T> ApiResult<T> error(ErrorType errorType, T data) {
         return error(errorType, errorType.getMessage(), data);
     }
 }
