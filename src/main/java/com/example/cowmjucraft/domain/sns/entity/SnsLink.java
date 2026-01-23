@@ -1,4 +1,4 @@
-package com.example.cowmjucraft.domain.introduce.sns.entity;
+package com.example.cowmjucraft.domain.sns.entity;
 
 import jakarta.persistence.*;
 import lombok.AccessLevel;

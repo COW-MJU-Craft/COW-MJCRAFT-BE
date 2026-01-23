@@ -1,7 +1,7 @@
-package com.example.cowmjucraft.domain.introduce.sns.dto.response;
+package com.example.cowmjucraft.domain.sns.dto.response;
 
-import com.example.cowmjucraft.domain.introduce.sns.entity.SnsLink;
-import com.example.cowmjucraft.domain.introduce.sns.entity.SnsType;
+import com.example.cowmjucraft.domain.sns.entity.SnsLink;
+import com.example.cowmjucraft.domain.sns.entity.SnsType;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 @Schema(description = "SNS 소개 응답 DTO")

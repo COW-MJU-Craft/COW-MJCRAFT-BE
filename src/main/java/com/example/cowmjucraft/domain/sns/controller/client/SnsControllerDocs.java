@@ -1,6 +1,6 @@
-package com.example.cowmjucraft.domain.introduce.sns.controller.client;
+package com.example.cowmjucraft.domain.sns.controller.client;
 
-import com.example.cowmjucraft.domain.introduce.sns.dto.response.SnsResponseDto;
+import com.example.cowmjucraft.domain.sns.dto.response.SnsResponseDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
