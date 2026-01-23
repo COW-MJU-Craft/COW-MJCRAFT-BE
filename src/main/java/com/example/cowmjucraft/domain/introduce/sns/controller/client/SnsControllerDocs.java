@@ -11,7 +11,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.util.List;
 
-@Tag(name = "Introduce - SNS (Public)", description = "SNS 소개 조회 API")
+@Tag(name = "Introduce - Public", description = "SNS 소개 조회 API")
 public interface SnsControllerDocs {
 
     @Operation(
