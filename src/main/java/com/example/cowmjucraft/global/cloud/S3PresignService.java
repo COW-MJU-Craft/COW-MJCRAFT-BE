@@ -6,7 +6,7 @@ import java.util.UUID;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import com.example.cowmjucraft.domain.media.entity.MediaUsageType;
+import com.example.cowmjucraft.domain.media.policy.MediaUsageType;
 
 import lombok.RequiredArgsConstructor;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
