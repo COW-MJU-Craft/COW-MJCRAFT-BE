@@ -1,6 +1,6 @@
-package com.example.cowmjucraft.domain.introduce.sns.controller.admin;
+package com.example.cowmjucraft.domain.sns.controller.admin;
 
-import com.example.cowmjucraft.domain.introduce.sns.dto.request.SnsAdminRequestDto;
+import com.example.cowmjucraft.domain.sns.dto.request.SnsAdminRequestDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.media.ArraySchema;

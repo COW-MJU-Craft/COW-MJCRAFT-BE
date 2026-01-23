@@ -1,7 +1,7 @@
-package com.example.cowmjucraft.domain.introduce.sns.controller.admin;
+package com.example.cowmjucraft.domain.sns.controller.admin;
 
-import com.example.cowmjucraft.domain.introduce.sns.dto.request.SnsAdminRequestDto;
-import com.example.cowmjucraft.domain.introduce.sns.service.SnsService;
+import com.example.cowmjucraft.domain.sns.dto.request.SnsAdminRequestDto;
+import com.example.cowmjucraft.domain.sns.service.SnsService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;

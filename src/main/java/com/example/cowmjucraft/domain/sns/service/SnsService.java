@@ -1,9 +1,9 @@
-package com.example.cowmjucraft.domain.introduce.sns.service;
+package com.example.cowmjucraft.domain.sns.service;
 
-import com.example.cowmjucraft.domain.introduce.sns.dto.request.SnsAdminRequestDto;
-import com.example.cowmjucraft.domain.introduce.sns.dto.response.SnsResponseDto;
-import com.example.cowmjucraft.domain.introduce.sns.entity.SnsLink;
-import com.example.cowmjucraft.domain.introduce.sns.repository.SnsLinkRepository;
+import com.example.cowmjucraft.domain.sns.dto.request.SnsAdminRequestDto;
+import com.example.cowmjucraft.domain.sns.dto.response.SnsResponseDto;
+import com.example.cowmjucraft.domain.sns.entity.SnsLink;
+import com.example.cowmjucraft.domain.sns.repository.SnsLinkRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
