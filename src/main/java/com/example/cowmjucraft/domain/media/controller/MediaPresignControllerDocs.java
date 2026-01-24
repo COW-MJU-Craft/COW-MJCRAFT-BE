@@ -8,6 +8,7 @@ import com.example.cowmjucraft.domain.media.dto.response.MediaPresignPutResponse
 import com.example.cowmjucraft.global.response.ApiResult;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -19,14 +20,53 @@ import org.springframework.web.bind.annotation.RequestBody;
 public interface MediaPresignControllerDocs {
 
     @Operation(
-            summary = "S3 presign PUT 발급",
-            description = "업로드용 presigned PUT URL을 발급합니다."
+            summary = "여러 파일 Presign PUT URL 발급",
+            description = "여러 파일 업로드용 presigned PUT URL을 발급합니다."
+    )
+    @io.swagger.v3.oas.annotations.parameters.RequestBody(
+            content = @Content(
+                    examples = @ExampleObject(
+                            name = "batch-request",
+                            value = """
+                                    {
+                                      "directory": "uploads/intro",
+                                      "files": [
+                                        { "fileName": "test.png", "contentType": "image/png", "usageType": "INTRO" },
+                                        { "fileName": "test1.png", "contentType": "image/png", "usageType": "INTRO" },
+                                        { "fileName": "명지공방로고.png", "contentType": "image/png", "usageType": "INTRO" }
+                                      ]
+                                    }
+                                    """
+                    )
+            )
     )
     @ApiResponses({
             @ApiResponse(
                     responseCode = "200",
                     description = "발급 성공",
-                    content = @Content(schema = @Schema(implementation = ApiResult.class))
+                    content = @Content(
+                            schema = @Schema(implementation = ApiResult.class),
+                            examples = @ExampleObject(
+                                    name = "batch-response",
+                                    value = """
+                                            {
+                                              "resultType": "SUCCESS",
+                                              "httpStatusCode": 200,
+                                              "message": "Presign URL 발급 완료",
+                                              "data": {
+                                                "items": [
+                                                  {
+                                                    "fileName": "test.png",
+                                                    "key": "uploads/intro/uuid-test.png",
+                                                    "uploadUrl": "https://bucket.s3.amazonaws.com/...",
+                                                    "expiresInSeconds": 300
+                                                  }
+                                                ]
+                                              }
+                                            }
+                                            """
+                            )
+                    )
             ),
             @ApiResponse(responseCode = "400", description = "요청 값 오류"),
             @ApiResponse(responseCode = "401", description = "인증 실패")

@@ -1,7 +1,6 @@
 package com.example.cowmjucraft.global.cloud;
 
 import java.time.Duration;
-import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -29,13 +28,7 @@ public class S3PresignService {
     @Value("${aws.s3.presign-expire-seconds:300}")
     private long expireSeconds;
 
-    public PresignPutResult presignPut(String originalFileName, String contentType, MediaUsageType usageType) {
-        String safeName = (originalFileName == null || originalFileName.isBlank())
-                ? "file"
-                : originalFileName.replaceAll("\\s+", "_");
-
-        String key = resolvePrefix(usageType) + UUID.randomUUID() + "-" + safeName;
-
+    public PresignPutResult presignPut(String key, String contentType) {
         PutObjectRequest putReq = PutObjectRequest.builder()
                 .bucket(bucket)
                 .key(key)
@@ -68,7 +61,7 @@ public class S3PresignService {
         return new PresignGetResult(presigned.url().toString());
     }
 
-    private String resolvePrefix(MediaUsageType usageType) {
+    public String resolvePrefix(MediaUsageType usageType) {
         if (usageType == null) {
             return "uploads/etc/";
         }
@@ -79,6 +72,10 @@ public class S3PresignService {
             case JOURNAL -> "uploads/journals/";
             case ETC -> "uploads/etc/";
         };
+    }
+
+    public int getExpireSeconds() {
+        return Math.toIntExact(expireSeconds);
     }
 
     public record PresignPutResult(String key, String uploadUrl) {}
