@@ -26,7 +26,7 @@ public class MediaPresignController implements MediaPresignControllerDocs {
     @PostMapping("/presign-put")
     @Override
     public ApiResult<MediaPresignPutResponseDto> presignPut(@Valid @RequestBody MediaPresignPutRequestDto request) {
-        return ApiResult.success(SuccessType.MEDIA_PRESIGN_CREATED, mediaPresignService.presignPut(request));
+        return ApiResult.success(SuccessType.MEDIA_PRESIGN_CREATED, mediaPresignService.createPresignPutBatch(request));
     }
 
     @PostMapping("/presign-get")
