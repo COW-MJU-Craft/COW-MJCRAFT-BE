@@ -9,3 +9,17 @@ aws:
   region: ${AWS_REGION:ap-northeast-2}
   s3:
     bucket: ${AWS_S3_BUCKET}
+
+oauth:
+  naver:
+    client-id: ${NAVER_CLIENT_ID:}
+    client-secret: ${NAVER_CLIENT_SECRET:}
+    redirect-uri: ${NAVER_REDIRECT_URI:}
+    token-uri: ${NAVER_TOKEN_URI:https://nid.naver.com/oauth2.0/token}
+    user-info-uri: ${NAVER_USER_INFO_URI:https://openapi.naver.com/v1/nid/me}
+  kakao:
+    client-id: ${KAKAO_CLIENT_ID:}
+    client-secret: ${KAKAO_CLIENT_SECRET:}
+    redirect-uri: ${KAKAO_REDIRECT_URI:}
+    token-uri: ${KAKAO_TOKEN_URI:https://kauth.kakao.com/oauth/token}
+    user-info-uri: ${KAKAO_USER_INFO_URI:https://kapi.kakao.com/v2/user/me}

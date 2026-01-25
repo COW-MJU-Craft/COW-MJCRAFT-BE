@@ -9,7 +9,12 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
-@Table(name = "users")
+@Table(
+        name = "users",
+        uniqueConstraints = {
+                @UniqueConstraint(columnNames = {"provider", "providerId"})
+        }
+)
 public class Member {
 
     @Id
@@ -29,6 +34,12 @@ public class Member {
     private String password;
 
     @Enumerated(EnumType.STRING)
+    private SocialProvider provider;
+
+    @Column
+    private String providerId;
+
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Role role = Role.ROLE_USER;
 
@@ -45,5 +56,14 @@ public class Member {
 
     public void updatePassword(String password) {
         this.password = password;
+    }
+
+    public void updateUserName(String userName) {
+        this.userName = userName;
+    }
+
+    public void updateSocial(SocialProvider provider, String providerId) {
+        this.provider = provider;
+        this.providerId = providerId;
     }
 }
