@@ -1,4 +1,4 @@
-package com.example.cowmjucraft.domain.media.exception;
+package com.example.cowmjucraft.global.exception;
 
 import com.example.cowmjucraft.global.response.ApiResult;
 import com.example.cowmjucraft.global.response.type.ErrorType;
@@ -18,8 +18,8 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.server.ResponseStatusException;
 
-@RestControllerAdvice(basePackages = "com.example.cowmjucraft.domain.media")
-public class MediaExceptionHandler {
+@RestControllerAdvice
+public class GlobalExceptionHandler {
 
     private static final int MAX_ERROR_DETAILS = 5;
 
@@ -31,7 +31,7 @@ public class MediaExceptionHandler {
 
         String detail = buildFieldErrorDetail(bindingResult);
         String message = buildValidationMessage(detail);
-        return errorResponse(ErrorType.VALIDATION_FAILED, message);
+        return errorResponse(ErrorType.INVALID_REQUEST, message);
     }
 
     @ExceptionHandler(ConstraintViolationException.class)
@@ -43,13 +43,13 @@ public class MediaExceptionHandler {
         }
         String detail = summarizeDetails(details);
         String message = buildValidationMessage(detail);
-        return errorResponse(ErrorType.VALIDATION_FAILED, message);
+        return errorResponse(ErrorType.INVALID_REQUEST, message);
     }
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<ApiResult<?>> handleNotReadable(HttpMessageNotReadableException exception) {
         return errorResponse(
-                ErrorType.VALIDATION_FAILED,
+                ErrorType.INVALID_REQUEST,
                 "요청 값 검증에 실패했습니다. (요청 본문 형식이 올바르지 않습니다)"
         );
     }
