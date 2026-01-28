@@ -1,44 +1,109 @@
 package com.example.cowmjucraft.domain.sns.controller.admin;
 
 import com.example.cowmjucraft.domain.sns.dto.request.SnsAdminRequestDto;
+import com.example.cowmjucraft.global.response.ApiResult;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 
 import jakarta.validation.Valid;
-import java.util.List;
 
-@Tag(name = "Introduce - Admin", description = "SNS 소개 관리자 API")
+@Tag(
+        name = "SNS - Admin",
+        description = "SNS 링크 관리자 API"
+)
 public interface SnsAdminControllerDocs {
 
     @Operation(
-            summary = "SNS 링크 전체 교체",
-            description = """
-            SNS 링크를 전체 교체합니다.
-            - 요청으로 들어온 리스트가 최종 상태가 됩니다.
-            - 등록/수정/삭제를 PUT 하나로 처리합니다.
-            """
+            summary = "카카오 오픈채팅 링크 등록/수정",
+            description = "카카오 오픈채팅 링크를 등록/수정합니다."
     )
     @ApiResponses({
-            @ApiResponse(responseCode = "204", description = "성공"),
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "성공",
+                    content = @Content(
+                            schema = @Schema(implementation = ApiResult.class),
+                            examples = @ExampleObject(
+                                    value = """
+                                    {
+                                      "resultType": "SUCCESS",
+                                      "httpStatusCode": 200,
+                                      "message": "요청에 성공하였습니다."
+                                    }
+                                    """
+                            )
+                    )
+            ),
             @ApiResponse(responseCode = "400", description = "요청 값 검증 실패"),
             @ApiResponse(responseCode = "401", description = "인증 실패"),
             @ApiResponse(responseCode = "403", description = "권한 없음")
     })
-    void replaceSnsLinks(
+    ApiResult<?> upsertKakao(
             @RequestBody(
                     required = true,
-                    description = "전체 교체할 SNS 링크 목록",
+                    description = "카카오 오픈채팅 링크 정보",
                     content = @Content(
-                            array = @ArraySchema(schema = @Schema(implementation = SnsAdminRequestDto.class))
+                            schema = @Schema(implementation = SnsAdminRequestDto.class),
+                            examples = @ExampleObject(
+                                    value = """
+                                    {
+                                      "url": "https://open.kakao.com/o/xxxx"
+                                    }
+                                    """
+                            )
                     )
             )
             @Valid
-            List<SnsAdminRequestDto> requests
+            SnsAdminRequestDto request
+    );
+
+    @Operation(
+            summary = "인스타그램 링크 등록/수정",
+            description = "인스타그램 링크를 등록/수정합니다."
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "성공",
+                    content = @Content(
+                            schema = @Schema(implementation = ApiResult.class),
+                            examples = @ExampleObject(
+                                    value = """
+                                    {
+                                      "resultType": "SUCCESS",
+                                      "httpStatusCode": 200,
+                                      "message": "요청에 성공하였습니다."
+                                    }
+                                    """
+                            )
+                    )
+            ),
+            @ApiResponse(responseCode = "400", description = "요청 값 검증 실패"),
+            @ApiResponse(responseCode = "401", description = "인증 실패"),
+            @ApiResponse(responseCode = "403", description = "권한 없음")
+    })
+    ApiResult<?> upsertInstagram(
+            @RequestBody(
+                    required = true,
+                    description = "인스타그램 링크 정보",
+                    content = @Content(
+                            schema = @Schema(implementation = SnsAdminRequestDto.class),
+                            examples = @ExampleObject(
+                                    value = """
+                                    {
+                                      "url": "https://instagram.com/mju_craft"
+                                    }
+                                    """
+                            )
+                    )
+            )
+            @Valid
+            SnsAdminRequestDto request
     );
 }

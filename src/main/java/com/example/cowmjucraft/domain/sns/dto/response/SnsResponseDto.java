@@ -14,29 +14,15 @@ public record SnsResponseDto(
         SnsType type,
 
         @Schema(
-                description = "화면에 표시될 제목",
-                example = "명지공방 인스타그램"
-        )
-        String title,
-
-        @Schema(
                 description = "SNS 링크 URL",
                 example = "https://instagram.com/mju_craft"
         )
-        String url,
-
-        @Schema(
-                description = "프론트엔드 아이콘 매핑용 키",
-                example = "instagram"
-        )
-        String iconKey
+        String url
 ) {
     public static SnsResponseDto from(SnsLink link) {
         return new SnsResponseDto(
                 link.getType(),
-                link.getTitle(),
-                link.getUrl(),
-                link.getType().getIconKey()
+                link.getUrl()
         );
     }
 }
