@@ -31,7 +31,7 @@ public class GlobalExceptionHandler {
 
         String detail = buildFieldErrorDetail(bindingResult);
         String message = buildValidationMessage(detail);
-        return errorResponse(ErrorType.INVALID_REQUEST, message);
+        return errorResponse(ErrorType.VALIDATION_FAILED, message);
     }
 
     @ExceptionHandler(ConstraintViolationException.class)
@@ -43,7 +43,7 @@ public class GlobalExceptionHandler {
         }
         String detail = summarizeDetails(details);
         String message = buildValidationMessage(detail);
-        return errorResponse(ErrorType.INVALID_REQUEST, message);
+        return errorResponse(ErrorType.VALIDATION_FAILED, message);
     }
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
