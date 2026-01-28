@@ -1,10 +1,12 @@
 package com.example.cowmjucraft.domain.sns.repository;
 
 import com.example.cowmjucraft.domain.sns.entity.SnsLink;
+import com.example.cowmjucraft.domain.sns.entity.SnsType;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import java.util.List;
+import java.util.Optional;
 
 public interface SnsLinkRepository extends JpaRepository<SnsLink, Long> {
-    List<SnsLink> findByActiveTrueOrderBySortOrderAsc();
+
+    Optional<SnsLink> findByType(SnsType type);
 }

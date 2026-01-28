@@ -3,12 +3,14 @@ package com.example.cowmjucraft.domain.sns.service;
 import com.example.cowmjucraft.domain.sns.dto.request.SnsAdminRequestDto;
 import com.example.cowmjucraft.domain.sns.dto.response.SnsResponseDto;
 import com.example.cowmjucraft.domain.sns.entity.SnsLink;
+import com.example.cowmjucraft.domain.sns.entity.SnsType;
 import com.example.cowmjucraft.domain.sns.repository.SnsLinkRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
-import java.util.List;
 import java.util.Objects;
 
 @RequiredArgsConstructor
@@ -18,36 +20,27 @@ public class SnsService {
     private final SnsLinkRepository snsLinkRepository;
 
     @Transactional(readOnly = true)
-    public List<SnsResponseDto> getActiveSnsLinks() {
-        return snsLinkRepository.findByActiveTrueOrderBySortOrderAsc()
-                .stream()
-                .map(SnsResponseDto::from)
-                .toList();
+    public SnsResponseDto getLink(SnsType type) {
+        SnsLink link = snsLinkRepository.findByType(type)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "sns link not found: " + type
+                ));
+        return SnsResponseDto.from(link);
     }
 
     @Transactional
-    public void replaceAll(List<SnsAdminRequestDto> requests) {
-        List<SnsAdminRequestDto> safeRequests =
-                Objects.requireNonNull(requests, "requests must not be null");
+    public void upsert(SnsType type, SnsAdminRequestDto request) {
+        SnsAdminRequestDto safeRequest = Objects.requireNonNull(request, "request must not be null");
 
-        snsLinkRepository.deleteAllInBatch();
+        SnsLink link = snsLinkRepository.findByType(type)
+                .orElse(null);
 
-        List<SnsLink> links = safeRequests.stream()
-                .map(this::toEntity)
-                .toList();
-
-        if (!links.isEmpty()) {
-            snsLinkRepository.saveAll(links);
+        if (link == null) {
+            snsLinkRepository.save(new SnsLink(type, safeRequest.url()));
+            return;
         }
-    }
 
-    private SnsLink toEntity(SnsAdminRequestDto request) {
-        return new SnsLink(
-                request.type(),
-                request.title(),
-                request.url(),
-                request.sortOrder(),
-                request.active()
-        );
+        link.updateUrl(safeRequest.url());
     }
 }
