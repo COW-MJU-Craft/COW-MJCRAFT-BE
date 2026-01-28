@@ -70,6 +70,7 @@ public class S3PresignService {
             case PROJECT -> "uploads/projects/";
             case LOGO -> "uploads/logos/";
             case JOURNAL -> "uploads/journals/";
+            case NOTICE -> "uploads/notices/";
             case ETC -> "uploads/etc/";
         };
     }

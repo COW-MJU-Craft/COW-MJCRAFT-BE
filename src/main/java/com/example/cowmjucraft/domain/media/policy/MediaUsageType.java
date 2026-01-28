@@ -6,5 +6,6 @@ public enum MediaUsageType {
     PROJECT,
     LOGO,
     JOURNAL,
+    NOTICE,
     ETC
 }
