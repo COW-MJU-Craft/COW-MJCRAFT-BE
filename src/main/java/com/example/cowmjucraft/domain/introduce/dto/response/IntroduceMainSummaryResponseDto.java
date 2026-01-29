@@ -5,7 +5,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.List;
 
 @Schema(description = "소개 메인 요약 응답 DTO")
-public record IntroduceMainSummaryResponse(
+public record IntroduceMainSummaryResponseDto(
 
         @Schema(description = "제목", example = "명지공방 소개")
         String title,

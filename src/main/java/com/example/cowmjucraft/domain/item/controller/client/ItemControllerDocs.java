@@ -40,7 +40,7 @@ public interface ItemControllerDocs {
                                                   "price": 12000,
                                                   "saleType": "GROUPBUY",
                                                   "status": "OPEN",
-                                                  "thumbnailKey": "uploads/items/thumbnail-001.png",
+                                                  "thumbnailKey": "uploads/items/1/thumbnail/uuid-thumbnail.png",
                                                   "targetQty": 100,
                                                   "fundedQty": 40,
                                                   "achievementRate": 40.0,
@@ -52,7 +52,7 @@ public interface ItemControllerDocs {
                             )
                     )
             ),
-            @ApiResponse(responseCode = "400", description = "요청 값 오류")
+            @ApiResponse(responseCode = "404", description = "요청한 리소스를 찾을 수 없음")
     })
     ApiResult<List<ProjectItemListResponseDto>> getProjectItems(
             @Parameter(description = "프로젝트 ID", example = "1")
@@ -84,11 +84,11 @@ public interface ItemControllerDocs {
                                                 "price": 12000,
                                                 "saleType": "GROUPBUY",
                                                 "status": "OPEN",
-                                                "thumbnailKey": "uploads/items/thumbnail-001.png",
+                                                "thumbnailKey": "uploads/items/1/thumbnail/uuid-thumbnail.png",
                                                 "images": [
                                                   {
                                                     "id": 5,
-                                                    "imageKey": "uploads/items/detail-001.png",
+                                                    "imageKey": "uploads/items/1/images/uuid-detail-01.png",
                                                     "sortOrder": 0
                                                   }
                                                 ],
@@ -102,7 +102,7 @@ public interface ItemControllerDocs {
                             )
                     )
             ),
-            @ApiResponse(responseCode = "400", description = "요청 값 오류")
+            @ApiResponse(responseCode = "404", description = "요청한 리소스를 찾을 수 없음")
     })
     ApiResult<ProjectItemDetailResponseDto> getItem(
             @Parameter(description = "물품 ID", example = "1")

@@ -2,8 +2,10 @@ package com.example.cowmjucraft.domain.project.controller.admin;
 
 import com.example.cowmjucraft.domain.project.dto.request.AdminProjectCreateRequestDto;
 import com.example.cowmjucraft.domain.project.dto.request.AdminProjectOrderPatchRequestDto;
+import com.example.cowmjucraft.domain.project.dto.request.AdminProjectPresignPutRequestDto;
 import com.example.cowmjucraft.domain.project.dto.request.AdminProjectUpdateRequestDto;
 import com.example.cowmjucraft.domain.project.dto.response.AdminProjectOrderPatchResponseDto;
+import com.example.cowmjucraft.domain.project.dto.response.AdminProjectPresignPutResponseDto;
 import com.example.cowmjucraft.domain.project.dto.response.AdminProjectResponseDto;
 import com.example.cowmjucraft.domain.project.service.AdminProjectService;
 import com.example.cowmjucraft.global.response.ApiResult;
@@ -32,6 +34,22 @@ public class AdminProjectController implements AdminProjectControllerDocs {
             @Valid @RequestBody AdminProjectCreateRequestDto request
     ) {
         return ApiResult.success(SuccessType.CREATED, adminProjectService.create(request));
+    }
+
+    @PostMapping("/thumbnail/presign-put")
+    @Override
+    public ApiResult<AdminProjectPresignPutResponseDto> presignThumbnail(
+            @Valid @RequestBody AdminProjectPresignPutRequestDto request
+    ) {
+        return ApiResult.success(SuccessType.SUCCESS, adminProjectService.createThumbnailPresignPut(request));
+    }
+
+    @PostMapping("/images/presign-put")
+    @Override
+    public ApiResult<AdminProjectPresignPutResponseDto> presignImages(
+            @Valid @RequestBody AdminProjectPresignPutRequestDto request
+    ) {
+        return ApiResult.success(SuccessType.SUCCESS, adminProjectService.createImagePresignPut(request));
     }
 
     @PutMapping("/{projectId}")

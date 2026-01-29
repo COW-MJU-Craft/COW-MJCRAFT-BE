@@ -6,6 +6,7 @@ import com.example.cowmjucraft.global.response.ApiResult;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -36,7 +37,35 @@ public interface ProjectControllerDocs {
             @ApiResponse(
                     responseCode = "200",
                     description = "성공",
-                    content = @Content(schema = @Schema(implementation = ApiResult.class))
+                    content = @Content(
+                            schema = @Schema(implementation = ApiResult.class),
+                            examples = @ExampleObject(
+                                    name = "detail-response",
+                                    value = """
+                                            {
+                                              "resultType": "SUCCESS",
+                                              "httpStatusCode": 200,
+                                              "message": "요청에 성공하였습니다.",
+                                              "data": {
+                                                "id": 1,
+                                                "title": "명지공방 머그컵 프로젝트",
+                                                "summary": "캠퍼스 감성을 담은 머그컵을 제작합니다.",
+                                                "description": "학생들이 함께 디자인한 머그컵 프로젝트입니다.",
+                                                "thumbnailKey": "uploads/projects/thumbnails/uuid-thumbnail.png",
+                                                "imageKeys": [
+                                                  "uploads/projects/images/uuid-01.png",
+                                                  "uploads/projects/images/uuid-02.png"
+                                                ],
+                                                "status": "OPEN",
+                                                "deadlineDate": "2026-03-15",
+                                                "dDay": 30,
+                                                "createdAt": "2026-01-20T10:00:00",
+                                                "updatedAt": "2026-01-29T10:00:00"
+                                              }
+                                            }
+                                            """
+                            )
+                    )
             ),
             @ApiResponse(responseCode = "404", description = "요청한 리소스를 찾을 수 없음")
     })

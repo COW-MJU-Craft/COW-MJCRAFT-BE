@@ -2,11 +2,15 @@ package com.example.cowmjucraft.domain.project.service;
 
 import com.example.cowmjucraft.domain.project.dto.request.AdminProjectCreateRequestDto;
 import com.example.cowmjucraft.domain.project.dto.request.AdminProjectOrderPatchRequestDto;
+import com.example.cowmjucraft.domain.project.dto.request.AdminProjectPresignPutRequestDto;
 import com.example.cowmjucraft.domain.project.dto.request.AdminProjectUpdateRequestDto;
 import com.example.cowmjucraft.domain.project.dto.response.AdminProjectOrderPatchResponseDto;
+import com.example.cowmjucraft.domain.project.dto.response.AdminProjectPresignPutResponseDto;
 import com.example.cowmjucraft.domain.project.dto.response.AdminProjectResponseDto;
 import com.example.cowmjucraft.domain.project.entity.Project;
 import com.example.cowmjucraft.domain.project.repository.ProjectRepository;
+import com.example.cowmjucraft.global.cloud.S3PresignFacade;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -22,9 +26,14 @@ import org.springframework.web.server.ResponseStatusException;
 public class AdminProjectService {
 
     private final ProjectRepository projectRepository;
+    private final S3PresignFacade s3PresignFacade;
 
-    public AdminProjectService(ProjectRepository projectRepository) {
+    public AdminProjectService(
+            ProjectRepository projectRepository,
+            S3PresignFacade s3PresignFacade
+    ) {
         this.projectRepository = projectRepository;
+        this.s3PresignFacade = s3PresignFacade;
     }
 
     @Transactional
@@ -34,6 +43,7 @@ public class AdminProjectService {
                 request.summary(),
                 request.description(),
                 request.thumbnailKey(),
+                normalizeImageKeys(request.imageKeys()),
                 request.deadlineDate(),
                 request.status()
         );
@@ -49,6 +59,7 @@ public class AdminProjectService {
                 request.summary(),
                 request.description(),
                 request.thumbnailKey(),
+                normalizeImageKeys(request.imageKeys()),
                 request.deadlineDate(),
                 request.status()
         );
@@ -59,6 +70,26 @@ public class AdminProjectService {
     public void delete(Long projectId) {
         Project project = findProject(projectId);
         projectRepository.delete(project);
+    }
+
+    public AdminProjectPresignPutResponseDto createThumbnailPresignPut(
+            AdminProjectPresignPutRequestDto request
+    ) {
+        S3PresignFacade.PresignPutBatchResult response = s3PresignFacade.createPresignPutBatch(
+                "uploads/projects/thumbnails",
+                List.of(new S3PresignFacade.PresignPutFile(request.fileName(), request.contentType()))
+        );
+        return toSinglePresignResponse(response);
+    }
+
+    public AdminProjectPresignPutResponseDto createImagePresignPut(
+            AdminProjectPresignPutRequestDto request
+    ) {
+        S3PresignFacade.PresignPutBatchResult response = s3PresignFacade.createPresignPutBatch(
+                "uploads/projects/images",
+                List.of(new S3PresignFacade.PresignPutFile(request.fileName(), request.contentType()))
+        );
+        return toSinglePresignResponse(response);
     }
 
     @Transactional
@@ -145,6 +176,7 @@ public class AdminProjectService {
                 project.getSummary(),
                 project.getDescription(),
                 project.getThumbnailKey(),
+                project.getImageKeys(),
                 project.getStatus(),
                 project.getDeadlineDate(),
                 project.isPinned(),
@@ -153,5 +185,35 @@ public class AdminProjectService {
                 project.getCreatedAt(),
                 project.getUpdatedAt()
         );
+    }
+
+    private AdminProjectPresignPutResponseDto toSinglePresignResponse(S3PresignFacade.PresignPutBatchResult response) {
+        if (response.items() == null || response.items().isEmpty()) {
+            throw new IllegalArgumentException("presign items is empty");
+        }
+        S3PresignFacade.PresignPutItem item = response.items().get(0);
+        return new AdminProjectPresignPutResponseDto(
+                item.key(),
+                item.uploadUrl(),
+                item.expiresInSeconds()
+        );
+    }
+
+    private List<String> normalizeImageKeys(List<String> imageKeys) {
+        if (imageKeys == null || imageKeys.isEmpty()) {
+            return new ArrayList<>();
+        }
+        List<String> normalized = new ArrayList<>();
+        for (String key : imageKeys) {
+            if (key == null) {
+                continue;
+            }
+            String trimmed = key.trim();
+            if (trimmed.isEmpty()) {
+                continue;
+            }
+            normalized.add(trimmed);
+        }
+        return normalized;
     }
 }

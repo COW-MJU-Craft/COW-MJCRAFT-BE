@@ -49,6 +49,7 @@ public class ProjectService {
                 project.getSummary(),
                 project.getDescription(),
                 project.getThumbnailKey(),
+                project.getImageKeys(),
                 project.getStatus(),
                 project.getDeadlineDate(),
                 calculateDDay(project.getDeadlineDate()),

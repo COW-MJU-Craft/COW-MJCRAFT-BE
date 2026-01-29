@@ -11,8 +11,10 @@ import com.example.cowmjucraft.domain.project.entity.Project;
 import com.example.cowmjucraft.domain.project.repository.ProjectRepository;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 @RequiredArgsConstructor
 @Service
@@ -25,7 +27,7 @@ public class ItemService {
     @Transactional(readOnly = true)
     public List<ProjectItemListResponseDto> getItems(Long projectId) {
         Project project = projectRepository.findById(projectId)
-                .orElseThrow(() -> new IllegalArgumentException("project not found"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "project not found"));
 
         List<ProjectItem> items = projectItemRepository.findByProjectIdOrderByCreatedAtDescIdDesc(project.getId());
         return items.stream()
@@ -36,7 +38,7 @@ public class ItemService {
     @Transactional(readOnly = true)
     public ProjectItemDetailResponseDto getItem(Long itemId) {
         ProjectItem item = projectItemRepository.findById(itemId)
-                .orElseThrow(() -> new IllegalArgumentException("item not found"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "item not found"));
 
         List<ProjectItemImageResponseDto> images = itemImageRepository.findByItemIdOrderBySortOrderAsc(itemId)
                 .stream()

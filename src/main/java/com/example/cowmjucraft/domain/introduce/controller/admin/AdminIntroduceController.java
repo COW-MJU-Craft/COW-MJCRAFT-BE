@@ -1,13 +1,16 @@
 package com.example.cowmjucraft.domain.introduce.controller.admin;
 
-import com.example.cowmjucraft.domain.introduce.dto.request.AdminIntroduceUpsertRequest;
-import com.example.cowmjucraft.domain.introduce.dto.response.AdminIntroduceResponse;
+import com.example.cowmjucraft.domain.introduce.dto.request.AdminIntroduceUpsertRequestDto;
+import com.example.cowmjucraft.domain.introduce.dto.request.AdminIntroducePresignPutRequestDto;
+import com.example.cowmjucraft.domain.introduce.dto.response.AdminIntroducePresignPutResponseDto;
+import com.example.cowmjucraft.domain.introduce.dto.response.AdminIntroduceResponseDto;
 import com.example.cowmjucraft.domain.introduce.service.IntroduceService;
 import com.example.cowmjucraft.global.response.ApiResult;
 import com.example.cowmjucraft.global.response.type.SuccessType;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -22,17 +25,31 @@ public class AdminIntroduceController implements AdminIntroduceControllerDocs {
 
     @GetMapping
     @Override
-    public ApiResult<AdminIntroduceResponse> getIntroduce() {
-        // TODO: apply admin authorization policy
+    public ApiResult<AdminIntroduceResponseDto> getIntroduce() {
         return ApiResult.success(SuccessType.SUCCESS, introduceService.adminGet());
     }
 
     @PutMapping
     @Override
-    public ApiResult<AdminIntroduceResponse> upsertIntroduce(
-            @Valid @RequestBody AdminIntroduceUpsertRequest request
+    public ApiResult<AdminIntroduceResponseDto> upsertIntroduce(
+            @Valid @RequestBody AdminIntroduceUpsertRequestDto request
     ) {
-        // TODO: apply admin authorization policy
         return ApiResult.success(SuccessType.SUCCESS, introduceService.adminUpsert(request));
+    }
+
+    @PostMapping("/presign-put/hero-logos")
+    @Override
+    public ApiResult<AdminIntroducePresignPutResponseDto> presignHeroLogo(
+            @Valid @RequestBody AdminIntroducePresignPutRequestDto request
+    ) {
+        return ApiResult.success(SuccessType.SUCCESS, introduceService.createHeroLogoPresignPut(request));
+    }
+
+    @PostMapping("/presign-put/sections")
+    @Override
+    public ApiResult<AdminIntroducePresignPutResponseDto> presignSection(
+            @Valid @RequestBody AdminIntroducePresignPutRequestDto request
+    ) {
+        return ApiResult.success(SuccessType.SUCCESS, introduceService.createSectionPresignPut(request));
     }
 }

@@ -18,7 +18,7 @@ public record AdminItemImageCreateRequestDto(
     public record ImageRequestDto(
 
             @NotBlank
-            @Schema(description = "이미지 S3 key", example = "uploads/items/detail-001.png")
+            @Schema(description = "이미지 S3 object key", example = "uploads/items/1/images/uuid-detail.png")
             String imageKey,
 
             @Min(0)

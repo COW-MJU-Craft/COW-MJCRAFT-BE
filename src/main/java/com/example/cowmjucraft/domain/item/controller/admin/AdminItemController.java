@@ -2,9 +2,11 @@ package com.example.cowmjucraft.domain.item.controller.admin;
 
 import com.example.cowmjucraft.domain.item.dto.request.AdminItemImageCreateRequestDto;
 import com.example.cowmjucraft.domain.item.dto.request.AdminItemImageOrderPatchRequestDto;
+import com.example.cowmjucraft.domain.item.dto.request.AdminItemPresignPutRequestDto;
 import com.example.cowmjucraft.domain.item.dto.request.AdminProjectItemCreateRequestDto;
 import com.example.cowmjucraft.domain.item.dto.request.AdminProjectItemUpdateRequestDto;
 import com.example.cowmjucraft.domain.item.dto.response.AdminItemImageOrderPatchResponseDto;
+import com.example.cowmjucraft.domain.item.dto.response.AdminItemPresignPutResponseDto;
 import com.example.cowmjucraft.domain.item.dto.response.AdminProjectItemResponseDto;
 import com.example.cowmjucraft.domain.item.dto.response.ProjectItemImageResponseDto;
 import com.example.cowmjucraft.domain.item.service.AdminItemService;
@@ -45,6 +47,24 @@ public class AdminItemController implements AdminItemControllerDocs {
             @Valid @RequestBody AdminProjectItemUpdateRequestDto request
     ) {
         return ApiResult.success(SuccessType.SUCCESS, adminItemService.update(itemId, request));
+    }
+
+    @PostMapping("/items/{itemId}/thumbnail/presign-put")
+    @Override
+    public ApiResult<AdminItemPresignPutResponseDto> presignThumbnail(
+            @PathVariable Long itemId,
+            @Valid @RequestBody AdminItemPresignPutRequestDto request
+    ) {
+        return ApiResult.success(SuccessType.SUCCESS, adminItemService.createThumbnailPresignPut(itemId, request));
+    }
+
+    @PostMapping("/items/{itemId}/images/presign-put")
+    @Override
+    public ApiResult<AdminItemPresignPutResponseDto> presignImage(
+            @PathVariable Long itemId,
+            @Valid @RequestBody AdminItemPresignPutRequestDto request
+    ) {
+        return ApiResult.success(SuccessType.SUCCESS, adminItemService.createImagePresignPut(itemId, request));
     }
 
     @DeleteMapping("/items/{itemId}")

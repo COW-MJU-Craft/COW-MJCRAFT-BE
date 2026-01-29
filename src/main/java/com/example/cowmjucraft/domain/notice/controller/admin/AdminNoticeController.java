@@ -1,7 +1,9 @@
 package com.example.cowmjucraft.domain.notice.controller.admin;
 
 import com.example.cowmjucraft.domain.notice.dto.request.AdminNoticeCreateRequestDto;
+import com.example.cowmjucraft.domain.notice.dto.request.AdminNoticePresignPutRequestDto;
 import com.example.cowmjucraft.domain.notice.dto.request.AdminNoticeUpdateRequestDto;
+import com.example.cowmjucraft.domain.notice.dto.response.AdminNoticePresignPutResponseDto;
 import com.example.cowmjucraft.domain.notice.dto.response.NoticeDetailResponseDto;
 import com.example.cowmjucraft.domain.notice.dto.response.NoticeSummaryResponseDto;
 import com.example.cowmjucraft.domain.notice.service.AdminNoticeService;
@@ -32,6 +34,14 @@ public class AdminNoticeController implements AdminNoticeControllerDocs {
             @Valid @RequestBody AdminNoticeCreateRequestDto request
     ) {
         return ApiResult.success(SuccessType.CREATED, adminNoticeService.create(request));
+    }
+
+    @PostMapping("/presign-put/images")
+    @Override
+    public ApiResult<AdminNoticePresignPutResponseDto> presignImage(
+            @Valid @RequestBody AdminNoticePresignPutRequestDto request
+    ) {
+        return ApiResult.success(SuccessType.SUCCESS, adminNoticeService.createImagePresignPut(request));
     }
 
     @PutMapping("/{noticeId}")

@@ -1,7 +1,9 @@
 package com.example.cowmjucraft.domain.notice.controller.admin;
 
 import com.example.cowmjucraft.domain.notice.dto.request.AdminNoticeCreateRequestDto;
+import com.example.cowmjucraft.domain.notice.dto.request.AdminNoticePresignPutRequestDto;
 import com.example.cowmjucraft.domain.notice.dto.request.AdminNoticeUpdateRequestDto;
+import com.example.cowmjucraft.domain.notice.dto.response.AdminNoticePresignPutResponseDto;
 import com.example.cowmjucraft.domain.notice.dto.response.NoticeDetailResponseDto;
 import com.example.cowmjucraft.domain.notice.dto.response.NoticeSummaryResponseDto;
 import com.example.cowmjucraft.global.response.ApiResult;
@@ -32,7 +34,56 @@ public interface AdminNoticeControllerDocs {
                                     {
                                       "title": "설 연휴 배송 일정 안내",
                                       "content": "설 연휴 기간 동안 배송이 중단됩니다.",
-                                      "imageKeys": ["uploads/notices/notice-001.png"]
+                                      "imageKeys": ["uploads/notices/images/uuid-notice.png"]
+                                    }
+                                    """
+                    )
+            )
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "201",
+                    description = "성공",
+                    content = @Content(
+                            schema = @Schema(implementation = ApiResult.class),
+                            examples = @ExampleObject(
+                                    name = "notice-create-response",
+                                    value = """
+                                            {
+                                              "resultType": "SUCCESS",
+                                              "httpStatusCode": 201,
+                                              "message": "성공적으로 생성하였습니다.",
+                                              "data": {
+                                                "id": 1,
+                                                "title": "설 연휴 배송 일정 안내",
+                                                "content": "설 연휴 기간 동안 배송이 중단됩니다.",
+                                                "imageKeys": ["uploads/notices/images/uuid-notice.png"],
+                                                "createdAt": "2026-01-20T10:15:30",
+                                                "updatedAt": "2026-01-20T10:15:30"
+                                              }
+                                            }
+                                            """
+                            )
+                    )
+            ),
+            @ApiResponse(responseCode = "422", description = "요청 값 검증 실패")
+    })
+    ApiResult<NoticeDetailResponseDto> createNotice(
+            @Valid AdminNoticeCreateRequestDto request
+    );
+
+    @Operation(summary = "공지사항 이미지 presign-put 발급", description = "공지사항 이미지 업로드용 presigned PUT URL을 발급합니다.")
+    @RequestBody(
+            required = true,
+            description = "presign-put 요청",
+            content = @Content(
+                    schema = @Schema(implementation = AdminNoticePresignPutRequestDto.class),
+                    examples = @ExampleObject(
+                            name = "notice-image-presign-request",
+                            value = """
+                                    {
+                                      "fileName": "notice.png",
+                                      "contentType": "image/png"
                                     }
                                     """
                     )
@@ -42,12 +93,29 @@ public interface AdminNoticeControllerDocs {
             @ApiResponse(
                     responseCode = "200",
                     description = "성공",
-                    content = @Content(schema = @Schema(implementation = ApiResult.class))
+                    content = @Content(
+                            schema = @Schema(implementation = ApiResult.class),
+                            examples = @ExampleObject(
+                                    name = "notice-image-presign-response",
+                                    value = """
+                                            {
+                                              "resultType": "SUCCESS",
+                                              "httpStatusCode": 200,
+                                              "message": "요청에 성공하였습니다.",
+                                              "data": {
+                                                "key": "uploads/notices/images/uuid-notice.png",
+                                                "uploadUrl": "https://bucket.s3.amazonaws.com/...",
+                                                "expiresInSeconds": 300
+                                              }
+                                            }
+                                            """
+                            )
+                    )
             ),
             @ApiResponse(responseCode = "422", description = "요청 값 검증 실패")
     })
-    ApiResult<NoticeDetailResponseDto> createNotice(
-            @Valid AdminNoticeCreateRequestDto request
+    ApiResult<AdminNoticePresignPutResponseDto> presignImage(
+            @Valid AdminNoticePresignPutRequestDto request
     );
 
     @Operation(summary = "공지사항 수정", description = "공지사항을 수정합니다.")
@@ -62,7 +130,7 @@ public interface AdminNoticeControllerDocs {
                                     {
                                       "title": "설 연휴 배송 일정 안내 (수정)",
                                       "content": "설 연휴 기간 동안 배송이 중단됩니다.",
-                                      "imageKeys": ["uploads/notices/notice-001.png"]
+                                      "imageKeys": ["uploads/notices/images/uuid-notice.png"]
                                     }
                                     """
                     )
@@ -86,9 +154,22 @@ public interface AdminNoticeControllerDocs {
     @Operation(summary = "공지사항 삭제", description = "공지사항을 삭제합니다.")
     @ApiResponses({
             @ApiResponse(
-                    responseCode = "200",
+                    responseCode = "204",
                     description = "성공",
-                    content = @Content(schema = @Schema(implementation = ApiResult.class))
+                    content = @Content(
+                            schema = @Schema(implementation = ApiResult.class),
+                            examples = @ExampleObject(
+                                    name = "notice-delete-response",
+                                    value = """
+                                            {
+                                              "resultType": "SUCCESS",
+                                              "httpStatusCode": 204,
+                                              "message": "요청에 성공하였습니다.",
+                                              "data": null
+                                            }
+                                            """
+                            )
+                    )
             ),
             @ApiResponse(responseCode = "404", description = "요청한 리소스를 찾을 수 없음")
     })
