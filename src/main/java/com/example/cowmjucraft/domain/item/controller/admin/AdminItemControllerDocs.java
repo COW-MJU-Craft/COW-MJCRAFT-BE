@@ -2,9 +2,11 @@ package com.example.cowmjucraft.domain.item.controller.admin;
 
 import com.example.cowmjucraft.domain.item.dto.request.AdminItemImageCreateRequestDto;
 import com.example.cowmjucraft.domain.item.dto.request.AdminItemImageOrderPatchRequestDto;
+import com.example.cowmjucraft.domain.item.dto.request.AdminItemPresignPutRequestDto;
 import com.example.cowmjucraft.domain.item.dto.request.AdminProjectItemCreateRequestDto;
 import com.example.cowmjucraft.domain.item.dto.request.AdminProjectItemUpdateRequestDto;
 import com.example.cowmjucraft.domain.item.dto.response.AdminItemImageOrderPatchResponseDto;
+import com.example.cowmjucraft.domain.item.dto.response.AdminItemPresignPutResponseDto;
 import com.example.cowmjucraft.domain.item.dto.response.AdminProjectItemResponseDto;
 import com.example.cowmjucraft.domain.item.dto.response.ProjectItemImageResponseDto;
 import com.example.cowmjucraft.global.response.ApiResult;
@@ -19,7 +21,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import jakarta.validation.Valid;
 import java.util.List;
-import org.springframework.web.bind.annotation.PathVariable;
 
 @Tag(name = "Item - Admin", description = "물품 관리자 API")
 public interface AdminItemControllerDocs {
@@ -42,7 +43,7 @@ public interface AdminItemControllerDocs {
                                       "price": 12000,
                                       "saleType": "GROUPBUY",
                                       "status": "OPEN",
-                                      "thumbnailKey": "uploads/items/thumbnail-001.png",
+                                      "thumbnailKey": "uploads/items/1/thumbnail/uuid-thumbnail.png",
                                       "targetQty": 100,
                                       "fundedQty": 0
                                     }
@@ -71,7 +72,7 @@ public interface AdminItemControllerDocs {
                                                 "price": 12000,
                                                 "saleType": "GROUPBUY",
                                                 "status": "OPEN",
-                                                "thumbnailKey": "uploads/items/thumbnail-001.png",
+                                                "thumbnailKey": "uploads/items/1/thumbnail/uuid-thumbnail.png",
                                                 "targetQty": 100,
                                                 "fundedQty": 0,
                                                 "achievementRate": 0.0,
@@ -82,7 +83,7 @@ public interface AdminItemControllerDocs {
                             )
                     )
             ),
-            @ApiResponse(responseCode = "400", description = "요청 값 오류"),
+            @ApiResponse(responseCode = "404", description = "요청한 리소스를 찾을 수 없음"),
             @ApiResponse(responseCode = "422", description = "요청 값 검증 실패")
     })
     ApiResult<AdminProjectItemResponseDto> createItem(
@@ -109,7 +110,7 @@ public interface AdminItemControllerDocs {
                                       "price": 11000,
                                       "saleType": "NORMAL",
                                       "status": "OPEN",
-                                      "thumbnailKey": "uploads/items/thumbnail-001.png",
+                                      "thumbnailKey": "uploads/items/1/thumbnail/uuid-thumbnail.png",
                                       "targetQty": 100,
                                       "fundedQty": 0
                                     }
@@ -123,13 +124,117 @@ public interface AdminItemControllerDocs {
                     description = "성공",
                     content = @Content(schema = @Schema(implementation = ApiResult.class))
             ),
-            @ApiResponse(responseCode = "400", description = "요청 값 오류"),
+            @ApiResponse(responseCode = "404", description = "요청한 리소스를 찾을 수 없음"),
             @ApiResponse(responseCode = "422", description = "요청 값 검증 실패")
     })
     ApiResult<AdminProjectItemResponseDto> updateItem(
             @Parameter(description = "물품 ID", example = "1")
             Long itemId,
             @Valid AdminProjectItemUpdateRequestDto request
+    );
+
+    @Operation(
+            summary = "물품 썸네일 presign-put 발급",
+            description = "물품 썸네일 업로드용 presigned PUT URL을 발급합니다."
+    )
+    @RequestBody(
+            required = true,
+            description = "presign-put 요청",
+            content = @Content(
+                    schema = @Schema(implementation = AdminItemPresignPutRequestDto.class),
+                    examples = @ExampleObject(
+                            name = "item-thumbnail-presign-request",
+                            value = """
+                                    {
+                                      "fileName": "thumbnail.png",
+                                      "contentType": "image/png"
+                                    }
+                                    """
+                    )
+            )
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "성공",
+                    content = @Content(
+                            schema = @Schema(implementation = ApiResult.class),
+                            examples = @ExampleObject(
+                                    name = "item-thumbnail-presign-response",
+                                    value = """
+                                            {
+                                              "resultType": "SUCCESS",
+                                              "httpStatusCode": 200,
+                                              "message": "요청에 성공하였습니다.",
+                                              "data": {
+                                                "key": "uploads/items/1/thumbnail/uuid-thumbnail.png",
+                                                "uploadUrl": "https://bucket.s3.amazonaws.com/...",
+                                                "expiresInSeconds": 300
+                                              }
+                                            }
+                                            """
+                            )
+                    )
+            ),
+            @ApiResponse(responseCode = "404", description = "요청한 리소스를 찾을 수 없음"),
+            @ApiResponse(responseCode = "422", description = "요청 값 검증 실패")
+    })
+    ApiResult<AdminItemPresignPutResponseDto> presignThumbnail(
+            @Parameter(description = "물품 ID", example = "1")
+            Long itemId,
+            @Valid AdminItemPresignPutRequestDto request
+    );
+
+    @Operation(
+            summary = "물품 상세 이미지 presign-put 발급",
+            description = "물품 상세 이미지 업로드용 presigned PUT URL을 발급합니다."
+    )
+    @RequestBody(
+            required = true,
+            description = "presign-put 요청",
+            content = @Content(
+                    schema = @Schema(implementation = AdminItemPresignPutRequestDto.class),
+                    examples = @ExampleObject(
+                            name = "item-image-presign-request",
+                            value = """
+                                    {
+                                      "fileName": "detail.png",
+                                      "contentType": "image/png"
+                                    }
+                                    """
+                    )
+            )
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "성공",
+                    content = @Content(
+                            schema = @Schema(implementation = ApiResult.class),
+                            examples = @ExampleObject(
+                                    name = "item-image-presign-response",
+                                    value = """
+                                            {
+                                              "resultType": "SUCCESS",
+                                              "httpStatusCode": 200,
+                                              "message": "요청에 성공하였습니다.",
+                                              "data": {
+                                                "key": "uploads/items/1/images/uuid-detail.png",
+                                                "uploadUrl": "https://bucket.s3.amazonaws.com/...",
+                                                "expiresInSeconds": 300
+                                              }
+                                            }
+                                            """
+                            )
+                    )
+            ),
+            @ApiResponse(responseCode = "404", description = "요청한 리소스를 찾을 수 없음"),
+            @ApiResponse(responseCode = "422", description = "요청 값 검증 실패")
+    })
+    ApiResult<AdminItemPresignPutResponseDto> presignImage(
+            @Parameter(description = "물품 ID", example = "1")
+            Long itemId,
+            @Valid AdminItemPresignPutRequestDto request
     );
 
     @Operation(
@@ -140,9 +245,22 @@ public interface AdminItemControllerDocs {
             @ApiResponse(
                     responseCode = "204",
                     description = "성공",
-                    content = @Content(schema = @Schema(implementation = ApiResult.class))
+                    content = @Content(
+                            schema = @Schema(implementation = ApiResult.class),
+                            examples = @ExampleObject(
+                                    name = "item-delete-response",
+                                    value = """
+                                            {
+                                              "resultType": "SUCCESS",
+                                              "httpStatusCode": 204,
+                                              "message": "요청에 성공하였습니다.",
+                                              "data": null
+                                            }
+                                            """
+                            )
+                    )
             ),
-            @ApiResponse(responseCode = "400", description = "요청 값 오류")
+            @ApiResponse(responseCode = "404", description = "요청한 리소스를 찾을 수 없음")
     })
     ApiResult<?> deleteItem(
             @Parameter(description = "물품 ID", example = "1")
@@ -163,8 +281,8 @@ public interface AdminItemControllerDocs {
                             value = """
                                     {
                                       "images": [
-                                        { "imageKey": "uploads/items/detail-001.png", "sortOrder": 0 },
-                                        { "imageKey": "uploads/items/detail-002.png", "sortOrder": 1 }
+                                        { "imageKey": "uploads/items/1/images/uuid-detail-01.png", "sortOrder": 0 },
+                                        { "imageKey": "uploads/items/1/images/uuid-detail-02.png", "sortOrder": 1 }
                                       ]
                                     }
                                     """
@@ -184,10 +302,10 @@ public interface AdminItemControllerDocs {
                                               "resultType": "SUCCESS",
                                               "httpStatusCode": 200,
                                               "message": "요청에 성공하였습니다.",
-                                              "data": [
+                                                  "data": [
                                                 {
                                                   "id": 5,
-                                                  "imageKey": "uploads/items/detail-001.png",
+                                                  "imageKey": "uploads/items/1/images/uuid-detail-01.png",
                                                   "sortOrder": 0
                                                 }
                                               ]
@@ -196,7 +314,8 @@ public interface AdminItemControllerDocs {
                             )
                     )
             ),
-            @ApiResponse(responseCode = "400", description = "요청 값 오류"),
+            @ApiResponse(responseCode = "404", description = "요청한 리소스를 찾을 수 없음"),
+            @ApiResponse(responseCode = "409", description = "요청이 현재 상태와 충돌합니다."),
             @ApiResponse(responseCode = "422", description = "요청 값 검증 실패")
     })
     ApiResult<List<ProjectItemImageResponseDto>> addImages(
@@ -230,7 +349,8 @@ public interface AdminItemControllerDocs {
                     description = "성공",
                     content = @Content(schema = @Schema(implementation = ApiResult.class))
             ),
-            @ApiResponse(responseCode = "400", description = "요청 값 오류"),
+            @ApiResponse(responseCode = "404", description = "요청한 리소스를 찾을 수 없음"),
+            @ApiResponse(responseCode = "409", description = "요청이 현재 상태와 충돌합니다."),
             @ApiResponse(responseCode = "422", description = "요청 값 검증 실패")
     })
     ApiResult<AdminItemImageOrderPatchResponseDto> patchImageOrder(
@@ -247,14 +367,28 @@ public interface AdminItemControllerDocs {
             @ApiResponse(
                     responseCode = "204",
                     description = "성공",
-                    content = @Content(schema = @Schema(implementation = ApiResult.class))
+                    content = @Content(
+                            schema = @Schema(implementation = ApiResult.class),
+                            examples = @ExampleObject(
+                                    name = "item-image-delete-response",
+                                    value = """
+                                            {
+                                              "resultType": "SUCCESS",
+                                              "httpStatusCode": 204,
+                                              "message": "요청에 성공하였습니다.",
+                                              "data": null
+                                            }
+                                            """
+                            )
+                    )
             ),
-            @ApiResponse(responseCode = "400", description = "요청 값 오류")
+            @ApiResponse(responseCode = "404", description = "요청한 리소스를 찾을 수 없음"),
+            @ApiResponse(responseCode = "409", description = "요청이 현재 상태와 충돌합니다.")
     })
     ApiResult<?> deleteImage(
             @Parameter(description = "물품 ID", example = "1")
-            @PathVariable Long itemId,
+            Long itemId,
             @Parameter(description = "이미지 ID", example = "1")
-            @PathVariable Long imageId
+            Long imageId
     );
 }

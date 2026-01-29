@@ -1,12 +1,15 @@
 package com.example.cowmjucraft.domain.introduce.service;
 
-import com.example.cowmjucraft.domain.introduce.dto.request.AdminIntroduceUpsertRequest;
-import com.example.cowmjucraft.domain.introduce.dto.response.AdminIntroduceResponse;
-import com.example.cowmjucraft.domain.introduce.dto.response.IntroduceDetailResponse;
-import com.example.cowmjucraft.domain.introduce.dto.response.IntroduceMainSummaryResponse;
+import com.example.cowmjucraft.domain.introduce.dto.request.AdminIntroduceUpsertRequestDto;
+import com.example.cowmjucraft.domain.introduce.dto.request.AdminIntroducePresignPutRequestDto;
+import com.example.cowmjucraft.domain.introduce.dto.response.AdminIntroducePresignPutResponseDto;
+import com.example.cowmjucraft.domain.introduce.dto.response.AdminIntroduceResponseDto;
+import com.example.cowmjucraft.domain.introduce.dto.response.IntroduceDetailResponseDto;
+import com.example.cowmjucraft.domain.introduce.dto.response.IntroduceMainSummaryResponseDto;
 import com.example.cowmjucraft.domain.introduce.entity.Introduce;
 import com.example.cowmjucraft.domain.introduce.repository.IntroduceRepository;
 import com.example.cowmjucraft.domain.introduce.section.IntroduceSectionType;
+import com.example.cowmjucraft.global.cloud.S3PresignFacade;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -27,16 +30,22 @@ public class IntroduceService {
 
     private final IntroduceRepository introduceRepository;
     private final IntroduceJsonCodec jsonCodec;
+    private final S3PresignFacade s3PresignFacade;
 
-    public IntroduceService(IntroduceRepository introduceRepository, ObjectMapper objectMapper) {
+    public IntroduceService(
+            IntroduceRepository introduceRepository,
+            ObjectMapper objectMapper,
+            S3PresignFacade s3PresignFacade
+    ) {
         this.introduceRepository = introduceRepository;
         this.jsonCodec = new IntroduceJsonCodec(objectMapper);
+        this.s3PresignFacade = s3PresignFacade;
     }
 
     @Transactional(readOnly = true)
-    public IntroduceMainSummaryResponse getMainSummary() {
+    public IntroduceMainSummaryResponseDto getMainSummary() {
         Introduce introduce = getIntroduceOrThrow();
-        return new IntroduceMainSummaryResponse(
+        return new IntroduceMainSummaryResponseDto(
                 introduce.getTitle(),
                 introduce.getSubtitle(),
                 introduce.getSummary(),
@@ -45,15 +54,15 @@ public class IntroduceService {
     }
 
     @Transactional(readOnly = true)
-    public IntroduceDetailResponse getDetail() {
+    public IntroduceDetailResponseDto getDetail() {
         Introduce introduce = getIntroduceOrThrow();
-        return new IntroduceDetailResponse(jsonCodec.readSections(introduce.getSectionsJson()));
+        return new IntroduceDetailResponseDto(jsonCodec.readSections(introduce.getSectionsJson()));
     }
 
     @Transactional(readOnly = true)
-    public AdminIntroduceResponse adminGet() {
+    public AdminIntroduceResponseDto adminGet() {
         Introduce introduce = getIntroduceOrThrow();
-        return new AdminIntroduceResponse(
+        return new AdminIntroduceResponseDto(
                 introduce.getTitle(),
                 introduce.getSubtitle(),
                 introduce.getSummary(),
@@ -64,7 +73,7 @@ public class IntroduceService {
     }
 
     @Transactional
-    public AdminIntroduceResponse adminUpsert(AdminIntroduceUpsertRequest request) {
+    public AdminIntroduceResponseDto adminUpsert(AdminIntroduceUpsertRequestDto request) {
         validateSections(request.sections());
 
         String heroLogoKeysJson = jsonCodec.writeJson(request.heroLogoKeys());
@@ -89,7 +98,7 @@ public class IntroduceService {
 
         introduceRepository.save(introduce);
 
-        return new AdminIntroduceResponse(
+        return new AdminIntroduceResponseDto(
                 introduce.getTitle(),
                 introduce.getSubtitle(),
                 introduce.getSummary(),
@@ -97,6 +106,26 @@ public class IntroduceService {
                 jsonCodec.readSections(introduce.getSectionsJson()),
                 introduce.getUpdatedAt()
         );
+    }
+
+    public AdminIntroducePresignPutResponseDto createHeroLogoPresignPut(
+            AdminIntroducePresignPutRequestDto request
+    ) {
+        S3PresignFacade.PresignPutBatchResult response = s3PresignFacade.createPresignPutBatch(
+                "uploads/introduce/hero-logos",
+                List.of(new S3PresignFacade.PresignPutFile(request.fileName(), request.contentType()))
+        );
+        return toSinglePresignResponse(response);
+    }
+
+    public AdminIntroducePresignPutResponseDto createSectionPresignPut(
+            AdminIntroducePresignPutRequestDto request
+    ) {
+        S3PresignFacade.PresignPutBatchResult response = s3PresignFacade.createPresignPutBatch(
+                "uploads/introduce/sections",
+                List.of(new S3PresignFacade.PresignPutFile(request.fileName(), request.contentType()))
+        );
+        return toSinglePresignResponse(response);
     }
 
     private Introduce getIntroduceOrThrow() {
@@ -128,7 +157,6 @@ public class IntroduceService {
                 throw badRequest(errInvalidType(i, typeText));
             }
 
-            // TODO: 섹션별 필수 필드 검증은 여기서 확장
         }
     }
 
@@ -187,5 +215,17 @@ public class IntroduceService {
                 throw new IllegalStateException("Failed to serialize introduce payload", e);
             }
         }
+    }
+
+    private AdminIntroducePresignPutResponseDto toSinglePresignResponse(S3PresignFacade.PresignPutBatchResult response) {
+        if (response.items() == null || response.items().isEmpty()) {
+            throw new IllegalArgumentException("presign items is empty");
+        }
+        S3PresignFacade.PresignPutItem item = response.items().get(0);
+        return new AdminIntroducePresignPutResponseDto(
+                item.key(),
+                item.uploadUrl(),
+                item.expiresInSeconds()
+        );
     }
 }

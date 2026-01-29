@@ -16,7 +16,7 @@ public record NoticeDetailResponseDto(
         @Schema(description = "공지 내용", example = "설 연휴 기간 동안 배송이 중단됩니다.")
         String content,
 
-        @Schema(description = "공지 이미지 S3 key 목록", example = "[\"uploads/notices/notice-001.png\"]")
+        @Schema(description = "공지 이미지 S3 object key 목록", example = "[\"uploads/notices/images/uuid-notice.png\"]")
         List<String> imageKeys,
 
         @Schema(description = "등록일시", example = "2026-01-20T10:15:30")

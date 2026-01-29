@@ -5,8 +5,6 @@ import java.time.Duration;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import com.example.cowmjucraft.domain.media.policy.MediaUsageType;
-
 import lombok.RequiredArgsConstructor;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
@@ -59,20 +57,6 @@ public class S3PresignService {
         PresignedGetObjectRequest presigned = s3Presigner.presignGetObject(presignReq);
 
         return new PresignGetResult(presigned.url().toString());
-    }
-
-    public String resolvePrefix(MediaUsageType usageType) {
-        if (usageType == null) {
-            return "uploads/etc/";
-        }
-        return switch (usageType) {
-            case INTRO -> "uploads/intro/";
-            case PROJECT -> "uploads/projects/";
-            case LOGO -> "uploads/logos/";
-            case JOURNAL -> "uploads/journals/";
-            case NOTICE -> "uploads/notices/";
-            case ETC -> "uploads/etc/";
-        };
     }
 
     public int getExpireSeconds() {
