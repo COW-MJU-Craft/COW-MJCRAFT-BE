@@ -114,11 +114,27 @@ public class IntroduceService {
     @Transactional(readOnly = true)
     public AdminIntroduceMainResponseDto adminGetMain() {
         Introduce introduce = getIntroduceOrThrow();
+
+        List<String> heroKeys = jsonCodec.readHeroLogoKeys(introduce.getHeroLogoKeysJson());
+        heroKeys = heroKeys == null ? List.of() : heroKeys;
+
+        Set<String> keySet = new LinkedHashSet<>();
+        for (String k : heroKeys) addIfValidKey(keySet, k);
+
+        Map<String, String> urls = presignGetSafely(keySet);
+
+        List<IntroduceHeroLogoResponseDto> heroLogos = new ArrayList<>();
+        for (String k : heroKeys) {
+            String key = toNonBlankString(k);
+            if (key == null) continue;
+            heroLogos.add(new IntroduceHeroLogoResponseDto(key, resolveUrl(urls, key)));
+        }
+
         return new AdminIntroduceMainResponseDto(
                 introduce.getTitle(),
                 introduce.getSubtitle(),
                 introduce.getSummary(),
-                jsonCodec.readHeroLogoKeys(introduce.getHeroLogoKeysJson()),
+                heroLogos,
                 introduce.getUpdatedAt()
         );
     }
@@ -153,14 +169,21 @@ public class IntroduceService {
     @Transactional(readOnly = true)
     public AdminIntroduceDetailResponseDto adminGetDetail() {
         Introduce introduce = getIntroduceOrThrow();
-        IntroduceDetailContentDto content =
-                jsonCodec.readDetailContent(introduce.getSectionsJson());
+        IntroduceDetailContentDto content = jsonCodec.readDetailContent(introduce.getSectionsJson());
+
+        IntroduceIntroDto intro = content == null ? null : content.intro();
+        IntroducePurposeDto purpose = safePurpose(content);
+        IntroduceCurrentLogoDto currentLogo = safeCurrentLogo(content);
+        List<IntroduceLogoHistoryDto> histories = safeHistories(content);
+
+        Set<String> keys = collectPresignKeys(currentLogo, histories);
+        Map<String, String> urls = presignGetSafely(keys);
 
         return new AdminIntroduceDetailResponseDto(
-                content == null ? null : content.intro(),
-                safePurpose(content),
-                safeCurrentLogo(content),
-                safeHistories(content),
+                intro,
+                purpose,
+                toCurrentLogoResponse(currentLogo, urls),
+                toHistoryResponses(histories, urls),
                 introduce.getUpdatedAt()
         );
     }
@@ -191,11 +214,14 @@ public class IntroduceService {
 
         introduceRepository.save(introduce);
 
+        Set<String> keys = collectPresignKeys(content.currentLogo(), content.logoHistories());
+        Map<String, String> urls = presignGetSafely(keys);
+
         return new AdminIntroduceDetailResponseDto(
                 content.intro(),
                 content.purpose(),
-                content.currentLogo(),
-                content.logoHistories(),
+                toCurrentLogoResponse(content.currentLogo(), urls),
+                toHistoryResponses(content.logoHistories(), urls),
                 introduce.getUpdatedAt()
         );
     }

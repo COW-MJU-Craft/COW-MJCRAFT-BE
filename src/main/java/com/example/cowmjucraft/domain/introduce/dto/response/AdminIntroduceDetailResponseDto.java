@@ -1,8 +1,6 @@
 package com.example.cowmjucraft.domain.introduce.dto.response;
 
-import com.example.cowmjucraft.domain.introduce.dto.common.IntroduceCurrentLogoDto;
 import com.example.cowmjucraft.domain.introduce.dto.common.IntroduceIntroDto;
-import com.example.cowmjucraft.domain.introduce.dto.common.IntroduceLogoHistoryDto;
 import com.example.cowmjucraft.domain.introduce.dto.common.IntroducePurposeDto;
 import io.swagger.v3.oas.annotations.media.Schema;
 
@@ -17,11 +15,11 @@ public record AdminIntroduceDetailResponseDto(
         @Schema(description = "목적(Purpose)")
         IntroducePurposeDto purpose,
 
-        @Schema(description = "현재 로고")
-        IntroduceCurrentLogoDto currentLogo,
+        @Schema(description = "현재 로고 (url 포함)")
+        IntroduceCurrentLogoResponseDto currentLogo,
 
-        @Schema(description = "로고 히스토리 목록")
-        List<IntroduceLogoHistoryDto> logoHistories,
+        @Schema(description = "로고 히스토리 목록 (url 포함)")
+        List<IntroduceLogoHistoryResponseDto> logoHistories,
 
         @Schema(description = "최종 수정 시각", example = "2026-01-29T00:12:34")
         LocalDateTime updatedAt
