@@ -1,24 +1,26 @@
 package com.example.cowmjucraft.domain.introduce.dto.response;
 
+import com.example.cowmjucraft.domain.introduce.dto.common.IntroduceIntroDto;
+import com.example.cowmjucraft.domain.introduce.dto.common.IntroducePurposeDto;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.util.List;
-import java.util.Map;
 
 @Schema(description = "소개 상세 응답 DTO")
 public record IntroduceDetailResponseDto(
-        @Schema(
-                description = "소개 섹션 목록 (type 필드 포함)",
-                example = """
-                        [
-                          {
-                            "type": "PURPOSE",
-                            "title": "우리가 하는 일",
-                            "description": "명지공방은 학생들이 직접 기획하고 제작하는 굿즈 프로젝트를 운영합니다."
-                          }
-                        ]
-                        """
-        )
-        List<Map<String, Object>> sections
+        @Schema(description = "브랜드명/슬로건")
+        IntroduceBrandResponseDto brand,
+
+        @Schema(description = "긴 소개 본문")
+        IntroduceIntroDto intro,
+
+        @Schema(description = "목적(Purpose)")
+        IntroducePurposeDto purpose,
+
+        @Schema(description = "현재 로고")
+        IntroduceCurrentLogoResponseDto currentLogo,
+
+        @Schema(description = "로고 히스토리 목록")
+        List<IntroduceLogoHistoryResponseDto> logoHistories
 ) {
 }

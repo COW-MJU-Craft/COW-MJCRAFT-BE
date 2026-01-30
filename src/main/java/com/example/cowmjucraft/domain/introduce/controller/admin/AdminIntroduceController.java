@@ -1,9 +1,11 @@
 package com.example.cowmjucraft.domain.introduce.controller.admin;
 
-import com.example.cowmjucraft.domain.introduce.dto.request.AdminIntroduceUpsertRequestDto;
+import com.example.cowmjucraft.domain.introduce.dto.request.AdminIntroduceDetailUpsertRequestDto;
+import com.example.cowmjucraft.domain.introduce.dto.request.AdminIntroduceMainUpsertRequestDto;
 import com.example.cowmjucraft.domain.introduce.dto.request.AdminIntroducePresignPutRequestDto;
 import com.example.cowmjucraft.domain.introduce.dto.response.AdminIntroducePresignPutResponseDto;
-import com.example.cowmjucraft.domain.introduce.dto.response.AdminIntroduceResponseDto;
+import com.example.cowmjucraft.domain.introduce.dto.response.AdminIntroduceDetailResponseDto;
+import com.example.cowmjucraft.domain.introduce.dto.response.AdminIntroduceMainResponseDto;
 import com.example.cowmjucraft.domain.introduce.service.IntroduceService;
 import com.example.cowmjucraft.global.response.ApiResult;
 import com.example.cowmjucraft.global.response.type.SuccessType;
@@ -23,18 +25,32 @@ public class AdminIntroduceController implements AdminIntroduceControllerDocs {
 
     private final IntroduceService introduceService;
 
+    @GetMapping("/main")
+    @Override
+    public ApiResult<AdminIntroduceMainResponseDto> getMain() {
+        return ApiResult.success(SuccessType.SUCCESS, introduceService.adminGetMain());
+    }
+
+    @PutMapping("/main")
+    @Override
+    public ApiResult<AdminIntroduceMainResponseDto> upsertMain(
+            @Valid @RequestBody AdminIntroduceMainUpsertRequestDto request
+    ) {
+        return ApiResult.success(SuccessType.SUCCESS, introduceService.adminUpsertMain(request));
+    }
+
     @GetMapping
     @Override
-    public ApiResult<AdminIntroduceResponseDto> getIntroduce() {
-        return ApiResult.success(SuccessType.SUCCESS, introduceService.adminGet());
+    public ApiResult<AdminIntroduceDetailResponseDto> getDetail() {
+        return ApiResult.success(SuccessType.SUCCESS, introduceService.adminGetDetail());
     }
 
     @PutMapping
     @Override
-    public ApiResult<AdminIntroduceResponseDto> upsertIntroduce(
-            @Valid @RequestBody AdminIntroduceUpsertRequestDto request
+    public ApiResult<AdminIntroduceDetailResponseDto> upsertDetail(
+            @Valid @RequestBody AdminIntroduceDetailUpsertRequestDto request
     ) {
-        return ApiResult.success(SuccessType.SUCCESS, introduceService.adminUpsert(request));
+        return ApiResult.success(SuccessType.SUCCESS, introduceService.adminUpsertDetail(request));
     }
 
     @PostMapping("/presign-put/hero-logos")
