@@ -29,7 +29,7 @@ public interface IntroduceControllerDocs {
 
     @Operation(
             summary = "소개 상세 조회",
-            description = "소개 상세 섹션 목록을 조회합니다."
+            description = "소개 상세 정보를 조회합니다. (intro 포함)"
     )
     @ApiResponses({
             @ApiResponse(
