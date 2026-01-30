@@ -18,9 +18,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -56,7 +59,23 @@ public class IntroduceService {
     @Transactional(readOnly = true)
     public IntroduceDetailResponseDto getDetail() {
         Introduce introduce = getIntroduceOrThrow();
-        return new IntroduceDetailResponseDto(jsonCodec.readSections(introduce.getSectionsJson()));
+
+        List<Map<String, Object>> sections =
+                new ArrayList<>(jsonCodec.readSections(introduce.getSectionsJson()));
+
+        Set<String> keys = collectPresignKeys(sections);
+
+        Map<String, String> urls;
+        try {
+            urls = keys.isEmpty()
+                    ? Map.of()
+                    : s3PresignFacade.presignGet(new ArrayList<>(keys));
+        } catch (Exception e) {
+            urls = Map.of();
+        }
+
+        injectPresignedUrls(sections, urls);
+        return new IntroduceDetailResponseDto(sections);
     }
 
     @Transactional(readOnly = true)
@@ -162,6 +181,119 @@ public class IntroduceService {
 
     private ResponseStatusException badRequest(String msg) {
         return new ResponseStatusException(HttpStatus.BAD_REQUEST, msg);
+    }
+
+    private Set<String> collectPresignKeys(List<Map<String, Object>> sections) {
+        if (sections == null || sections.isEmpty()) {
+            return new LinkedHashSet<>();
+        }
+
+        Set<String> keys = new LinkedHashSet<>();
+        for (Map<String, Object> section : sections) {
+            if (section == null) {
+                continue;
+            }
+            String type = toNonBlankString(section.get("type"));
+            if (type == null) {
+                continue;
+            }
+
+            if ("CURRENT_LOGO".equals(type)) {
+                addIfValidKey(keys, section.get("logoImageKey"));
+                continue;
+            }
+            if ("LOGO_HISTORY".equals(type)) {
+                Object historiesObj = section.get("histories");
+                if (historiesObj instanceof List<?> histories) {
+                    for (Object itemObj : histories) {
+                        if (!(itemObj instanceof Map<?, ?> itemMap)) {
+                            continue;
+                        }
+                        addIfValidKey(keys, itemMap.get("imageKey"));
+                    }
+                }
+                continue;
+            }
+            if ("HEADER".equals(type)) {
+                addIfValidKey(keys, section.get("backgroundImageKey"));
+            }
+        }
+        return keys;
+    }
+
+    private void injectPresignedUrls(List<Map<String, Object>> sections, Map<String, String> urls) {
+        if (sections == null || sections.isEmpty() || urls == null || urls.isEmpty()) {
+            return;
+        }
+
+        for (Map<String, Object> section : sections) {
+            if (section == null) {
+                continue;
+            }
+            String type = toNonBlankString(section.get("type"));
+            if (type == null) {
+                continue;
+            }
+
+            if ("CURRENT_LOGO".equals(type)) {
+                String logoImageKey = toNonBlankString(section.get("logoImageKey"));
+                if (logoImageKey != null) {
+                    String url = urls.get(logoImageKey);
+                    if (url != null) {
+                        section.put("logoImageUrl", url);
+                    }
+                }
+                continue;
+            }
+            if ("LOGO_HISTORY".equals(type)) {
+                Object historiesObj = section.get("histories");
+                if (historiesObj instanceof List<?> histories) {
+                    for (Object itemObj : histories) {
+                        if (!(itemObj instanceof Map<?, ?> itemMap)) {
+                            continue;
+                        }
+                        String imageKey = toNonBlankString(itemMap.get("imageKey"));
+                        if (imageKey == null) {
+                            continue;
+                        }
+                        String url = urls.get(imageKey);
+                        if (url != null) {
+                            @SuppressWarnings("unchecked")
+                            Map<String, Object> typedMap = (Map<String, Object>) itemMap;
+                            typedMap.put("imageUrl", url);
+                        }
+                    }
+                }
+                continue;
+            }
+            if ("HEADER".equals(type)) {
+                String backgroundImageKey = toNonBlankString(section.get("backgroundImageKey"));
+                if (backgroundImageKey != null) {
+                    String url = urls.get(backgroundImageKey);
+                    if (url != null) {
+                        section.put("backgroundImageUrl", url);
+                    }
+                }
+            }
+        }
+    }
+
+    private void addIfValidKey(Set<String> keys, Object value) {
+        if (keys == null) {
+            return;
+        }
+        String key = toNonBlankString(value);
+        if (key != null) {
+            keys.add(key);
+        }
+    }
+
+    private String toNonBlankString(Object value) {
+        if (!(value instanceof String text)) {
+            return null;
+        }
+        String trimmed = text.trim();
+        return trimmed.isEmpty() ? null : trimmed;
     }
 
     private String errTypeRequired(int idx) {
