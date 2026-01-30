@@ -32,8 +32,8 @@ public class JwtTokenProvider {
         return generateToken(loginId, Role.ROLE_ADMIN);
     }
 
-    public String generateMemberToken(String userId) {
-        return generateToken(userId, Role.ROLE_USER);
+    public String generateMemberToken(Long memberId) {
+        return generateToken(String.valueOf(memberId), Role.ROLE_USER);
     }
 
     private String generateToken(String subject, Role role) {

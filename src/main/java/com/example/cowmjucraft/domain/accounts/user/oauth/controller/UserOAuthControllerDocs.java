@@ -5,6 +5,7 @@ import com.example.cowmjucraft.domain.accounts.user.oauth.dto.request.NaverLogin
 import com.example.cowmjucraft.domain.accounts.user.oauth.dto.response.UserSocialLoginResponseDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -21,7 +22,24 @@ public interface UserOAuthControllerDocs {
             description = "네이버 OAuth 인가 코드로 로그인 후 JWT를 응답 바디에 반환합니다."
     )
     @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "로그인 성공", content = @Content(schema = @Schema(implementation = UserSocialLoginResponseDto.class))),
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "로그인 성공",
+                    content = @Content(
+                            schema = @Schema(implementation = UserSocialLoginResponseDto.class),
+                            examples = @ExampleObject(
+                                    name = "success",
+                                    value = """
+                                            {
+                                              "memberId": 1,
+                                              "userName": "홍길동",
+                                              "email": "user@example.com",
+                                              "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                                            }
+                                            """
+                            )
+                    )
+            ),
             @ApiResponse(responseCode = "401", description = "유효하지 않은 인가 코드")
     })
     ResponseEntity<UserSocialLoginResponseDto> loginWithNaver(@Valid @RequestBody NaverLoginRequestDto request);
@@ -31,7 +49,24 @@ public interface UserOAuthControllerDocs {
             description = "카카오 OAuth 인가 코드로 로그인 후 JWT를 응답 바디에 반환합니다."
     )
     @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "로그인 성공", content = @Content(schema = @Schema(implementation = UserSocialLoginResponseDto.class))),
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "로그인 성공",
+                    content = @Content(
+                            schema = @Schema(implementation = UserSocialLoginResponseDto.class),
+                            examples = @ExampleObject(
+                                    name = "success",
+                                    value = """
+                                            {
+                                              "memberId": 1,
+                                              "userName": "홍길동",
+                                              "email": "user@example.com",
+                                              "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                                            }
+                                            """
+                            )
+                    )
+            ),
             @ApiResponse(responseCode = "401", description = "유효하지 않은 인가 코드")
     })
     ResponseEntity<UserSocialLoginResponseDto> loginWithKakao(@Valid @RequestBody KakaoLoginRequestDto request);
