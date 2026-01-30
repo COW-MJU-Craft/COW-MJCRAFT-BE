@@ -14,6 +14,7 @@ import com.example.cowmjucraft.domain.introduce.dto.response.AdminIntroducePresi
 import com.example.cowmjucraft.domain.introduce.dto.response.IntroduceBrandResponseDto;
 import com.example.cowmjucraft.domain.introduce.dto.response.IntroduceCurrentLogoResponseDto;
 import com.example.cowmjucraft.domain.introduce.dto.response.IntroduceDetailResponseDto;
+import com.example.cowmjucraft.domain.introduce.dto.response.IntroduceHeroLogoResponseDto;
 import com.example.cowmjucraft.domain.introduce.dto.response.IntroduceLogoHistoryResponseDto;
 import com.example.cowmjucraft.domain.introduce.dto.response.IntroduceMainSummaryResponseDto;
 import com.example.cowmjucraft.domain.introduce.entity.Introduce;
@@ -57,11 +58,27 @@ public class IntroduceService {
     @Transactional(readOnly = true)
     public IntroduceMainSummaryResponseDto getMainSummary() {
         Introduce introduce = getIntroduceOrThrow();
+
+        List<String> heroKeys = jsonCodec.readHeroLogoKeys(introduce.getHeroLogoKeysJson());
+        heroKeys = heroKeys == null ? List.of() : heroKeys;
+
+        Set<String> keySet = new LinkedHashSet<>();
+        for (String k : heroKeys) addIfValidKey(keySet, k);
+
+        Map<String, String> urls = presignGetSafely(keySet);
+
+        List<IntroduceHeroLogoResponseDto> heroLogos = new ArrayList<>();
+        for (String k : heroKeys) {
+            String key = toNonBlankString(k);
+            if (key == null) continue;
+            heroLogos.add(new IntroduceHeroLogoResponseDto(key, resolveUrl(urls, key)));
+        }
+
         return new IntroduceMainSummaryResponseDto(
                 introduce.getTitle(),
                 introduce.getSubtitle(),
                 introduce.getSummary(),
-                jsonCodec.readHeroLogoKeys(introduce.getHeroLogoKeysJson())
+                heroLogos
         );
     }
 
@@ -69,7 +86,8 @@ public class IntroduceService {
     public IntroduceDetailResponseDto getDetail() {
         Introduce introduce = getIntroduceOrThrow();
 
-        IntroduceDetailContentDto content = jsonCodec.readDetailContent(introduce.getSectionsJson());
+        IntroduceDetailContentDto content =
+                jsonCodec.readDetailContent(introduce.getSectionsJson());
 
         IntroduceIntroDto intro = applyIntroFallback(
                 content == null ? null : content.intro(),
@@ -84,15 +102,12 @@ public class IntroduceService {
         Set<String> keys = collectPresignKeys(currentLogo, histories);
         Map<String, String> urls = presignGetSafely(keys);
 
-        IntroduceCurrentLogoResponseDto currentLogoResponse = toCurrentLogoResponse(currentLogo, urls);
-        List<IntroduceLogoHistoryResponseDto> historyResponses = toHistoryResponses(histories, urls);
-
         return new IntroduceDetailResponseDto(
                 new IntroduceBrandResponseDto(introduce.getTitle(), introduce.getSubtitle()),
                 intro,
                 purpose,
-                currentLogoResponse,
-                historyResponses
+                toCurrentLogoResponse(currentLogo, urls),
+                toHistoryResponses(histories, urls)
         );
     }
 
@@ -114,13 +129,12 @@ public class IntroduceService {
 
         Introduce introduce = introduceRepository.findById(INTRODUCE_ID).orElse(null);
         if (introduce == null) {
-            String sectionsJson = jsonCodec.writeDetailContent(IntroduceDetailContentDto.empty());
             introduce = new Introduce(
                     request.title(),
                     request.subtitle(),
                     request.summary(),
                     heroLogoKeysJson,
-                    sectionsJson
+                    jsonCodec.writeDetailContent(IntroduceDetailContentDto.empty())
             );
         } else {
             introduce.update(
@@ -133,42 +147,32 @@ public class IntroduceService {
         }
 
         introduceRepository.save(introduce);
-
-        return new AdminIntroduceMainResponseDto(
-                introduce.getTitle(),
-                introduce.getSubtitle(),
-                introduce.getSummary(),
-                jsonCodec.readHeroLogoKeys(introduce.getHeroLogoKeysJson()),
-                introduce.getUpdatedAt()
-        );
+        return adminGetMain();
     }
 
     @Transactional(readOnly = true)
     public AdminIntroduceDetailResponseDto adminGetDetail() {
         Introduce introduce = getIntroduceOrThrow();
-        IntroduceDetailContentDto content = jsonCodec.readDetailContent(introduce.getSectionsJson());
-
-        IntroduceIntroDto intro = content == null ? null : content.intro();
-        IntroducePurposeDto purpose = safePurpose(content);
-        IntroduceCurrentLogoDto currentLogo = safeCurrentLogo(content);
-        List<IntroduceLogoHistoryDto> histories = safeHistories(content);
+        IntroduceDetailContentDto content =
+                jsonCodec.readDetailContent(introduce.getSectionsJson());
 
         return new AdminIntroduceDetailResponseDto(
-                intro,
-                purpose,
-                currentLogo,
-                histories,
+                content == null ? null : content.intro(),
+                safePurpose(content),
+                safeCurrentLogo(content),
+                safeHistories(content),
                 introduce.getUpdatedAt()
         );
     }
 
     @Transactional
-    public AdminIntroduceDetailResponseDto adminUpsertDetail(AdminIntroduceDetailUpsertRequestDto request) {
+    public AdminIntroduceDetailResponseDto adminUpsertDetail(
+            AdminIntroduceDetailUpsertRequestDto request
+    ) {
         Introduce introduce = getIntroduceOrThrow();
 
-        List<IntroduceLogoHistoryDto> histories = request.logoHistories() == null
-                ? List.of()
-                : normalizeLogoHistories(request.logoHistories());
+        List<IntroduceLogoHistoryDto> histories =
+                normalizeLogoHistories(request.logoHistories());
 
         IntroduceDetailContentDto content = new IntroduceDetailContentDto(
                 request.intro(),
@@ -177,14 +181,14 @@ public class IntroduceService {
                 histories
         );
 
-        String sectionsJson = jsonCodec.writeDetailContent(content);
         introduce.update(
                 introduce.getTitle(),
                 introduce.getSubtitle(),
                 introduce.getSummary(),
                 introduce.getHeroLogoKeysJson(),
-                sectionsJson
+                jsonCodec.writeDetailContent(content)
         );
+
         introduceRepository.save(introduce);
 
         return new AdminIntroduceDetailResponseDto(
@@ -196,73 +200,87 @@ public class IntroduceService {
         );
     }
 
-    public AdminIntroducePresignPutResponseDto createHeroLogoPresignPut(AdminIntroducePresignPutRequestDto request) {
-        S3PresignFacade.PresignPutBatchResult response = s3PresignFacade.createPresignPutBatch(
-                "uploads/introduce/hero-logos",
-                List.of(new S3PresignFacade.PresignPutFile(request.fileName(), request.contentType()))
+    public AdminIntroducePresignPutResponseDto createHeroLogoPresignPut(
+            AdminIntroducePresignPutRequestDto request
+    ) {
+        return toSinglePresignResponse(
+                s3PresignFacade.createPresignPutBatch(
+                        "uploads/introduce/hero-logos",
+                        List.of(new S3PresignFacade.PresignPutFile(
+                                request.fileName(), request.contentType()
+                        ))
+                )
         );
-        return toSinglePresignResponse(response);
     }
 
-    public AdminIntroducePresignPutResponseDto createSectionPresignPut(AdminIntroducePresignPutRequestDto request) {
-        S3PresignFacade.PresignPutBatchResult response = s3PresignFacade.createPresignPutBatch(
-                "uploads/introduce/sections",
-                List.of(new S3PresignFacade.PresignPutFile(request.fileName(), request.contentType()))
+    public AdminIntroducePresignPutResponseDto createSectionPresignPut(
+            AdminIntroducePresignPutRequestDto request
+    ) {
+        return toSinglePresignResponse(
+                s3PresignFacade.createPresignPutBatch(
+                        "uploads/introduce/sections",
+                        List.of(new S3PresignFacade.PresignPutFile(
+                                request.fileName(), request.contentType()
+                        ))
+                )
         );
-        return toSinglePresignResponse(response);
     }
 
     private IntroducePurposeDto safePurpose(IntroduceDetailContentDto content) {
         if (content == null || content.purpose() == null) {
-            return new IntroducePurposeDto(null, null);
+            return new IntroducePurposeDto("", null);
         }
         return content.purpose();
     }
 
     private IntroduceCurrentLogoDto safeCurrentLogo(IntroduceDetailContentDto content) {
         if (content == null || content.currentLogo() == null) {
-            return new IntroduceCurrentLogoDto(null, null, null);
+            return new IntroduceCurrentLogoDto("", null, null);
         }
         return content.currentLogo();
     }
 
     private List<IntroduceLogoHistoryDto> safeHistories(IntroduceDetailContentDto content) {
-        if (content == null || content.logoHistories() == null) {
-            return List.of();
-        }
-        return normalizeLogoHistories(content.logoHistories());
+        return normalizeLogoHistories(
+                content == null ? null : content.logoHistories()
+        );
     }
 
     private Introduce getIntroduceOrThrow() {
         return introduceRepository.findById(INTRODUCE_ID)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "introduce not found"));
+                .orElseThrow(() ->
+                        new ResponseStatusException(HttpStatus.NOT_FOUND, "introduce not found"));
     }
 
-    private List<IntroduceLogoHistoryDto> normalizeLogoHistories(List<IntroduceLogoHistoryDto> histories) {
+    private List<IntroduceLogoHistoryDto> normalizeLogoHistories(
+            List<IntroduceLogoHistoryDto> histories
+    ) {
         return histories == null ? List.of() : histories;
     }
 
-    private IntroduceIntroDto applyIntroFallback(IntroduceIntroDto intro, String brandTitle, String brandSubtitle) {
+    private IntroduceIntroDto applyIntroFallback(
+            IntroduceIntroDto intro,
+            String brandTitle,
+            String brandSubtitle
+    ) {
         String title = intro == null ? null : intro.title();
         String slogan = intro == null ? null : intro.slogan();
-        String body = intro == null ? null : intro.body();
 
-        String resolvedTitle = isBlank(title) ? brandTitle : title;
-        String resolvedSlogan = isBlank(slogan) ? brandSubtitle : slogan;
-
-        return new IntroduceIntroDto(resolvedTitle, resolvedSlogan, body);
+        return new IntroduceIntroDto(
+                isBlank(title) ? brandTitle : title,
+                isBlank(slogan) ? brandSubtitle : slogan,
+                intro == null ? null : intro.body()
+        );
     }
 
-    private Set<String> collectPresignKeys(IntroduceCurrentLogoDto currentLogo, List<IntroduceLogoHistoryDto> histories) {
+    private Set<String> collectPresignKeys(
+            IntroduceCurrentLogoDto currentLogo,
+            List<IntroduceLogoHistoryDto> histories
+    ) {
         Set<String> keys = new LinkedHashSet<>();
-        if (currentLogo != null) {
-            addIfValidKey(keys, currentLogo.imageKey());
-        }
+        if (currentLogo != null) addIfValidKey(keys, currentLogo.imageKey());
         if (histories != null) {
-            for (IntroduceLogoHistoryDto history : histories) {
-                if (history == null) continue;
-                addIfValidKey(keys, history.imageKey());
-            }
+            histories.forEach(h -> addIfValidKey(keys, h.imageKey()));
         }
         return keys;
     }
@@ -278,18 +296,15 @@ public class IntroduceService {
     }
 
     private IntroduceCurrentLogoResponseDto toCurrentLogoResponse(
-            IntroduceCurrentLogoDto currentLogo,
+            IntroduceCurrentLogoDto dto,
             Map<String, String> urls
     ) {
-        if (currentLogo == null) return null;
-
-        String imageUrl = resolveUrl(urls, currentLogo.imageKey());
-
+        if (dto == null) return null;
         return new IntroduceCurrentLogoResponseDto(
-                currentLogo.title(),
-                currentLogo.imageKey(),
-                imageUrl,
-                currentLogo.description()
+                dto.title(),
+                dto.imageKey(),
+                resolveUrl(urls, dto.imageKey()),
+                dto.description()
         );
     }
 
@@ -297,44 +312,36 @@ public class IntroduceService {
             List<IntroduceLogoHistoryDto> histories,
             Map<String, String> urls
     ) {
-        if (histories == null || histories.isEmpty()) return List.of();
+        if (histories == null) return List.of();
 
-        List<IntroduceLogoHistoryResponseDto> responses = new ArrayList<>();
-        for (IntroduceLogoHistoryDto history : histories) {
-            if (history == null) continue;
-
-            responses.add(new IntroduceLogoHistoryResponseDto(
-                    history.year(),
-                    history.imageKey(),
-                    resolveUrl(urls, history.imageKey()),
-                    history.description()
+        List<IntroduceLogoHistoryResponseDto> result = new ArrayList<>();
+        for (IntroduceLogoHistoryDto h : histories) {
+            result.add(new IntroduceLogoHistoryResponseDto(
+                    h.year(),
+                    h.imageKey(),
+                    resolveUrl(urls, h.imageKey()),
+                    h.description()
             ));
         }
-        return responses;
+        return result;
     }
 
     private String resolveUrl(Map<String, String> urls, String key) {
-        if (urls == null || urls.isEmpty()) return null;
-
-        String normalizedKey = toNonBlankString(key);
-        return normalizedKey == null ? null : urls.get(normalizedKey);
+        String k = toNonBlankString(key);
+        return k == null ? null : urls.get(k);
     }
 
     private void addIfValidKey(Set<String> keys, String value) {
-        if (keys == null) return;
-
-        String key = toNonBlankString(value);
-        if (key != null) keys.add(key);
+        String k = toNonBlankString(value);
+        if (k != null) keys.add(k);
     }
 
-    private String toNonBlankString(String value) {
-        if (value == null) return null;
-        String trimmed = value.trim();
-        return trimmed.isEmpty() ? null : trimmed;
+    private String toNonBlankString(String v) {
+        return v == null || v.trim().isEmpty() ? null : v.trim();
     }
 
-    private boolean isBlank(String value) {
-        return value == null || value.trim().isEmpty();
+    private boolean isBlank(String v) {
+        return v == null || v.trim().isEmpty();
     }
 
     private static final class IntroduceJsonCodec {
@@ -361,7 +368,8 @@ public class IntroduceService {
         private IntroduceDetailContentDto readDetailContent(String json) {
             if (json == null) return IntroduceDetailContentDto.empty();
             try {
-                IntroduceDetailContentDto content = objectMapper.readValue(json, DETAIL_CONTENT_TYPE);
+                IntroduceDetailContentDto content =
+                        objectMapper.readValue(json, DETAIL_CONTENT_TYPE);
                 return content == null ? IntroduceDetailContentDto.empty() : content;
             } catch (JsonProcessingException e) {
                 log.warn("Failed to parse sectionsJson. Fallback to empty content.", e);
@@ -383,7 +391,9 @@ public class IntroduceService {
         }
     }
 
-    private AdminIntroducePresignPutResponseDto toSinglePresignResponse(S3PresignFacade.PresignPutBatchResult response) {
+    private AdminIntroducePresignPutResponseDto toSinglePresignResponse(
+            S3PresignFacade.PresignPutBatchResult response
+    ) {
         if (response.items() == null || response.items().isEmpty()) {
             throw new IllegalArgumentException("presign items is empty");
         }
