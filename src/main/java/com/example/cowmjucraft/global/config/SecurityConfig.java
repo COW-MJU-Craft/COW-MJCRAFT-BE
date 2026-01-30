@@ -30,6 +30,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/media/presign-put").hasRole("ADMIN")
                         .requestMatchers("/api/media/**").permitAll()
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/api/mypage/**").hasRole("USER")
                         .requestMatchers("/api/**").permitAll()
                         .anyRequest().permitAll()
                 )
