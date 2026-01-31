@@ -64,6 +64,9 @@ public class UserOAuthService {
             Member byEmail = memberRepository.findByEmail(email).orElse(null);
             if (byEmail != null) {
                 byEmail.updateSocial(provider, providerId);
+
+                byEmail.ensureUserId();
+
                 if (nickname != null && !nickname.isBlank()) {
                     byEmail.updateUserName(nickname);
                 }

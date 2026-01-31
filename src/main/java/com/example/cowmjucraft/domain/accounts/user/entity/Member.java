@@ -6,13 +6,15 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.util.UUID;
+
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
 @Table(
         name = "users",
         uniqueConstraints = {
-                @UniqueConstraint(columnNames = {"provider", "providerId"})
+                @UniqueConstraint(columnNames = {"provider", "provider_id"})
         }
 )
 public class Member {
@@ -21,7 +23,7 @@ public class Member {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
+    @Column(name = "user_name", nullable = false)
     private String userName;
 
     @Column(nullable = false, unique = true)
@@ -30,8 +32,11 @@ public class Member {
     @Enumerated(EnumType.STRING)
     private SocialProvider provider;
 
-    @Column
+    @Column(name = "provider_id")
     private String providerId;
+
+    @Column(name = "user_id", nullable = false, unique = true)
+    private String userId;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -43,6 +48,8 @@ public class Member {
     public Member(String userName, String email) {
         this.userName = userName;
         this.email = email;
+
+        this.userId = UUID.randomUUID().toString();
     }
 
     public void updateUserName(String userName) {
@@ -52,6 +59,12 @@ public class Member {
     public void updateSocial(SocialProvider provider, String providerId) {
         this.provider = provider;
         this.providerId = providerId;
+    }
+
+    public void ensureUserId() {
+        if (this.userId == null || this.userId.isBlank()) {
+            this.userId = UUID.randomUUID().toString();
+        }
     }
 
     public void upsertAddress(
