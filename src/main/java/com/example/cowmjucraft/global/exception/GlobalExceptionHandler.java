@@ -7,12 +7,17 @@ import jakarta.validation.ConstraintViolationException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatusCode;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.BindException;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
+import org.springframework.web.HttpMediaTypeNotAcceptableException;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -21,6 +26,7 @@ import org.springframework.web.server.ResponseStatusException;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+    private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
     private static final int MAX_ERROR_DETAILS = 5;
 
     @ExceptionHandler({MethodArgumentNotValidException.class, BindException.class})
@@ -31,6 +37,9 @@ public class GlobalExceptionHandler {
 
         String detail = buildFieldErrorDetail(bindingResult);
         String message = buildValidationMessage(detail);
+
+        log.debug("Validation error: {}", detail);
+
         return errorResponse(ErrorType.VALIDATION_FAILED, message);
     }
 
@@ -43,11 +52,15 @@ public class GlobalExceptionHandler {
         }
         String detail = summarizeDetails(details);
         String message = buildValidationMessage(detail);
+
+        log.debug("Constraint violation: {}", detail);
+
         return errorResponse(ErrorType.VALIDATION_FAILED, message);
     }
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<ApiResult<?>> handleNotReadable(HttpMessageNotReadableException exception) {
+        log.debug("Unreadable request body", exception);
         return errorResponse(
                 ErrorType.INVALID_REQUEST,
                 "요청 값 검증에 실패했습니다. (요청 본문 형식이 올바르지 않습니다)"
@@ -56,6 +69,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ApiResult<?>> handleIllegalArgument(IllegalArgumentException exception) {
+        log.debug("IllegalArgumentException: {}", exception.getMessage(), exception);
         String message = defaultIfBlank(exception.getMessage(), ErrorType.INVALID_REQUEST.getMessage());
         return errorResponse(ErrorType.INVALID_REQUEST, message);
     }
@@ -64,16 +78,36 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiResult<?>> handleResponseStatus(ResponseStatusException exception) {
         ErrorType errorType = mapStatusToErrorType(exception.getStatusCode());
         String message = defaultIfBlank(exception.getReason(), errorType.getMessage());
+
+        log.debug("ResponseStatusException: status={}, reason={}", exception.getStatusCode(), exception.getReason(), exception);
+
         return errorResponse(errorType, message);
+    }
+
+    @ExceptionHandler(HttpMediaTypeNotAcceptableException.class)
+    public ResponseEntity<ApiResult<?>> handleNotAcceptable(HttpMediaTypeNotAcceptableException exception) {
+        log.warn("Not acceptable (Accept/produces mismatch). Forcing JSON response.", exception);
+
+        return ResponseEntity.status(ErrorType.INTERNAL_ERROR.getHttpStatusCode())
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(ApiResult.error(ErrorType.INTERNAL_ERROR, ErrorType.INTERNAL_ERROR.getMessage()));
+    }
+
+    @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
+    public ResponseEntity<ApiResult<?>> handleMethodNotSupported(HttpRequestMethodNotSupportedException exception) {
+        log.debug("Method not supported: {}", exception.getMessage(), exception);
+        return errorResponse(ErrorType.BAD_REQUEST, "요청 방식이 올바르지 않습니다.");
     }
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResult<?>> handleException(Exception exception) {
+        log.error("Unhandled exception", exception);
         return errorResponse(ErrorType.INTERNAL_ERROR, ErrorType.INTERNAL_ERROR.getMessage());
     }
 
     private ResponseEntity<ApiResult<?>> errorResponse(ErrorType errorType, String message) {
         return ResponseEntity.status(errorType.getHttpStatusCode())
+                .contentType(MediaType.APPLICATION_JSON)
                 .body(ApiResult.error(errorType, message));
     }
 
