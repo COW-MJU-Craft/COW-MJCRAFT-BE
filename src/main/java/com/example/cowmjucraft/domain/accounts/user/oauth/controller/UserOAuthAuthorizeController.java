@@ -39,7 +39,8 @@ public class UserOAuthAuthorizeController implements UserOAuthAuthorizeControlle
 
         String state = generateState();
 
-        String redirectUrl = UriComponentsBuilder.fromHttpUrl(KAKAO_AUTHORIZE_URL)
+        String redirectUrl = UriComponentsBuilder
+                .fromUriString(KAKAO_AUTHORIZE_URL)
                 .queryParam("response_type", RESPONSE_TYPE_CODE)
                 .queryParam("client_id", kakaoOAuthProperties.getClientId())
                 .queryParam("redirect_uri", kakaoOAuthProperties.getRedirectUri())
@@ -63,7 +64,8 @@ public class UserOAuthAuthorizeController implements UserOAuthAuthorizeControlle
 
         String state = generateState();
 
-        String redirectUrl = UriComponentsBuilder.fromHttpUrl(NAVER_AUTHORIZE_URL)
+        String redirectUrl = UriComponentsBuilder
+                .fromUriString(NAVER_AUTHORIZE_URL)
                 .queryParam("response_type", RESPONSE_TYPE_CODE)
                 .queryParam("client_id", naverOAuthProperties.getClientId())
                 .queryParam("redirect_uri", naverOAuthProperties.getRedirectUri())
