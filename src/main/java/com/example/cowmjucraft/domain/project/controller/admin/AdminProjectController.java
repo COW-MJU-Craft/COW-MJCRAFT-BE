@@ -2,9 +2,11 @@ package com.example.cowmjucraft.domain.project.controller.admin;
 
 import com.example.cowmjucraft.domain.project.dto.request.AdminProjectCreateRequestDto;
 import com.example.cowmjucraft.domain.project.dto.request.AdminProjectOrderPatchRequestDto;
+import com.example.cowmjucraft.domain.project.dto.request.AdminProjectPresignPutBatchRequestDto;
 import com.example.cowmjucraft.domain.project.dto.request.AdminProjectPresignPutRequestDto;
 import com.example.cowmjucraft.domain.project.dto.request.AdminProjectUpdateRequestDto;
 import com.example.cowmjucraft.domain.project.dto.response.AdminProjectOrderPatchResponseDto;
+import com.example.cowmjucraft.domain.project.dto.response.AdminProjectPresignPutBatchResponseDto;
 import com.example.cowmjucraft.domain.project.dto.response.AdminProjectPresignPutResponseDto;
 import com.example.cowmjucraft.domain.project.dto.response.AdminProjectResponseDto;
 import com.example.cowmjucraft.domain.project.service.AdminProjectService;
@@ -44,12 +46,28 @@ public class AdminProjectController implements AdminProjectControllerDocs {
         return ApiResult.success(SuccessType.SUCCESS, adminProjectService.createThumbnailPresignPut(request));
     }
 
+    @PostMapping("/thumbnail/presign-put/batch")
+    @Override
+    public ApiResult<AdminProjectPresignPutBatchResponseDto> presignThumbnailBatch(
+            @Valid @RequestBody AdminProjectPresignPutBatchRequestDto request
+    ) {
+        return ApiResult.success(SuccessType.SUCCESS, adminProjectService.createThumbnailPresignPutBatch(request));
+    }
+
     @PostMapping("/images/presign-put")
     @Override
     public ApiResult<AdminProjectPresignPutResponseDto> presignImages(
             @Valid @RequestBody AdminProjectPresignPutRequestDto request
     ) {
         return ApiResult.success(SuccessType.SUCCESS, adminProjectService.createImagePresignPut(request));
+    }
+
+    @PostMapping("/images/presign-put/batch")
+    @Override
+    public ApiResult<AdminProjectPresignPutBatchResponseDto> presignImagesBatch(
+            @Valid @RequestBody AdminProjectPresignPutBatchRequestDto request
+    ) {
+        return ApiResult.success(SuccessType.SUCCESS, adminProjectService.createImagePresignPutBatch(request));
     }
 
     @PutMapping("/{projectId}")

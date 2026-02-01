@@ -16,8 +16,15 @@ public record ProjectListItemResponseDto(
         @Schema(description = "리스트 한줄 소개", example = "캠퍼스 감성을 담은 머그컵을 제작합니다.")
         String summary,
 
-        @Schema(description = "썸네일 S3 key", example = "uploads/projects/thumbnail-001.png")
+        @Schema(
+                description = "썸네일 S3 key",
+                example = "uploads/projects/thumbnail-001.png",
+                deprecated = true
+        )
         String thumbnailKey,
+
+        @Schema(description = "썸네일 이미지 URL", example = "https://bucket.s3.amazonaws.com/uploads/projects/thumbnail-001.png?X-Amz-Signature=...")
+        String thumbnailUrl,
 
         @Schema(description = "프로젝트 상태", example = "OPEN")
         ProjectStatus status,
