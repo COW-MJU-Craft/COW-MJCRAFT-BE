@@ -7,6 +7,7 @@ import com.example.cowmjucraft.domain.item.dto.request.AdminProjectItemCreateReq
 import com.example.cowmjucraft.domain.item.dto.request.AdminProjectItemUpdateRequestDto;
 import com.example.cowmjucraft.domain.item.dto.response.AdminItemImageOrderPatchResponseDto;
 import com.example.cowmjucraft.domain.item.dto.response.AdminItemPresignPutBatchResponseDto;
+import com.example.cowmjucraft.domain.item.dto.response.AdminProjectItemDetailResponseDto;
 import com.example.cowmjucraft.domain.item.dto.response.AdminProjectItemResponseDto;
 import com.example.cowmjucraft.domain.item.dto.response.ProjectItemImageResponseDto;
 import com.example.cowmjucraft.global.response.ApiResult;
@@ -24,6 +25,40 @@ import java.util.List;
 
 @Tag(name = "Item - Admin", description = "물품 관리자 API")
 public interface AdminItemControllerDocs {
+
+    @Operation(
+            summary = "프로젝트 물품 목록 조회 (관리자)",
+            description = "프로젝트 물품 목록을 조회합니다."
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "성공",
+                    content = @Content(schema = @Schema(implementation = ApiResult.class))
+            ),
+            @ApiResponse(responseCode = "404", description = "요청한 리소스를 찾을 수 없음")
+    })
+    ApiResult<List<AdminProjectItemResponseDto>> getItems(
+            @Parameter(description = "프로젝트 ID", example = "1")
+            Long projectId
+    );
+
+    @Operation(
+            summary = "물품 상세 조회 (관리자)",
+            description = "물품 상세 정보를 조회합니다."
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "성공",
+                    content = @Content(schema = @Schema(implementation = ApiResult.class))
+            ),
+            @ApiResponse(responseCode = "404", description = "요청한 리소스를 찾을 수 없음")
+    })
+    ApiResult<AdminProjectItemDetailResponseDto> getItem(
+            @Parameter(description = "물품 ID", example = "1")
+            Long itemId
+    );
 
     @Operation(
             summary = "프로젝트 물품 생성",
