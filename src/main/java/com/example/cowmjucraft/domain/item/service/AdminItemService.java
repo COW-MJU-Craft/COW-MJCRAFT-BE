@@ -3,12 +3,10 @@ package com.example.cowmjucraft.domain.item.service;
 import com.example.cowmjucraft.domain.item.dto.request.AdminItemImageCreateRequestDto;
 import com.example.cowmjucraft.domain.item.dto.request.AdminItemImageOrderPatchRequestDto;
 import com.example.cowmjucraft.domain.item.dto.request.AdminItemPresignPutBatchRequestDto;
-import com.example.cowmjucraft.domain.item.dto.request.AdminItemPresignPutRequestDto;
 import com.example.cowmjucraft.domain.item.dto.request.AdminProjectItemCreateRequestDto;
 import com.example.cowmjucraft.domain.item.dto.request.AdminProjectItemUpdateRequestDto;
 import com.example.cowmjucraft.domain.item.dto.response.AdminItemImageOrderPatchResponseDto;
 import com.example.cowmjucraft.domain.item.dto.response.AdminItemPresignPutBatchResponseDto;
-import com.example.cowmjucraft.domain.item.dto.response.AdminItemPresignPutResponseDto;
 import com.example.cowmjucraft.domain.item.dto.response.AdminProjectItemResponseDto;
 import com.example.cowmjucraft.domain.item.dto.response.ProjectItemImageResponseDto;
 import com.example.cowmjucraft.domain.item.entity.ItemImage;
@@ -83,19 +81,6 @@ public class AdminItemService {
         return toAdminResponse(item);
     }
 
-    public AdminItemPresignPutResponseDto createThumbnailPresignPut(
-            Long itemId,
-            AdminItemPresignPutRequestDto request
-    ) {
-        ensureItemExists(itemId);
-        String prefix = "uploads/items/" + itemId + "/thumbnail";
-        S3PresignFacade.PresignPutBatchResult response = s3PresignFacade.createPresignPutBatch(
-                prefix,
-                List.of(new S3PresignFacade.PresignPutFile(request.fileName(), request.contentType()))
-        );
-        return toSinglePresignResponse(response);
-    }
-
     public AdminItemPresignPutBatchResponseDto createThumbnailPresignPutBatch(
             Long itemId,
             AdminItemPresignPutBatchRequestDto request
@@ -107,19 +92,6 @@ public class AdminItemService {
                 toPresignFiles(request.files())
         );
         return toBatchPresignResponse(response);
-    }
-
-    public AdminItemPresignPutResponseDto createImagePresignPut(
-            Long itemId,
-            AdminItemPresignPutRequestDto request
-    ) {
-        ensureItemExists(itemId);
-        String prefix = "uploads/items/" + itemId + "/images";
-        S3PresignFacade.PresignPutBatchResult response = s3PresignFacade.createPresignPutBatch(
-                prefix,
-                List.of(new S3PresignFacade.PresignPutFile(request.fileName(), request.contentType()))
-        );
-        return toSinglePresignResponse(response);
     }
 
     public AdminItemPresignPutBatchResponseDto createImagePresignPutBatch(
@@ -326,18 +298,6 @@ public class AdminItemService {
         if (!projectItemRepository.existsById(itemId)) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "item not found");
         }
-    }
-
-    private AdminItemPresignPutResponseDto toSinglePresignResponse(S3PresignFacade.PresignPutBatchResult response) {
-        if (response.items() == null || response.items().isEmpty()) {
-            throw new IllegalStateException("presign items is empty");
-        }
-        S3PresignFacade.PresignPutItem item = response.items().get(0);
-        return new AdminItemPresignPutResponseDto(
-                item.key(),
-                item.uploadUrl(),
-                item.expiresInSeconds()
-        );
     }
 
     private AdminItemPresignPutBatchResponseDto toBatchPresignResponse(

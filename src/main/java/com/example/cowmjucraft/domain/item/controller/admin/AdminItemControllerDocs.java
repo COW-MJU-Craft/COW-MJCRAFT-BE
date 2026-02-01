@@ -3,12 +3,10 @@ package com.example.cowmjucraft.domain.item.controller.admin;
 import com.example.cowmjucraft.domain.item.dto.request.AdminItemImageCreateRequestDto;
 import com.example.cowmjucraft.domain.item.dto.request.AdminItemImageOrderPatchRequestDto;
 import com.example.cowmjucraft.domain.item.dto.request.AdminItemPresignPutBatchRequestDto;
-import com.example.cowmjucraft.domain.item.dto.request.AdminItemPresignPutRequestDto;
 import com.example.cowmjucraft.domain.item.dto.request.AdminProjectItemCreateRequestDto;
 import com.example.cowmjucraft.domain.item.dto.request.AdminProjectItemUpdateRequestDto;
 import com.example.cowmjucraft.domain.item.dto.response.AdminItemImageOrderPatchResponseDto;
 import com.example.cowmjucraft.domain.item.dto.response.AdminItemPresignPutBatchResponseDto;
-import com.example.cowmjucraft.domain.item.dto.response.AdminItemPresignPutResponseDto;
 import com.example.cowmjucraft.domain.item.dto.response.AdminProjectItemResponseDto;
 import com.example.cowmjucraft.domain.item.dto.response.ProjectItemImageResponseDto;
 import com.example.cowmjucraft.global.response.ApiResult;
@@ -138,67 +136,15 @@ public interface AdminItemControllerDocs {
 
     @Operation(
             summary = "물품 썸네일 presign-put 발급",
-            description = "물품 썸네일 업로드용 presigned PUT URL을 발급합니다."
+            description = "물품 썸네일 업로드용 presigned PUT URL을 여러 건 발급합니다."
     )
     @RequestBody(
             required = true,
             description = "presign-put 요청",
             content = @Content(
-                    schema = @Schema(implementation = AdminItemPresignPutRequestDto.class),
-                    examples = @ExampleObject(
-                            name = "item-thumbnail-presign-request",
-                            value = """
-                                    {
-                                      "fileName": "thumbnail.png",
-                                      "contentType": "image/png"
-                                    }
-                                    """
-                    )
-            )
-    )
-    @ApiResponses({
-            @ApiResponse(
-                    responseCode = "200",
-                    description = "성공",
-                    content = @Content(
-                            schema = @Schema(implementation = ApiResult.class),
-                            examples = @ExampleObject(
-                                    name = "item-thumbnail-presign-response",
-                                    value = """
-                                            {
-                                              "resultType": "SUCCESS",
-                                              "httpStatusCode": 200,
-                                              "message": "요청에 성공하였습니다.",
-                                              "data": {
-                                                "key": "uploads/items/1/thumbnail/uuid-thumbnail.png",
-                                                "uploadUrl": "https://bucket.s3.amazonaws.com/...",
-                                                "expiresInSeconds": 300
-                                              }
-                                            }
-                                            """
-                            )
-                    )
-            ),
-            @ApiResponse(responseCode = "404", description = "요청한 리소스를 찾을 수 없음"),
-            @ApiResponse(responseCode = "422", description = "요청 값 검증 실패")
-    })
-    ApiResult<AdminItemPresignPutResponseDto> presignThumbnail(
-            @Parameter(description = "물품 ID", example = "1")
-            Long itemId,
-            @Valid AdminItemPresignPutRequestDto request
-    );
-
-    @Operation(
-            summary = "물품 썸네일 presign-put 배치 발급",
-            description = "물품 썸네일 업로드용 presigned PUT URL을 여러 건 발급합니다."
-    )
-    @RequestBody(
-            required = true,
-            description = "presign-put 배치 요청",
-            content = @Content(
                     schema = @Schema(implementation = AdminItemPresignPutBatchRequestDto.class),
                     examples = @ExampleObject(
-                            name = "item-thumbnail-presign-batch-request",
+                            name = "item-thumbnail-presign-request",
                             value = """
                                     {
                                       "files": [
@@ -217,7 +163,7 @@ public interface AdminItemControllerDocs {
                     content = @Content(
                             schema = @Schema(implementation = ApiResult.class),
                             examples = @ExampleObject(
-                                    name = "item-thumbnail-presign-batch-response",
+                                    name = "item-thumbnail-presign-response",
                                     value = """
                                             {
                                               "resultType": "SUCCESS",
@@ -247,7 +193,7 @@ public interface AdminItemControllerDocs {
             @ApiResponse(responseCode = "404", description = "요청한 리소스를 찾을 수 없음"),
             @ApiResponse(responseCode = "422", description = "요청 값 검증 실패")
     })
-    ApiResult<AdminItemPresignPutBatchResponseDto> presignThumbnailBatch(
+    ApiResult<AdminItemPresignPutBatchResponseDto> presignThumbnail(
             @Parameter(description = "물품 ID", example = "1")
             Long itemId,
             @Valid AdminItemPresignPutBatchRequestDto request
@@ -255,67 +201,15 @@ public interface AdminItemControllerDocs {
 
     @Operation(
             summary = "물품 상세 이미지 presign-put 발급",
-            description = "물품 상세 이미지 업로드용 presigned PUT URL을 발급합니다."
+            description = "물품 상세 이미지 업로드용 presigned PUT URL을 여러 건 발급합니다."
     )
     @RequestBody(
             required = true,
             description = "presign-put 요청",
             content = @Content(
-                    schema = @Schema(implementation = AdminItemPresignPutRequestDto.class),
-                    examples = @ExampleObject(
-                            name = "item-image-presign-request",
-                            value = """
-                                    {
-                                      "fileName": "detail.png",
-                                      "contentType": "image/png"
-                                    }
-                                    """
-                    )
-            )
-    )
-    @ApiResponses({
-            @ApiResponse(
-                    responseCode = "200",
-                    description = "성공",
-                    content = @Content(
-                            schema = @Schema(implementation = ApiResult.class),
-                            examples = @ExampleObject(
-                                    name = "item-image-presign-response",
-                                    value = """
-                                            {
-                                              "resultType": "SUCCESS",
-                                              "httpStatusCode": 200,
-                                              "message": "요청에 성공하였습니다.",
-                                              "data": {
-                                                "key": "uploads/items/1/images/uuid-detail.png",
-                                                "uploadUrl": "https://bucket.s3.amazonaws.com/...",
-                                                "expiresInSeconds": 300
-                                              }
-                                            }
-                                            """
-                            )
-                    )
-            ),
-            @ApiResponse(responseCode = "404", description = "요청한 리소스를 찾을 수 없음"),
-            @ApiResponse(responseCode = "422", description = "요청 값 검증 실패")
-    })
-    ApiResult<AdminItemPresignPutResponseDto> presignImage(
-            @Parameter(description = "물품 ID", example = "1")
-            Long itemId,
-            @Valid AdminItemPresignPutRequestDto request
-    );
-
-    @Operation(
-            summary = "물품 상세 이미지 presign-put 배치 발급",
-            description = "물품 상세 이미지 업로드용 presigned PUT URL을 여러 건 발급합니다."
-    )
-    @RequestBody(
-            required = true,
-            description = "presign-put 배치 요청",
-            content = @Content(
                     schema = @Schema(implementation = AdminItemPresignPutBatchRequestDto.class),
                     examples = @ExampleObject(
-                            name = "item-image-presign-batch-request",
+                            name = "item-image-presign-request",
                             value = """
                                     {
                                       "files": [
@@ -334,7 +228,7 @@ public interface AdminItemControllerDocs {
                     content = @Content(
                             schema = @Schema(implementation = ApiResult.class),
                             examples = @ExampleObject(
-                                    name = "item-image-presign-batch-response",
+                                    name = "item-image-presign-response",
                                     value = """
                                             {
                                               "resultType": "SUCCESS",
@@ -364,7 +258,7 @@ public interface AdminItemControllerDocs {
             @ApiResponse(responseCode = "404", description = "요청한 리소스를 찾을 수 없음"),
             @ApiResponse(responseCode = "422", description = "요청 값 검증 실패")
     })
-    ApiResult<AdminItemPresignPutBatchResponseDto> presignImageBatch(
+    ApiResult<AdminItemPresignPutBatchResponseDto> presignImage(
             @Parameter(description = "물품 ID", example = "1")
             Long itemId,
             @Valid AdminItemPresignPutBatchRequestDto request
