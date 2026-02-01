@@ -1,8 +1,8 @@
 package com.example.cowmjucraft.domain.recruit.service.admin;
 
-import com.example.cowmjucraft.domain.recruit.dto.admin.ApplicationDetailAdminResponse;
-import com.example.cowmjucraft.domain.recruit.dto.admin.ApplicationListAdminResponse;
-import com.example.cowmjucraft.domain.recruit.dto.admin.ApplicationResultUpdateAdminRequest;
+import com.example.cowmjucraft.domain.recruit.dto.admin.response.ApplicationDetailAdminResponse;
+import com.example.cowmjucraft.domain.recruit.dto.admin.response.ApplicationListAdminResponse;
+import com.example.cowmjucraft.domain.recruit.dto.admin.request.ApplicationResultUpdateAdminRequest;
 import com.example.cowmjucraft.domain.recruit.entity.*;
 import com.example.cowmjucraft.domain.recruit.repository.AnswerRepository;
 import com.example.cowmjucraft.domain.recruit.repository.ApplicationRepository;
@@ -33,25 +33,23 @@ public class ApplicationAdminService {
         this.answerRepository = answerRepository;
     }
 
-
-
     @Transactional(readOnly = true)
-    public List<ApplicationListAdminResponse> listApplications(Long formId) {
+    public List<ApplicationListAdminResponse> getApplicationsByFormId(Long formId) {
         Form form = formRepository.findById(formId)
                 .orElseThrow(() -> notFound("FORM_NOT_FOUND"));
 
         List<Application> apps = applicationRepository.findAllByForm(form);
         List<ApplicationListAdminResponse> result = new ArrayList<>();
 
-        for (Application a : apps) {
+        for (Application application : apps) {
             result.add(new ApplicationListAdminResponse(
-                    a.getId(),
-                    a.getStudentId(),
-                    a.getFirstDepartment(),
-                    a.getSecondDepartment(),
-                    a.getResultStatus(),
-                    a.getSubmittedAt(),
-                    a.getUpdatedAt()
+                    application.getId(),
+                    application.getStudentId(),
+                    application.getFirstDepartment(),
+                    application.getSecondDepartment(),
+                    application.getResultStatus(),
+                    application.getSubmittedAt(),
+                    application.getUpdatedAt()
             ));
         }
         return result;
@@ -73,23 +71,23 @@ public class ApplicationAdminService {
         List<Answer> answers = answerRepository.findAllByApplication(application);
 
         List<ApplicationDetailAdminResponse.AnswerItem> common = new ArrayList<>();
-        List<ApplicationDetailAdminResponse.AnswerItem> first = new ArrayList<>();
-        List<ApplicationDetailAdminResponse.AnswerItem> second = new ArrayList<>();
+        List<ApplicationDetailAdminResponse.AnswerItem> firstDepartmentAnswers = new ArrayList<>();
+        List<ApplicationDetailAdminResponse.AnswerItem> secondDepartmentAnswers = new ArrayList<>();
 
-        for (Answer a : answers) {
-            FormQuestion fq = a.getFormQuestion();
+        for (Answer answer : answers) {
+            FormQuestion formQuestion = answer.getFormQuestion();
 
-            if (fq.getSectionType() == SectionType.COMMON) {
-                common.add(new ApplicationDetailAdminResponse.AnswerItem(fq.getId(), a.getValue()));
+            if (formQuestion.getSectionType() == SectionType.COMMON) {
+                common.add(new ApplicationDetailAdminResponse.AnswerItem(formQuestion.getId(), answer.getValue()));
                 continue;
             }
 
-            if (fq.getSectionType() == SectionType.DEPARTMENT) {
-                DepartmentType dept = fq.getDepartmentType();
-                if (dept == application.getFirstDepartment()) {
-                    first.add(new ApplicationDetailAdminResponse.AnswerItem(fq.getId(), a.getValue()));
-                } else if (dept == application.getSecondDepartment()) {
-                    second.add(new ApplicationDetailAdminResponse.AnswerItem(fq.getId(), a.getValue()));
+            if (formQuestion.getSectionType() == SectionType.DEPARTMENT) {
+                DepartmentType departmentType = formQuestion.getDepartmentType();
+                if (departmentType == application.getFirstDepartment()) {
+                    firstDepartmentAnswers.add(new ApplicationDetailAdminResponse.AnswerItem(formQuestion.getId(), answer.getValue()));
+                } else if (departmentType == application.getSecondDepartment()) {
+                    secondDepartmentAnswers.add(new ApplicationDetailAdminResponse.AnswerItem(formQuestion.getId(), answer.getValue()));
                 }
             }
         }
@@ -103,8 +101,8 @@ public class ApplicationAdminService {
                 application.getSubmittedAt(),
                 application.getUpdatedAt(),
                 common,
-                first,
-                second
+                firstDepartmentAnswers,
+                secondDepartmentAnswers
         );
     }
 

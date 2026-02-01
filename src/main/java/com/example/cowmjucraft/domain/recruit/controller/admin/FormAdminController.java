@@ -1,6 +1,10 @@
 package com.example.cowmjucraft.domain.recruit.controller.admin;
 
-import com.example.cowmjucraft.domain.recruit.dto.admin.*;
+import com.example.cowmjucraft.domain.recruit.dto.admin.request.AddQuestionAdminRequest;
+import com.example.cowmjucraft.domain.recruit.dto.admin.request.FormCopyAdminRequest;
+import com.example.cowmjucraft.domain.recruit.dto.admin.request.FormCreateAdminRequest;
+import com.example.cowmjucraft.domain.recruit.dto.admin.request.FormQuestionUpdateAdminRequest;
+import com.example.cowmjucraft.domain.recruit.dto.admin.response.*;
 import com.example.cowmjucraft.domain.recruit.service.admin.FormAdminService;
 import com.example.cowmjucraft.global.response.ApiResult;
 import com.example.cowmjucraft.global.response.type.SuccessType;
@@ -55,10 +59,10 @@ public class FormAdminController implements FormAdminControllerDocs {
 
     @Override
     @GetMapping("/admin/forms")
-    public ApiResult<List<FormListAdminResponse>> listForms() {
+    public ApiResult<List<FormListAdminResponse>> getForms() {
         return ApiResult.success(
                 SuccessType.SUCCESS,
-                formAdminService.listForms()
+                formAdminService.getForms()
         );
     }
 
@@ -73,12 +77,12 @@ public class FormAdminController implements FormAdminControllerDocs {
 
     @Override
     @GetMapping("/admin/forms/{formId}/questions")
-    public ApiResult<List<FormQuestionListAdminResponse>> listFormQuestions(
+    public ApiResult<List<FormQuestionListAdminResponse>> getFormQuestions(
             @PathVariable Long formId
     ) {
         return ApiResult.success(
                 SuccessType.SUCCESS,
-                formAdminService.listFormQuestions(formId)
+                formAdminService.getFormQuestions(formId)
         );
     }
 

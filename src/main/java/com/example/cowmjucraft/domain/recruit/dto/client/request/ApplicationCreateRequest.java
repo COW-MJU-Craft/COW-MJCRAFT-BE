@@ -1,20 +1,19 @@
-package com.example.cowmjucraft.domain.recruit.dto.user.request;
+package com.example.cowmjucraft.domain.recruit.dto.client.request;
 
-import com.example.cowmjucraft.domain.recruit.entity.DepartmentType;import lombok.Getter;
+import com.example.cowmjucraft.domain.recruit.entity.DepartmentType;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.util.List;
 
 @Getter
 @NoArgsConstructor
-public class ApplicationUpdateRequest {
+public class ApplicationCreateRequest {
 
     private String studentId;
     private String password;
-
     private DepartmentType firstDepartment;
     private DepartmentType secondDepartment;
-
     private List<AnswerItemRequest> answers;
 
     @Getter

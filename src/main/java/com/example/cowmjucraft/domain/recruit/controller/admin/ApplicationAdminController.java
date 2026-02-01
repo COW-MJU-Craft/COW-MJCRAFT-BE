@@ -1,6 +1,8 @@
 package com.example.cowmjucraft.domain.recruit.controller.admin;
 
-import com.example.cowmjucraft.domain.recruit.dto.admin.*;
+import com.example.cowmjucraft.domain.recruit.dto.admin.request.ApplicationResultUpdateAdminRequest;
+import com.example.cowmjucraft.domain.recruit.dto.admin.response.ApplicationDetailAdminResponse;
+import com.example.cowmjucraft.domain.recruit.dto.admin.response.ApplicationListAdminResponse;
 import com.example.cowmjucraft.domain.recruit.service.admin.ApplicationAdminService;
 import com.example.cowmjucraft.global.response.ApiResult;
 import com.example.cowmjucraft.global.response.type.SuccessType;
@@ -18,13 +20,13 @@ public class ApplicationAdminController implements ApplicationAdminControllerDoc
 
     @Override
     @GetMapping("/admin/forms/{formId}/applications")
-    public ApiResult<List<ApplicationListAdminResponse>> list(@PathVariable Long formId) {
-        return ApiResult.success(SuccessType.SUCCESS, applicationAdminService.listApplications(formId));
+    public ApiResult<List<ApplicationListAdminResponse>> getApplicationsByFormId(@PathVariable Long formId) {
+        return ApiResult.success(SuccessType.SUCCESS, applicationAdminService.getApplicationsByFormId(formId));
     }
 
     @Override
     @GetMapping("/admin/forms/{formId}/applications/{applicationId}")
-    public ApiResult<ApplicationDetailAdminResponse> detail(
+    public ApiResult<ApplicationDetailAdminResponse> getApplicationByFormId(
             @PathVariable Long formId,
             @PathVariable Long applicationId
     ) {
@@ -33,7 +35,7 @@ public class ApplicationAdminController implements ApplicationAdminControllerDoc
 
     @Override
     @DeleteMapping("/admin/applications/{applicationId}")
-    public ApiResult<?> delete(@PathVariable Long applicationId) {
+    public ApiResult<?> deleteApplication(@PathVariable Long applicationId) {
         applicationAdminService.deleteApplication(applicationId);
         return ApiResult.success(SuccessType.NO_CONTENT);
     }

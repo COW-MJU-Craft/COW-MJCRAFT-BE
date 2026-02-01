@@ -1,6 +1,10 @@
 package com.example.cowmjucraft.domain.recruit.service.admin;
 
-import com.example.cowmjucraft.domain.recruit.dto.admin.*;
+import com.example.cowmjucraft.domain.recruit.dto.admin.request.AddQuestionAdminRequest;
+import com.example.cowmjucraft.domain.recruit.dto.admin.request.FormCopyAdminRequest;
+import com.example.cowmjucraft.domain.recruit.dto.admin.request.FormCreateAdminRequest;
+import com.example.cowmjucraft.domain.recruit.dto.admin.request.FormQuestionUpdateAdminRequest;
+import com.example.cowmjucraft.domain.recruit.dto.admin.response.*;
 import com.example.cowmjucraft.domain.recruit.entity.*;
 import com.example.cowmjucraft.domain.recruit.repository.FormQuestionRepository;
 import com.example.cowmjucraft.domain.recruit.repository.FormRepository;
@@ -90,12 +94,12 @@ public class FormAdminService {
             throw badRequest("SELECT_OPTIONS_ONLY_FOR_SELECT");
         }
 
-        Question q = new Question(request.getLabel(), request.getDescription());
-        questionRepository.save(q);
+        Question question = new Question(request.getLabel(), request.getDescription());
+        questionRepository.save(question);
 
-        FormQuestion fq = new FormQuestion(
+        FormQuestion formQuestion = new FormQuestion(
                 form,
-                q,
+                question,
                 request.getQuestionOrder(),
                 request.getAnswerType(),
                 request.isRequired(),
@@ -103,13 +107,13 @@ public class FormAdminService {
                 request.getDepartmentType(),
                 request.getSelectOptions()
         );
-        formQuestionRepository.save(fq);
+        formQuestionRepository.save(formQuestion);
 
-        return new AddQuestionAdminResponse(q.getId(), fq.getId());
+        return new AddQuestionAdminResponse(question.getId(), formQuestion.getId());
     }
 
     @Transactional(readOnly = true)
-    public List<FormListAdminResponse> listForms() {
+    public List<FormListAdminResponse> getForms() {
 
         List<Form> forms = formRepository.findAllByOrderByIdDesc();
         List<FormListAdminResponse> result = new ArrayList<>();
@@ -141,7 +145,7 @@ public class FormAdminService {
     }
 
     @Transactional(readOnly = true)
-    public List<FormQuestionListAdminResponse> listFormQuestions(Long formId) {
+    public List<FormQuestionListAdminResponse> getFormQuestions(Long formId) {
 
         Form form = formRepository.findById(formId)
                 .orElseThrow(() -> notFound("FORM_NOT_FOUND"));
@@ -151,20 +155,20 @@ public class FormAdminService {
 
         List<FormQuestionListAdminResponse> result = new ArrayList<>();
 
-        for (FormQuestion fq : formQuestions) {
-            Question q = fq.getQuestion();
+        for (FormQuestion formQuestion : formQuestions) {
+            Question question = formQuestion.getQuestion();
 
             result.add(new FormQuestionListAdminResponse(
-                    fq.getId(),
-                    q.getId(),
-                    q.getLabel(),
-                    q.getDescription(),
-                    fq.getQuestionOrder(),
-                    fq.isRequired(),
-                    fq.getAnswerType(),
-                    fq.getSelectOptions(),
-                    fq.getSectionType(),
-                    fq.getDepartmentType()
+                    formQuestion.getId(),
+                    question.getId(),
+                    question.getLabel(),
+                    question.getDescription(),
+                    formQuestion.getQuestionOrder(),
+                    formQuestion.isRequired(),
+                    formQuestion.getAnswerType(),
+                    formQuestion.getSelectOptions(),
+                    formQuestion.getSectionType(),
+                    formQuestion.getDepartmentType()
             ));
         }
 
@@ -174,23 +178,23 @@ public class FormAdminService {
     @Transactional
     public void deleteFormQuestion(Long formId, Long formQuestionId) {
 
-        FormQuestion fq = formQuestionRepository.findById(formQuestionId)
+        FormQuestion formQuestion = formQuestionRepository.findById(formQuestionId)
                 .orElseThrow(() -> notFound("FORM_QUESTION_NOT_FOUND"));
 
-        if (!fq.getForm().getId().equals(formId)) {
+        if (!formQuestion.getForm().getId().equals(formId)) {
             throw notFound("FORM_QUESTION_NOT_IN_THIS_FORM");
         }
 
-        formQuestionRepository.delete(fq);
+        formQuestionRepository.delete(formQuestion);
     }
 
     @Transactional
     public void updateFormQuestion(Long formId, Long formQuestionId, FormQuestionUpdateAdminRequest request) {
 
-        FormQuestion fq = formQuestionRepository.findById(formQuestionId)
+        FormQuestion formQuestion = formQuestionRepository.findById(formQuestionId)
                 .orElseThrow(() -> notFound("FORM_QUESTION_NOT_FOUND"));
 
-        if (!fq.getForm().getId().equals(formId)) {
+        if (!formQuestion.getForm().getId().equals(formId)) {
             throw notFound("FORM_QUESTION_NOT_IN_THIS_FORM");
         }
 
@@ -201,10 +205,10 @@ public class FormAdminService {
             throw badRequest("SELECT_OPTIONS_ONLY_FOR_SELECT");
         }
 
-        Question q = fq.getQuestion();
-        q.update(request.getLabel(), request.getDescription());
+        Question question = formQuestion.getQuestion();
+        question.update(request.getLabel(), request.getDescription());
 
-        fq.update(
+        formQuestion.update(
                 request.getQuestionOrder(),
                 request.isRequired(),
                 request.getAnswerType(),
@@ -238,23 +242,23 @@ public class FormAdminService {
 
         int copied = 0;
 
-        for (FormQuestion srcFq : sourceQuestions) {
-            Question srcQ = srcFq.getQuestion();
+        for (FormQuestion formQuestion : sourceQuestions) {
+            Question srcQ = formQuestion.getQuestion();
 
-            Question newQ = new Question(srcQ.getLabel(), srcQ.getDescription());
-            questionRepository.save(newQ);
+            Question newQuestion = new Question(srcQ.getLabel(), srcQ.getDescription());
+            questionRepository.save(newQuestion);
 
-            FormQuestion newFq = new FormQuestion(
+            FormQuestion newFormQuestion = new FormQuestion(
                     targetForm,
-                    newQ,
-                    srcFq.getQuestionOrder(),
-                    srcFq.getAnswerType(),
-                    srcFq.isRequired(),
-                    srcFq.getSectionType(),
-                    srcFq.getDepartmentType(),
-                    srcFq.getSelectOptions()
+                    newQuestion,
+                    formQuestion.getQuestionOrder(),
+                    formQuestion.getAnswerType(),
+                    formQuestion.isRequired(),
+                    formQuestion.getSectionType(),
+                    formQuestion.getDepartmentType(),
+                    formQuestion.getSelectOptions()
             );
-            formQuestionRepository.save(newFq);
+            formQuestionRepository.save(newFormQuestion);
 
             copied++;
         }

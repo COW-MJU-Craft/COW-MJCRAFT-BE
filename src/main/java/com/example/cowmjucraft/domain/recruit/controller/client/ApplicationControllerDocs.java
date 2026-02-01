@@ -1,6 +1,13 @@
-package com.example.cowmjucraft.domain.recruit.controller.user;
+package com.example.cowmjucraft.domain.recruit.controller.client;
 
-import com.example.cowmjucraft.domain.recruit.dto.User.*;
+import com.example.cowmjucraft.domain.recruit.dto.client.request.ApplicationCreateRequest;
+import com.example.cowmjucraft.domain.recruit.dto.client.request.ApplicationReadRequest;
+import com.example.cowmjucraft.domain.recruit.dto.client.request.ApplicationUpdateRequest;
+import com.example.cowmjucraft.domain.recruit.dto.client.request.ResultReadRequest;
+import com.example.cowmjucraft.domain.recruit.dto.client.response.ApplicationCreateResponse;
+import com.example.cowmjucraft.domain.recruit.dto.client.response.ApplicationReadResponse;
+import com.example.cowmjucraft.domain.recruit.dto.client.response.ApplicationUpdateResponse;
+import com.example.cowmjucraft.domain.recruit.dto.client.response.ResultReadResponse;
 import com.example.cowmjucraft.global.response.ApiResult;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;

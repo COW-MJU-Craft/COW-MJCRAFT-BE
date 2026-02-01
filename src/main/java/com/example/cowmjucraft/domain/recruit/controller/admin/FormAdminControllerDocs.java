@@ -1,6 +1,10 @@
 package com.example.cowmjucraft.domain.recruit.controller.admin;
 
-import com.example.cowmjucraft.domain.recruit.dto.admin.*;
+import com.example.cowmjucraft.domain.recruit.dto.admin.request.AddQuestionAdminRequest;
+import com.example.cowmjucraft.domain.recruit.dto.admin.request.FormCopyAdminRequest;
+import com.example.cowmjucraft.domain.recruit.dto.admin.request.FormCreateAdminRequest;
+import com.example.cowmjucraft.domain.recruit.dto.admin.request.FormQuestionUpdateAdminRequest;
+import com.example.cowmjucraft.domain.recruit.dto.admin.response.*;
 import com.example.cowmjucraft.global.response.ApiResult;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -76,7 +80,7 @@ public interface FormAdminControllerDocs {
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "성공")
     })
-    ApiResult<List<FormListAdminResponse>> listForms();
+    ApiResult<List<FormListAdminResponse>> getForms();
 
     @Operation(summary = "Form 단건 조회")
     @ApiResponses({
@@ -94,7 +98,7 @@ public interface FormAdminControllerDocs {
             @ApiResponse(responseCode = "200", description = "성공"),
             @ApiResponse(responseCode = "404", description = "Form 없음")
     })
-    ApiResult<List<FormQuestionListAdminResponse>> listFormQuestions(
+    ApiResult<List<FormQuestionListAdminResponse>> getFormQuestions(
             @Parameter(description = "Form ID", example = "1") Long formId
     );
 

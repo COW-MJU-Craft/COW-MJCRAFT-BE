@@ -1,6 +1,13 @@
-package com.example.cowmjucraft.domain.recruit.service.user;
+package com.example.cowmjucraft.domain.recruit.service.client;
 
-import com.example.cowmjucraft.domain.recruit.dto.User.*;
+import com.example.cowmjucraft.domain.recruit.dto.client.request.ApplicationCreateRequest;
+import com.example.cowmjucraft.domain.recruit.dto.client.request.ApplicationReadRequest;
+import com.example.cowmjucraft.domain.recruit.dto.client.request.ApplicationUpdateRequest;
+import com.example.cowmjucraft.domain.recruit.dto.client.request.ResultReadRequest;
+import com.example.cowmjucraft.domain.recruit.dto.client.response.ApplicationCreateResponse;
+import com.example.cowmjucraft.domain.recruit.dto.client.response.ApplicationReadResponse;
+import com.example.cowmjucraft.domain.recruit.dto.client.response.ApplicationUpdateResponse;
+import com.example.cowmjucraft.domain.recruit.dto.client.response.ResultReadResponse;
 import com.example.cowmjucraft.domain.recruit.entity.*;
 import com.example.cowmjucraft.domain.recruit.repository.*;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -105,24 +112,24 @@ public class ApplicationService {
         List<Answer> answers = answerRepository.findAllByApplication(application);
 
           List<ApplicationReadResponse.AnswerItem> common = new ArrayList<>();
-        List<ApplicationReadResponse.AnswerItem> firstDept = new ArrayList<>();
-        List<ApplicationReadResponse.AnswerItem> secondDept = new ArrayList<>();
+        List<ApplicationReadResponse.AnswerItem> firstDepartment = new ArrayList<>();
+        List<ApplicationReadResponse.AnswerItem> secondDepartment = new ArrayList<>();
 
-        for (Answer a : answers) {
-            FormQuestion fq = a.getFormQuestion();
+        for (Answer answer : answers) {
+            FormQuestion formQuestion = answer.getFormQuestion();
 
-            if (fq.getSectionType() == SectionType.COMMON) {
-                common.add(new ApplicationReadResponse.AnswerItem(fq.getId(), a.getValue()));
+            if (formQuestion.getSectionType() == SectionType.COMMON) {
+                common.add(new ApplicationReadResponse.AnswerItem(formQuestion.getId(), answer.getValue()));
                 continue;
             }
 
-            if (fq.getSectionType() == SectionType.DEPARTMENT) {
-                DepartmentType dept = fq.getDepartmentType();
+            if (formQuestion.getSectionType() == SectionType.DEPARTMENT) {
+                DepartmentType departmentType = formQuestion.getDepartmentType();
 
-                if (dept == application.getFirstDepartment()) {
-                    firstDept.add(new ApplicationReadResponse.AnswerItem(fq.getId(), a.getValue()));
-                } else if (dept == application.getSecondDepartment()) {
-                    secondDept.add(new ApplicationReadResponse.AnswerItem(fq.getId(), a.getValue()));
+                if (departmentType == application.getFirstDepartment()) {
+                    firstDepartment.add(new ApplicationReadResponse.AnswerItem(formQuestion.getId(), answer.getValue()));
+                } else if (departmentType == application.getSecondDepartment()) {
+                    secondDepartment.add(new ApplicationReadResponse.AnswerItem(formQuestion.getId(), answer.getValue()));
                 } else{
                     throw badRequest("INVALID_SECTION_OR_DEPARTMENT_TYPE");
                 }
@@ -138,8 +145,8 @@ public class ApplicationService {
                 application.getSubmittedAt(),
                 application.getUpdatedAt(),
                 common,
-                firstDept,
-                secondDept
+                firstDepartment,
+                secondDepartment
         );
     }
 
@@ -158,49 +165,49 @@ public class ApplicationService {
             throw unauthorized("INVALID_CREDENTIALS");
         }
 
-        DepartmentType first = request.getFirstDepartment();
-        DepartmentType second = request.getSecondDepartment();
+        DepartmentType firstDepartment = request.getFirstDepartment();
+        DepartmentType secondDepartment = request.getSecondDepartment();
 
-        if (first != null || second != null) {
-            if (first == null || second == null) {
+        if (firstDepartment != null || secondDepartment != null) {
+            if (firstDepartment == null || secondDepartment == null) {
                 throw badRequest("BOTH_DEPARTMENTS_REQUIRED");
             }
-            if (first == second) {
+            if (firstDepartment == secondDepartment) {
                 throw badRequest("FIRST_SECOND_DEPARTMENT_MUST_BE_DIFFERENT");
             }
-            application.changeDepartments(first, second);
+            application.changeDepartments(firstDepartment, secondDepartment);
         }
 
         if (request.getAnswers() != null) {
 
             List<Answer> existingAnswers = answerRepository.findAllByApplication(application);
             java.util.Map<Long, Answer> answerMap = new java.util.HashMap<>();
-            for (Answer ans : existingAnswers) {
-                answerMap.put(ans.getFormQuestion().getId(), ans);
+            for (Answer answer : existingAnswers) {
+                answerMap.put(answer.getFormQuestion().getId(), answer);
             }
 
-            for (ApplicationUpdateRequest.AnswerItemRequest a : request.getAnswers()) {
+            for (ApplicationUpdateRequest.AnswerItemRequest answer : request.getAnswers()) {
 
-                FormQuestion fq = formQuestionRepository.findById(a.getFormQuestionId())
+                FormQuestion formQuestion = formQuestionRepository.findById(answer.getFormQuestionId())
                         .orElseThrow(() -> notFound("FORM_QUESTION_NOT_FOUND"));
 
-                if (!fq.getForm().getId().equals(form.getId())) {
+                if (!formQuestion.getForm().getId().equals(form.getId())) {
                     throw badRequest("FORM_QUESTION_NOT_IN_THIS_FORM");
                 }
 
-                Answer existing = answerMap.get(fq.getId());
+                Answer existingAnswer = answerMap.get(formQuestion.getId());
 
-                if (a.getValue() == null) {
-                    if (existing != null) {
-                        answerRepository.delete(existing);
+                if (answer.getValue() == null) {
+                    if (existingAnswer != null) {
+                        answerRepository.delete(existingAnswer);
                     }
                     continue;
                 }
 
-                if (existing != null) {
-                    existing.updateValue(a.getValue());
+                if (existingAnswer != null) {
+                    existingAnswer.updateValue(answer.getValue());
                 } else {
-                    Answer newAnswer = new Answer(application, fq, a.getValue());
+                    Answer newAnswer = new Answer(application, formQuestion, answer.getValue());
                     answerRepository.save(newAnswer);
                 }
             }

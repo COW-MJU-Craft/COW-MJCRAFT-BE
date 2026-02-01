@@ -1,4 +1,4 @@
-package com.example.cowmjucraft.domain.recruit.dto.user.request;
+package com.example.cowmjucraft.domain.recruit.dto.client.request;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;
