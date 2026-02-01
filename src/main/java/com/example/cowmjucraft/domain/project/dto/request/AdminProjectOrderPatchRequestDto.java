@@ -27,6 +27,9 @@ public record AdminProjectOrderPatchRequestDto(
             @Schema(description = "고정 여부", example = "true")
             Boolean pinned,
 
+            @Schema(description = "고정 정렬 순서 (pinned=true인 경우만 적용)", example = "1")
+            Integer pinnedOrder,
+
             @Schema(description = "수동 정렬 순서 (pinned=false인 경우만 적용)", example = "1")
             Integer manualOrder
     ) {

@@ -125,13 +125,18 @@ public class AdminProjectService {
         }
 
         Set<Long> ids = new HashSet<>();
-        for (AdminProjectOrderPatchRequestDto.ItemDto item : items) {
+        for (int i = 0; i < items.size(); i++) {
+            AdminProjectOrderPatchRequestDto.ItemDto item = items.get(i);
+            if (item == null) {
+                throw validationFailed("items[" + i + "] is null");
+            }
             if (!ids.add(item.projectId())) {
                 throw validationFailed("duplicate projectId: " + item.projectId());
             }
         }
 
-        validateManualOrders(items);
+        validateOrders(items);
+        validatePinnedSetIsComplete(items);
 
         List<Project> projects = projectRepository.findAllById(ids);
         if (projects.size() != ids.size()) {
@@ -143,15 +148,14 @@ public class AdminProjectService {
         Map<Long, Project> projectMap = projects.stream()
                 .collect(Collectors.toMap(Project::getId, Function.identity()));
 
-        int pinnedOrder = 0;
         int updatedPinnedCount = 0;
         int updatedManualCount = 0;
 
         for (AdminProjectOrderPatchRequestDto.ItemDto item : items) {
             Project project = projectMap.get(item.projectId());
             if (Boolean.TRUE.equals(item.pinned())) {
-                pinnedOrder++;
-                project.applyPinned(true, pinnedOrder);
+                project.applyPinned(true, item.pinnedOrder());
+                project.applyManualOrder(null);
                 updatedPinnedCount++;
             } else {
                 project.applyPinned(false, null);
@@ -170,14 +174,29 @@ public class AdminProjectService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "project not found"));
     }
 
-    private void validateManualOrders(List<AdminProjectOrderPatchRequestDto.ItemDto> items) {
+    private void validateOrders(List<AdminProjectOrderPatchRequestDto.ItemDto> items) {
+        Set<Integer> pinnedOrders = new HashSet<>();
         Set<Integer> manualOrders = new HashSet<>();
         for (AdminProjectOrderPatchRequestDto.ItemDto item : items) {
             if (Boolean.TRUE.equals(item.pinned())) {
+                Integer pinnedOrder = item.pinnedOrder();
+                if (pinnedOrder == null) {
+                    throw validationFailed("pinnedOrder is required when pinned=true");
+                }
+                if (pinnedOrder < 1) {
+                    throw validationFailed("pinnedOrder must be >= 1");
+                }
+                if (!pinnedOrders.add(pinnedOrder)) {
+                    throw validationFailed("duplicate pinnedOrder: " + pinnedOrder);
+                }
                 if (item.manualOrder() != null) {
                     throw validationFailed("manualOrder must be null when pinned=true");
                 }
                 continue;
+            }
+
+            if (item.pinnedOrder() != null) {
+                throw validationFailed("pinnedOrder must be null when pinned=false");
             }
 
             Integer manualOrder = item.manualOrder();
@@ -188,6 +207,30 @@ public class AdminProjectService {
                 throw validationFailed("duplicate manualOrder: " + manualOrder);
             }
         }
+    }
+
+    private void validatePinnedSetIsComplete(List<AdminProjectOrderPatchRequestDto.ItemDto> items) {
+        Set<Long> requestedPinnedIds = new HashSet<>();
+        for (AdminProjectOrderPatchRequestDto.ItemDto item : items) {
+            if (Boolean.TRUE.equals(item.pinned())) {
+                requestedPinnedIds.add(item.projectId());
+            }
+        }
+        if (requestedPinnedIds.isEmpty()) {
+            return;
+        }
+
+        Set<Long> dbPinnedIds = new HashSet<>(projectRepository.findPinnedIds());
+        if (dbPinnedIds.equals(requestedPinnedIds)) {
+            return;
+        }
+
+        Set<Long> missing = new HashSet<>(dbPinnedIds);
+        missing.removeAll(requestedPinnedIds);
+        Set<Long> extra = new HashSet<>(requestedPinnedIds);
+        extra.removeAll(dbPinnedIds);
+
+        throw validationFailed("pinned set incomplete: missing=" + missing + ", extra=" + extra);
     }
 
     private ResponseStatusException validationFailed(String message) {
