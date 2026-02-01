@@ -21,11 +21,25 @@ public record ProjectDetailResponseDto(
         @Schema(description = "프로젝트 상세 설명", example = "학생들이 함께 디자인한 머그컵 프로젝트입니다.")
         String description,
 
-        @Schema(description = "썸네일 S3 key", example = "uploads/projects/thumbnail-001.png")
+        @Schema(
+                description = "썸네일 S3 key",
+                example = "uploads/projects/thumbnail-001.png",
+                deprecated = true
+        )
         String thumbnailKey,
 
-        @Schema(description = "프로젝트 상세 이미지 S3 object key 목록(정렬 순서대로)", example = "[\"uploads/projects/images/uuid-01.png\", \"uploads/projects/images/uuid-02.png\"]")
+        @Schema(description = "썸네일 이미지 URL", example = "https://bucket.s3.amazonaws.com/uploads/projects/thumbnail-001.png?X-Amz-Signature=...")
+        String thumbnailUrl,
+
+        @Schema(
+                description = "프로젝트 상세 이미지 S3 object key 목록(정렬 순서대로)",
+                example = "[\"uploads/projects/images/uuid-01.png\", \"uploads/projects/images/uuid-02.png\"]",
+                deprecated = true
+        )
         List<String> imageKeys,
+
+        @Schema(description = "프로젝트 상세 이미지 URL 목록(정렬 순서대로)", example = "[\"https://bucket.s3.amazonaws.com/uploads/projects/images/uuid-01.png?X-Amz-Signature=...\", \"https://bucket.s3.amazonaws.com/uploads/projects/images/uuid-02.png?X-Amz-Signature=...\"]")
+        List<String> imageUrls,
 
         @Schema(description = "프로젝트 상태", example = "OPEN")
         ProjectStatus status,

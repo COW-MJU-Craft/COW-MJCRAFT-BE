@@ -52,9 +52,14 @@ public interface ProjectControllerDocs {
                                                 "summary": "캠퍼스 감성을 담은 머그컵을 제작합니다.",
                                                 "description": "학생들이 함께 디자인한 머그컵 프로젝트입니다.",
                                                 "thumbnailKey": "uploads/projects/thumbnails/uuid-thumbnail.png",
+                                                "thumbnailUrl": "https://bucket.s3.amazonaws.com/uploads/projects/thumbnails/uuid-thumbnail.png?X-Amz-Signature=...",
                                                 "imageKeys": [
                                                   "uploads/projects/images/uuid-01.png",
                                                   "uploads/projects/images/uuid-02.png"
+                                                ],
+                                                "imageUrls": [
+                                                  "https://bucket.s3.amazonaws.com/uploads/projects/images/uuid-01.png?X-Amz-Signature=...",
+                                                  "https://bucket.s3.amazonaws.com/uploads/projects/images/uuid-02.png?X-Amz-Signature=..."
                                                 ],
                                                 "status": "OPEN",
                                                 "deadlineDate": "2026-03-15",

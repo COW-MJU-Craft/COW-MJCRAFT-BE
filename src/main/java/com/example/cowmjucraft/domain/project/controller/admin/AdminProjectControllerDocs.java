@@ -2,9 +2,11 @@ package com.example.cowmjucraft.domain.project.controller.admin;
 
 import com.example.cowmjucraft.domain.project.dto.request.AdminProjectCreateRequestDto;
 import com.example.cowmjucraft.domain.project.dto.request.AdminProjectOrderPatchRequestDto;
+import com.example.cowmjucraft.domain.project.dto.request.AdminProjectPresignPutBatchRequestDto;
 import com.example.cowmjucraft.domain.project.dto.request.AdminProjectPresignPutRequestDto;
 import com.example.cowmjucraft.domain.project.dto.request.AdminProjectUpdateRequestDto;
 import com.example.cowmjucraft.domain.project.dto.response.AdminProjectOrderPatchResponseDto;
+import com.example.cowmjucraft.domain.project.dto.response.AdminProjectPresignPutBatchResponseDto;
 import com.example.cowmjucraft.domain.project.dto.response.AdminProjectPresignPutResponseDto;
 import com.example.cowmjucraft.domain.project.dto.response.AdminProjectResponseDto;
 import com.example.cowmjucraft.global.response.ApiResult;
@@ -69,9 +71,14 @@ public interface AdminProjectControllerDocs {
                                                 "summary": "캠퍼스 감성을 담은 머그컵을 제작합니다.",
                                                 "description": "학생들이 함께 디자인한 머그컵 프로젝트입니다.",
                                                 "thumbnailKey": "uploads/projects/thumbnails/uuid-thumbnail.png",
+                                                "thumbnailUrl": "https://bucket.s3.amazonaws.com/uploads/projects/thumbnails/uuid-thumbnail.png?X-Amz-Signature=...",
                                                 "imageKeys": [
                                                   "uploads/projects/images/uuid-01.png",
                                                   "uploads/projects/images/uuid-02.png"
+                                                ],
+                                                "imageUrls": [
+                                                  "https://bucket.s3.amazonaws.com/uploads/projects/images/uuid-01.png?X-Amz-Signature=...",
+                                                  "https://bucket.s3.amazonaws.com/uploads/projects/images/uuid-02.png?X-Amz-Signature=..."
                                                 ],
                                                 "status": "OPEN",
                                                 "deadlineDate": "2026-03-15",
@@ -142,6 +149,68 @@ public interface AdminProjectControllerDocs {
     );
 
     @Operation(
+            summary = "프로젝트 썸네일 presign-put 배치 발급",
+            description = "프로젝트 썸네일 업로드용 presigned PUT URL을 여러 건 발급합니다."
+    )
+    @RequestBody(
+            required = true,
+            description = "presign-put 배치 요청",
+            content = @Content(
+                    schema = @Schema(implementation = AdminProjectPresignPutBatchRequestDto.class),
+                    examples = @ExampleObject(
+                            name = "thumbnail-presign-batch-request",
+                            value = """
+                                    {
+                                      "files": [
+                                        { "fileName": "thumbnail-1.png", "contentType": "image/png" },
+                                        { "fileName": "thumbnail-2.png", "contentType": "image/png" }
+                                      ]
+                                    }
+                                    """
+                    )
+            )
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "성공",
+                    content = @Content(
+                            schema = @Schema(implementation = ApiResult.class),
+                            examples = @ExampleObject(
+                                    name = "thumbnail-presign-batch-response",
+                                    value = """
+                                            {
+                                              "resultType": "SUCCESS",
+                                              "httpStatusCode": 200,
+                                              "message": "요청에 성공하였습니다.",
+                                              "data": {
+                                                "items": [
+                                                  {
+                                                    "fileName": "thumbnail-1.png",
+                                                    "key": "uploads/projects/thumbnails/uuid-thumbnail-1.png",
+                                                    "uploadUrl": "https://bucket.s3.amazonaws.com/...",
+                                                    "expiresInSeconds": 300
+                                                  },
+                                                  {
+                                                    "fileName": "thumbnail-2.png",
+                                                    "key": "uploads/projects/thumbnails/uuid-thumbnail-2.png",
+                                                    "uploadUrl": "https://bucket.s3.amazonaws.com/...",
+                                                    "expiresInSeconds": 300
+                                                  }
+                                                ]
+                                              }
+                                            }
+                                            """
+                            )
+                    )
+            ),
+            @ApiResponse(responseCode = "400", description = "요청 값 오류")
+    })
+    ApiResult<AdminProjectPresignPutBatchResponseDto> presignThumbnailBatch(
+            @Valid AdminProjectPresignPutBatchRequestDto request
+    );
+
+    @Operation(
             summary = "프로젝트 상세 이미지 presign-put 단건 발급",
             description = "프로젝트 상세 이미지 업로드용 presigned PUT URL을 발급합니다."
     )
@@ -191,6 +260,68 @@ public interface AdminProjectControllerDocs {
     );
 
     @Operation(
+            summary = "프로젝트 상세 이미지 presign-put 배치 발급",
+            description = "프로젝트 상세 이미지 업로드용 presigned PUT URL을 여러 건 발급합니다."
+    )
+    @RequestBody(
+            required = true,
+            description = "presign-put 배치 요청",
+            content = @Content(
+                    schema = @Schema(implementation = AdminProjectPresignPutBatchRequestDto.class),
+                    examples = @ExampleObject(
+                            name = "images-presign-batch-request",
+                            value = """
+                                    {
+                                      "files": [
+                                        { "fileName": "detail-1.png", "contentType": "image/png" },
+                                        { "fileName": "detail-2.png", "contentType": "image/png" }
+                                      ]
+                                    }
+                                    """
+                    )
+            )
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "성공",
+                    content = @Content(
+                            schema = @Schema(implementation = ApiResult.class),
+                            examples = @ExampleObject(
+                                    name = "images-presign-batch-response",
+                                    value = """
+                                            {
+                                              "resultType": "SUCCESS",
+                                              "httpStatusCode": 200,
+                                              "message": "요청에 성공하였습니다.",
+                                              "data": {
+                                                "items": [
+                                                  {
+                                                    "fileName": "detail-1.png",
+                                                    "key": "uploads/projects/images/uuid-detail-1.png",
+                                                    "uploadUrl": "https://bucket.s3.amazonaws.com/...",
+                                                    "expiresInSeconds": 300
+                                                  },
+                                                  {
+                                                    "fileName": "detail-2.png",
+                                                    "key": "uploads/projects/images/uuid-detail-2.png",
+                                                    "uploadUrl": "https://bucket.s3.amazonaws.com/...",
+                                                    "expiresInSeconds": 300
+                                                  }
+                                                ]
+                                              }
+                                            }
+                                            """
+                            )
+                    )
+            ),
+            @ApiResponse(responseCode = "400", description = "요청 값 오류")
+    })
+    ApiResult<AdminProjectPresignPutBatchResponseDto> presignImagesBatch(
+            @Valid AdminProjectPresignPutBatchRequestDto request
+    );
+
+    @Operation(
             summary = "프로젝트 수정",
             description = "프로젝트 기본 정보를 수정합니다."
     )
@@ -237,9 +368,14 @@ public interface AdminProjectControllerDocs {
                                                 "summary": "굿즈 라인업을 확장합니다.",
                                                 "description": "학생들이 함께 디자인한 머그컵 프로젝트입니다.",
                                                 "thumbnailKey": "uploads/projects/thumbnails/uuid-thumbnail.png",
+                                                "thumbnailUrl": "https://bucket.s3.amazonaws.com/uploads/projects/thumbnails/uuid-thumbnail.png?X-Amz-Signature=...",
                                                 "imageKeys": [
                                                   "uploads/projects/images/uuid-01.png",
                                                   "uploads/projects/images/uuid-02.png"
+                                                ],
+                                                "imageUrls": [
+                                                  "https://bucket.s3.amazonaws.com/uploads/projects/images/uuid-01.png?X-Amz-Signature=...",
+                                                  "https://bucket.s3.amazonaws.com/uploads/projects/images/uuid-02.png?X-Amz-Signature=..."
                                                 ],
                                                 "status": "OPEN",
                                                 "deadlineDate": "2026-03-20",
