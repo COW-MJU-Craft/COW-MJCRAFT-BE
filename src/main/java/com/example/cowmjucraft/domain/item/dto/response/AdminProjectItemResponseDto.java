@@ -33,6 +33,9 @@ public record AdminProjectItemResponseDto(
         @Schema(description = "대표 이미지 S3 object key", example = "uploads/items/1/thumbnail/uuid-thumbnail.png")
         String thumbnailKey,
 
+        @Schema(description = "대표 이미지 URL", example = "https://bucket.s3.amazonaws.com/uploads/items/1/thumbnail/uuid-thumbnail.png?X-Amz-Signature=...")
+        String thumbnailUrl,
+
         @JsonInclude(JsonInclude.Include.NON_NULL)
         @Schema(description = "목표 수량 (GROUPBUY 전용)", example = "100")
         Integer targetQty,

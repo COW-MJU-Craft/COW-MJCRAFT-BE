@@ -30,8 +30,15 @@ public record ProjectItemDetailResponseDto(
         @Schema(description = "상태", example = "OPEN")
         ItemStatus status,
 
-        @Schema(description = "대표 이미지 S3 object key", example = "uploads/items/1/thumbnail/uuid-thumbnail.png")
+        @Schema(
+                description = "대표 이미지 S3 object key",
+                example = "uploads/items/1/thumbnail/uuid-thumbnail.png",
+                deprecated = true
+        )
         String thumbnailKey,
+
+        @Schema(description = "대표 이미지 URL", example = "https://bucket.s3.amazonaws.com/uploads/items/1/thumbnail/uuid-thumbnail.png?X-Amz-Signature=...")
+        String thumbnailUrl,
 
         @Schema(description = "상세 이미지 목록")
         List<ProjectItemImageResponseDto> images,

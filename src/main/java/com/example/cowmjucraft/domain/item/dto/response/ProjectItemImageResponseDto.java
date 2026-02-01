@@ -9,8 +9,15 @@ public record ProjectItemImageResponseDto(
         @Schema(description = "이미지 ID", example = "10")
         Long id,
 
-        @Schema(description = "이미지 S3 object key", example = "uploads/items/1/images/uuid-detail.png")
+        @Schema(
+                description = "이미지 S3 object key",
+                example = "uploads/items/1/images/uuid-detail.png",
+                deprecated = true
+        )
         String imageKey,
+
+        @Schema(description = "이미지 URL", example = "https://bucket.s3.amazonaws.com/uploads/items/1/images/uuid-detail.png?X-Amz-Signature=...")
+        String imageUrl,
 
         @Schema(description = "정렬 순서", example = "0")
         int sortOrder
@@ -19,6 +26,7 @@ public record ProjectItemImageResponseDto(
         return new ProjectItemImageResponseDto(
                 image.getId(),
                 image.getImageKey(),
+                null,
                 image.getSortOrder()
         );
     }

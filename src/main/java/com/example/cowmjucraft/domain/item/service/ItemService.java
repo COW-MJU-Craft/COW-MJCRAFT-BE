@@ -9,7 +9,12 @@ import com.example.cowmjucraft.domain.item.repository.ItemImageRepository;
 import com.example.cowmjucraft.domain.item.repository.ProjectItemRepository;
 import com.example.cowmjucraft.domain.project.entity.Project;
 import com.example.cowmjucraft.domain.project.repository.ProjectRepository;
+import com.example.cowmjucraft.global.cloud.S3PresignFacade;
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -23,6 +28,7 @@ public class ItemService {
     private final ProjectRepository projectRepository;
     private final ProjectItemRepository projectItemRepository;
     private final ItemImageRepository itemImageRepository;
+    private final S3PresignFacade s3PresignFacade;
 
     @Transactional(readOnly = true)
     public List<ProjectItemListResponseDto> getItems(Long projectId) {
@@ -30,8 +36,13 @@ public class ItemService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "project not found"));
 
         List<ProjectItem> items = projectItemRepository.findByProjectIdOrderByCreatedAtDescIdDesc(project.getId());
+        Set<String> keySet = new LinkedHashSet<>();
+        for (ProjectItem item : items) {
+            addIfValidKey(keySet, item.getThumbnailKey());
+        }
+        Map<String, String> urls = presignGetSafely(keySet);
         return items.stream()
-                .map(this::toListResponse)
+                .map(item -> toListResponse(item, urls))
                 .toList();
     }
 
@@ -44,11 +55,26 @@ public class ItemService {
                 .stream()
                 .map(ProjectItemImageResponseDto::from)
                 .toList();
+        Set<String> keySet = new LinkedHashSet<>();
+        addIfValidKey(keySet, item.getThumbnailKey());
+        for (ProjectItemImageResponseDto image : images) {
+            addIfValidKey(keySet, image.imageKey());
+        }
+        Map<String, String> urls = presignGetSafely(keySet);
 
-        return toDetailResponse(item, images);
+        List<ProjectItemImageResponseDto> enrichedImages = images.stream()
+                .map(image -> new ProjectItemImageResponseDto(
+                        image.id(),
+                        image.imageKey(),
+                        resolveUrl(urls, image.imageKey()),
+                        image.sortOrder()
+                ))
+                .toList();
+
+        return toDetailResponse(item, enrichedImages, urls);
     }
 
-    private ProjectItemListResponseDto toListResponse(ProjectItem item) {
+    private ProjectItemListResponseDto toListResponse(ProjectItem item, Map<String, String> urls) {
         GroupbuyInfo info = calculateGroupbuyInfo(item);
         return new ProjectItemListResponseDto(
                 item.getId(),
@@ -57,6 +83,7 @@ public class ItemService {
                 item.getSaleType(),
                 item.getStatus(),
                 item.getThumbnailKey(),
+                resolveUrl(urls, item.getThumbnailKey()),
                 info.targetQty(),
                 info.fundedQty(),
                 info.achievementRate(),
@@ -66,7 +93,8 @@ public class ItemService {
 
     private ProjectItemDetailResponseDto toDetailResponse(
             ProjectItem item,
-            List<ProjectItemImageResponseDto> images
+            List<ProjectItemImageResponseDto> images,
+            Map<String, String> urls
     ) {
         GroupbuyInfo info = calculateGroupbuyInfo(item);
         return new ProjectItemDetailResponseDto(
@@ -78,12 +106,39 @@ public class ItemService {
                 item.getSaleType(),
                 item.getStatus(),
                 item.getThumbnailKey(),
+                resolveUrl(urls, item.getThumbnailKey()),
                 images,
                 info.targetQty(),
                 info.fundedQty(),
                 info.achievementRate(),
                 info.remainingQty()
         );
+    }
+
+    private Map<String, String> presignGetSafely(Set<String> keys) {
+        try {
+            return keys == null || keys.isEmpty()
+                    ? Map.of()
+                    : s3PresignFacade.presignGet(new ArrayList<>(keys));
+        } catch (Exception e) {
+            return Map.of();
+        }
+    }
+
+    private String resolveUrl(Map<String, String> urls, String key) {
+        String k = toNonBlankString(key);
+        return k == null ? null : urls.get(k);
+    }
+
+    private void addIfValidKey(Set<String> keys, String value) {
+        String k = toNonBlankString(value);
+        if (k != null) {
+            keys.add(k);
+        }
+    }
+
+    private String toNonBlankString(String value) {
+        return value == null || value.trim().isEmpty() ? null : value.trim();
     }
 
     private GroupbuyInfo calculateGroupbuyInfo(ProjectItem item) {

@@ -2,10 +2,12 @@ package com.example.cowmjucraft.domain.item.controller.admin;
 
 import com.example.cowmjucraft.domain.item.dto.request.AdminItemImageCreateRequestDto;
 import com.example.cowmjucraft.domain.item.dto.request.AdminItemImageOrderPatchRequestDto;
+import com.example.cowmjucraft.domain.item.dto.request.AdminItemPresignPutBatchRequestDto;
 import com.example.cowmjucraft.domain.item.dto.request.AdminItemPresignPutRequestDto;
 import com.example.cowmjucraft.domain.item.dto.request.AdminProjectItemCreateRequestDto;
 import com.example.cowmjucraft.domain.item.dto.request.AdminProjectItemUpdateRequestDto;
 import com.example.cowmjucraft.domain.item.dto.response.AdminItemImageOrderPatchResponseDto;
+import com.example.cowmjucraft.domain.item.dto.response.AdminItemPresignPutBatchResponseDto;
 import com.example.cowmjucraft.domain.item.dto.response.AdminItemPresignPutResponseDto;
 import com.example.cowmjucraft.domain.item.dto.response.AdminProjectItemResponseDto;
 import com.example.cowmjucraft.domain.item.dto.response.ProjectItemImageResponseDto;
@@ -58,6 +60,18 @@ public class AdminItemController implements AdminItemControllerDocs {
         return ApiResult.success(SuccessType.SUCCESS, adminItemService.createThumbnailPresignPut(itemId, request));
     }
 
+    @PostMapping("/items/{itemId}/thumbnail/presign-put/batch")
+    @Override
+    public ApiResult<AdminItemPresignPutBatchResponseDto> presignThumbnailBatch(
+            @PathVariable Long itemId,
+            @Valid @RequestBody AdminItemPresignPutBatchRequestDto request
+    ) {
+        return ApiResult.success(
+                SuccessType.SUCCESS,
+                adminItemService.createThumbnailPresignPutBatch(itemId, request)
+        );
+    }
+
     @PostMapping("/items/{itemId}/images/presign-put")
     @Override
     public ApiResult<AdminItemPresignPutResponseDto> presignImage(
@@ -65,6 +79,18 @@ public class AdminItemController implements AdminItemControllerDocs {
             @Valid @RequestBody AdminItemPresignPutRequestDto request
     ) {
         return ApiResult.success(SuccessType.SUCCESS, adminItemService.createImagePresignPut(itemId, request));
+    }
+
+    @PostMapping("/items/{itemId}/images/presign-put/batch")
+    @Override
+    public ApiResult<AdminItemPresignPutBatchResponseDto> presignImageBatch(
+            @PathVariable Long itemId,
+            @Valid @RequestBody AdminItemPresignPutBatchRequestDto request
+    ) {
+        return ApiResult.success(
+                SuccessType.SUCCESS,
+                adminItemService.createImagePresignPutBatch(itemId, request)
+        );
     }
 
     @DeleteMapping("/items/{itemId}")
