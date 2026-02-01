@@ -7,6 +7,7 @@ import com.example.cowmjucraft.domain.item.dto.request.AdminProjectItemCreateReq
 import com.example.cowmjucraft.domain.item.dto.request.AdminProjectItemUpdateRequestDto;
 import com.example.cowmjucraft.domain.item.dto.response.AdminItemImageOrderPatchResponseDto;
 import com.example.cowmjucraft.domain.item.dto.response.AdminItemPresignPutBatchResponseDto;
+import com.example.cowmjucraft.domain.item.dto.response.AdminProjectItemDetailResponseDto;
 import com.example.cowmjucraft.domain.item.dto.response.AdminProjectItemResponseDto;
 import com.example.cowmjucraft.domain.item.dto.response.ProjectItemImageResponseDto;
 import com.example.cowmjucraft.domain.item.entity.ItemImage;
@@ -59,7 +60,8 @@ public class AdminItemService {
                 normalized.fundedQty()
         );
         ProjectItem saved = projectItemRepository.save(item);
-        return toAdminResponse(saved);
+        Map<String, String> urls = presignGetForItem(saved);
+        return toAdminResponse(saved, urls);
     }
 
     @Transactional
@@ -78,7 +80,8 @@ public class AdminItemService {
                 normalized.targetQty(),
                 normalized.fundedQty()
         );
-        return toAdminResponse(item);
+        Map<String, String> urls = presignGetForItem(item);
+        return toAdminResponse(item, urls);
     }
 
     public AdminItemPresignPutBatchResponseDto createThumbnailPresignPutBatch(
@@ -112,6 +115,45 @@ public class AdminItemService {
         ProjectItem item = projectItemRepository.findById(itemId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "item not found"));
         projectItemRepository.delete(item);
+    }
+
+    @Transactional(readOnly = true)
+    public List<AdminProjectItemResponseDto> getItems(Long projectId) {
+        List<ProjectItem> items = projectItemRepository.findByProjectIdOrderByCreatedAtDescIdDesc(projectId);
+        Set<String> keySet = new LinkedHashSet<>();
+        for (ProjectItem item : items) {
+            addIfValidKey(keySet, item.getThumbnailKey());
+        }
+        Map<String, String> urls = presignGetSafely(keySet);
+
+        return items.stream()
+                .map(item -> toAdminResponse(item, urls))
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public AdminProjectItemDetailResponseDto getItem(Long itemId) {
+        ProjectItem item = projectItemRepository.findById(itemId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "item not found"));
+        List<ItemImage> images = itemImageRepository.findByItemIdOrderBySortOrderAsc(itemId);
+
+        Set<String> keySet = new LinkedHashSet<>();
+        addIfValidKey(keySet, item.getThumbnailKey());
+        for (ItemImage image : images) {
+            addIfValidKey(keySet, image.getImageKey());
+        }
+        Map<String, String> urls = presignGetSafely(keySet);
+
+        List<ProjectItemImageResponseDto> imageDtos = images.stream()
+                .map(image -> new ProjectItemImageResponseDto(
+                        image.getId(),
+                        image.getImageKey(),
+                        resolveUrl(urls, image.getImageKey()),
+                        image.getSortOrder()
+                ))
+                .toList();
+
+        return toAdminDetailResponse(item, imageDtos, urls);
     }
 
     @Transactional
@@ -270,11 +312,8 @@ public class AdminItemService {
         return new NormalizedItemRequest(normalizedTargetQty, normalizedFundedQty);
     }
 
-    private AdminProjectItemResponseDto toAdminResponse(ProjectItem item) {
+    private AdminProjectItemResponseDto toAdminResponse(ProjectItem item, Map<String, String> urls) {
         GroupbuyInfo info = calculateGroupbuyInfo(item);
-        Set<String> keySet = new LinkedHashSet<>();
-        addIfValidKey(keySet, item.getThumbnailKey());
-        Map<String, String> urls = presignGetSafely(keySet);
         return new AdminProjectItemResponseDto(
                 item.getId(),
                 item.getProject().getId(),
@@ -292,6 +331,38 @@ public class AdminItemService {
                 item.getCreatedAt(),
                 item.getUpdatedAt()
         );
+    }
+
+    private AdminProjectItemDetailResponseDto toAdminDetailResponse(
+            ProjectItem item,
+            List<ProjectItemImageResponseDto> images,
+            Map<String, String> urls
+    ) {
+        GroupbuyInfo info = calculateGroupbuyInfo(item);
+        return new AdminProjectItemDetailResponseDto(
+                item.getId(),
+                item.getProject().getId(),
+                item.getName(),
+                item.getDescription(),
+                item.getPrice(),
+                item.getSaleType(),
+                item.getStatus(),
+                item.getThumbnailKey(),
+                resolveUrl(urls, item.getThumbnailKey()),
+                images,
+                info.targetQty(),
+                info.fundedQty(),
+                info.achievementRate(),
+                info.remainingQty(),
+                item.getCreatedAt(),
+                item.getUpdatedAt()
+        );
+    }
+
+    private Map<String, String> presignGetForItem(ProjectItem item) {
+        Set<String> keySet = new LinkedHashSet<>();
+        addIfValidKey(keySet, item.getThumbnailKey());
+        return presignGetSafely(keySet);
     }
 
     private void ensureItemExists(Long itemId) {
