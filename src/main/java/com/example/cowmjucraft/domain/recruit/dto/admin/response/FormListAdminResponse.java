@@ -1,11 +1,12 @@
-package com.example.cowmjucraft.domain.recruit.dto.admin;
+package com.example.cowmjucraft.domain.recruit.dto.admin.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 @Getter
 @AllArgsConstructor
-public class FormDetailAdminResponse {
+public class FormListAdminResponse {
+
     private Long formId;
     private String title;
     private boolean open;

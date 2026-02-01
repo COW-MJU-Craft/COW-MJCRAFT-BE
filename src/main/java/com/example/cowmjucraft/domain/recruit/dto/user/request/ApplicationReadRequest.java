@@ -1,12 +1,11 @@
-package com.example.cowmjucraft.domain.recruit.dto.User;
+package com.example.cowmjucraft.domain.recruit.dto.user.request;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Getter
 @NoArgsConstructor
-public class ResultReadRequest {
+public class ApplicationReadRequest {
     private String studentId;
     private String password;
 }
-

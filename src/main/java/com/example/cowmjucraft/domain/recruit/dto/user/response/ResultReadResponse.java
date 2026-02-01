@@ -1,12 +1,10 @@
-package com.example.cowmjucraft.domain.recruit.dto.admin;
+package com.example.cowmjucraft.domain.recruit.dto.user.response;
 
 import com.example.cowmjucraft.domain.recruit.entity.ResultStatus;import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 @Getter
 @AllArgsConstructor
-public class SetResultAdminResponse {
-    private Long applicationId;
+public class ResultReadResponse {
     private ResultStatus resultStatus;
 }
-

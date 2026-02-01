@@ -1,4 +1,4 @@
-package com.example.cowmjucraft.domain.recruit.dto.admin;
+package com.example.cowmjucraft.domain.recruit.dto.admin.request;
 
 import com.example.cowmjucraft.domain.recruit.entity.AnswerType;import com.example.cowmjucraft.domain.recruit.entity.DepartmentType;import com.example.cowmjucraft.domain.recruit.entity.SectionType;import lombok.Getter;
 import lombok.NoArgsConstructor;
