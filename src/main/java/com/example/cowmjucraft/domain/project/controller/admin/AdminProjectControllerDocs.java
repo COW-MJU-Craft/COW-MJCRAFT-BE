@@ -3,11 +3,9 @@ package com.example.cowmjucraft.domain.project.controller.admin;
 import com.example.cowmjucraft.domain.project.dto.request.AdminProjectCreateRequestDto;
 import com.example.cowmjucraft.domain.project.dto.request.AdminProjectOrderPatchRequestDto;
 import com.example.cowmjucraft.domain.project.dto.request.AdminProjectPresignPutBatchRequestDto;
-import com.example.cowmjucraft.domain.project.dto.request.AdminProjectPresignPutRequestDto;
 import com.example.cowmjucraft.domain.project.dto.request.AdminProjectUpdateRequestDto;
 import com.example.cowmjucraft.domain.project.dto.response.AdminProjectOrderPatchResponseDto;
 import com.example.cowmjucraft.domain.project.dto.response.AdminProjectPresignPutBatchResponseDto;
-import com.example.cowmjucraft.domain.project.dto.response.AdminProjectPresignPutResponseDto;
 import com.example.cowmjucraft.domain.project.dto.response.AdminProjectResponseDto;
 import com.example.cowmjucraft.global.response.ApiResult;
 import io.swagger.v3.oas.annotations.Operation;
@@ -100,55 +98,6 @@ public interface AdminProjectControllerDocs {
     );
 
     @Operation(
-            summary = "프로젝트 썸네일 presign-put 단건 발급",
-            description = "프로젝트 썸네일 업로드용 presigned PUT URL을 발급합니다."
-    )
-    @RequestBody(
-            required = true,
-            description = "presign-put 요청",
-            content = @Content(
-                    schema = @Schema(implementation = AdminProjectPresignPutRequestDto.class),
-                    examples = @ExampleObject(
-                            name = "thumbnail-presign-request",
-                            value = """
-                                    {
-                                      "fileName": "thumbnail.png",
-                                      "contentType": "image/png"
-                                    }
-                                    """
-                    )
-            )
-    )
-    @ApiResponses({
-            @ApiResponse(
-                    responseCode = "200",
-                    description = "성공",
-                    content = @Content(
-                            schema = @Schema(implementation = ApiResult.class),
-                            examples = @ExampleObject(
-                                    name = "thumbnail-presign-response",
-                                    value = """
-                                            {
-                                              "resultType": "SUCCESS",
-                                              "httpStatusCode": 200,
-                                              "message": "요청에 성공하였습니다.",
-                                              "data": {
-                                                "key": "uploads/projects/thumbnails/uuid-thumbnail.png",
-                                                "uploadUrl": "https://bucket.s3.amazonaws.com/...",
-                                                "expiresInSeconds": 300
-                                              }
-                                            }
-                                            """
-                            )
-                    )
-            ),
-            @ApiResponse(responseCode = "400", description = "요청 값 오류")
-    })
-    ApiResult<AdminProjectPresignPutResponseDto> presignThumbnail(
-            @Valid AdminProjectPresignPutRequestDto request
-    );
-
-    @Operation(
             summary = "프로젝트 썸네일 presign-put 배치 발급",
             description = "프로젝트 썸네일 업로드용 presigned PUT URL을 여러 건 발급합니다."
     )
@@ -158,7 +107,7 @@ public interface AdminProjectControllerDocs {
             content = @Content(
                     schema = @Schema(implementation = AdminProjectPresignPutBatchRequestDto.class),
                     examples = @ExampleObject(
-                            name = "thumbnail-presign-batch-request",
+                            name = "thumbnail-presign-request",
                             value = """
                                     {
                                       "files": [
@@ -177,8 +126,8 @@ public interface AdminProjectControllerDocs {
                     content = @Content(
                             schema = @Schema(implementation = ApiResult.class),
                             examples = @ExampleObject(
-                                    name = "thumbnail-presign-batch-response",
-                                    value = """
+                            name = "thumbnail-presign-response",
+                            value = """
                                             {
                                               "resultType": "SUCCESS",
                                               "httpStatusCode": 200,
@@ -206,57 +155,8 @@ public interface AdminProjectControllerDocs {
             ),
             @ApiResponse(responseCode = "400", description = "요청 값 오류")
     })
-    ApiResult<AdminProjectPresignPutBatchResponseDto> presignThumbnailBatch(
+    ApiResult<AdminProjectPresignPutBatchResponseDto> presignThumbnail(
             @Valid AdminProjectPresignPutBatchRequestDto request
-    );
-
-    @Operation(
-            summary = "프로젝트 상세 이미지 presign-put 단건 발급",
-            description = "프로젝트 상세 이미지 업로드용 presigned PUT URL을 발급합니다."
-    )
-    @RequestBody(
-            required = true,
-            description = "presign-put 요청",
-            content = @Content(
-                    schema = @Schema(implementation = AdminProjectPresignPutRequestDto.class),
-                    examples = @ExampleObject(
-                            name = "images-presign-request",
-                            value = """
-                                    {
-                                      "fileName": "detail-image.png",
-                                      "contentType": "image/png"
-                                    }
-                                    """
-                    )
-            )
-    )
-    @ApiResponses({
-            @ApiResponse(
-                    responseCode = "200",
-                    description = "성공",
-                    content = @Content(
-                            schema = @Schema(implementation = ApiResult.class),
-                            examples = @ExampleObject(
-                                    name = "images-presign-response",
-                                    value = """
-                                            {
-                                              "resultType": "SUCCESS",
-                                              "httpStatusCode": 200,
-                                              "message": "요청에 성공하였습니다.",
-                                              "data": {
-                                                "key": "uploads/projects/images/uuid-detail-image.png",
-                                                "uploadUrl": "https://bucket.s3.amazonaws.com/...",
-                                                "expiresInSeconds": 300
-                                              }
-                                            }
-                                            """
-                            )
-                    )
-            ),
-            @ApiResponse(responseCode = "400", description = "요청 값 오류")
-    })
-    ApiResult<AdminProjectPresignPutResponseDto> presignImages(
-            @Valid AdminProjectPresignPutRequestDto request
     );
 
     @Operation(
@@ -269,7 +169,7 @@ public interface AdminProjectControllerDocs {
             content = @Content(
                     schema = @Schema(implementation = AdminProjectPresignPutBatchRequestDto.class),
                     examples = @ExampleObject(
-                            name = "images-presign-batch-request",
+                            name = "images-presign-request",
                             value = """
                                     {
                                       "files": [
@@ -288,8 +188,8 @@ public interface AdminProjectControllerDocs {
                     content = @Content(
                             schema = @Schema(implementation = ApiResult.class),
                             examples = @ExampleObject(
-                                    name = "images-presign-batch-response",
-                                    value = """
+                            name = "images-presign-response",
+                            value = """
                                             {
                                               "resultType": "SUCCESS",
                                               "httpStatusCode": 200,
@@ -317,7 +217,7 @@ public interface AdminProjectControllerDocs {
             ),
             @ApiResponse(responseCode = "400", description = "요청 값 오류")
     })
-    ApiResult<AdminProjectPresignPutBatchResponseDto> presignImagesBatch(
+    ApiResult<AdminProjectPresignPutBatchResponseDto> presignImages(
             @Valid AdminProjectPresignPutBatchRequestDto request
     );
 
