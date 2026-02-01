@@ -1,0 +1,50 @@
+package com.example.cowmjucraft.domain.recruit.controller.admin;
+
+import com.example.cowmjucraft.domain.recruit.dto.admin.*;
+import com.example.cowmjucraft.domain.recruit.service.admin.ApplicationAdminService;
+import com.example.cowmjucraft.global.response.ApiResult;
+import com.example.cowmjucraft.global.response.type.SuccessType;
+import java.util.List;
+import org.springframework.web.bind.annotation.*;
+
+@RestController
+public class ApplicationAdminController implements ApplicationAdminControllerDocs {
+
+    private final ApplicationAdminService applicationAdminService;
+
+    public ApplicationAdminController(ApplicationAdminService applicationAdminService) {
+        this.applicationAdminService = applicationAdminService;
+    }
+
+    @Override
+    @GetMapping("/admin/forms/{formId}/applications")
+    public ApiResult<List<ApplicationListAdminResponse>> list(@PathVariable Long formId) {
+        return ApiResult.success(SuccessType.SUCCESS, applicationAdminService.listApplications(formId));
+    }
+
+    @Override
+    @GetMapping("/admin/forms/{formId}/applications/{applicationId}")
+    public ApiResult<ApplicationDetailAdminResponse> detail(
+            @PathVariable Long formId,
+            @PathVariable Long applicationId
+    ) {
+        return ApiResult.success(SuccessType.SUCCESS, applicationAdminService.getApplication(formId, applicationId));
+    }
+
+    @Override
+    @DeleteMapping("/admin/applications/{applicationId}")
+    public ApiResult<?> delete(@PathVariable Long applicationId) {
+        applicationAdminService.deleteApplication(applicationId);
+        return ApiResult.success(SuccessType.NO_CONTENT);
+    }
+
+    @Override
+    @PutMapping("/admin/applications/{applicationId}/result")
+    public ApiResult<?> updateResult(
+            @PathVariable Long applicationId,
+            @RequestBody ApplicationResultUpdateAdminRequest request
+    ) {
+        applicationAdminService.updateResult(applicationId, request);
+        return ApiResult.success(SuccessType.NO_CONTENT);
+    }
+}
