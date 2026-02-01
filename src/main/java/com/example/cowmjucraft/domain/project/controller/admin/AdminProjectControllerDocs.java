@@ -367,6 +367,9 @@ public interface AdminProjectControllerDocs {
                     items에 포함된 프로젝트만 갱신되며, 포함되지 않은 프로젝트는 기존 값을 유지합니다.
                     pinned=false & manualOrder=null 인 경우 자동정렬 대상으로 저장됩니다.
                     manualOrder는 1 이상이며 pinned=true일 때는 manualOrder를 보낼 수 없습니다.
+                    pinned=true일 때 pinnedOrder는 1 이상 필수이며 pinned=true 항목 내에서 중복 불가합니다.
+                    pinned=true 항목의 pinnedOrder를 변경하는 경우, 현재 pinned=true인 전체 프로젝트를 items에 포함해야 합니다.
+                    (부분 업데이트는 허용되지 않습니다.)
                     """
     )
     @RequestBody(
@@ -379,9 +382,9 @@ public interface AdminProjectControllerDocs {
                             value = """
                                     {
                                       "items": [
-                                        { "projectId": 3, "pinned": true },
-                                        { "projectId": 1, "pinned": true },
-                                        { "projectId": 7, "pinned": true },
+                                        { "projectId": 3, "pinned": true, "pinnedOrder": 1 },
+                                        { "projectId": 1, "pinned": true, "pinnedOrder": 2 },
+                                        { "projectId": 7, "pinned": true, "pinnedOrder": 3 },
                                         { "projectId": 10, "pinned": false, "manualOrder": 1 },
                                         { "projectId": 12, "pinned": false, "manualOrder": 2 }
                                       ]
