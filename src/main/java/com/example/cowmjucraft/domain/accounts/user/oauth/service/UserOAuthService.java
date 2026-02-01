@@ -11,13 +11,11 @@ import com.example.cowmjucraft.domain.accounts.user.repository.MemberRepository;
 import com.example.cowmjucraft.global.config.jwt.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.Locale;
-import java.util.UUID;
 
 @RequiredArgsConstructor
 @Transactional
@@ -27,7 +25,6 @@ public class UserOAuthService {
     private final KakaoOAuthClient kakaoOAuthClient;
     private final NaverOAuthClient naverOAuthClient;
     private final MemberRepository memberRepository;
-    private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
 
     public UserSocialLoginResponseDto loginWithNaver(NaverLoginRequestDto request) {
@@ -53,8 +50,8 @@ public class UserOAuthService {
         Member member = memberRepository.findByProviderAndProviderId(provider, providerId)
                 .orElseGet(() -> createOrLinkMember(provider, providerId, email, nickname));
 
-        String token = jwtTokenProvider.generateMemberToken(member.getUserId());
-        return new UserSocialLoginResponseDto(member.getUserId(), member.getEmail(), token);
+        String token = jwtTokenProvider.generateMemberToken(member.getId());
+        return new UserSocialLoginResponseDto(member.getId(), member.getUserName(), member.getEmail(), token);
     }
 
     private Member createOrLinkMember(
@@ -67,6 +64,9 @@ public class UserOAuthService {
             Member byEmail = memberRepository.findByEmail(email).orElse(null);
             if (byEmail != null) {
                 byEmail.updateSocial(provider, providerId);
+
+                byEmail.ensureUserId();
+
                 if (nickname != null && !nickname.isBlank()) {
                     byEmail.updateUserName(nickname);
                 }
@@ -77,11 +77,11 @@ public class UserOAuthService {
         String safeEmail = (email != null && !email.isBlank())
                 ? email
                 : provider.name().toLowerCase(Locale.ROOT) + "_" + providerId + "@social.local";
-        String userId = provider.name().toLowerCase(Locale.ROOT) + "_" + providerId;
-        String userName = (nickname != null && !nickname.isBlank()) ? nickname : userId;
-        String password = passwordEncoder.encode(UUID.randomUUID().toString());
+        String userName = (nickname != null && !nickname.isBlank())
+                ? nickname
+                : provider.name().toLowerCase(Locale.ROOT) + "_" + providerId;
 
-        Member member = new Member(userId, userName, safeEmail, password);
+        Member member = new Member(userName, safeEmail);
         member.updateSocial(provider, providerId);
         return memberRepository.save(member);
     }

@@ -9,7 +9,7 @@ public record ProjectItemImageResponseDto(
         @Schema(description = "이미지 ID", example = "10")
         Long id,
 
-        @Schema(description = "이미지 S3 key", example = "uploads/items/detail-001.png")
+        @Schema(description = "이미지 S3 object key", example = "uploads/items/1/images/uuid-detail.png")
         String imageKey,
 
         @Schema(description = "정렬 순서", example = "0")

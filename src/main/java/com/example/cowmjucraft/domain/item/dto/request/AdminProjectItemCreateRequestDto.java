@@ -31,7 +31,7 @@ public record AdminProjectItemCreateRequestDto(
         ItemStatus status,
 
         @NotBlank
-        @Schema(description = "대표 이미지 S3 key", example = "uploads/items/thumbnail-001.png")
+        @Schema(description = "대표 이미지 S3 object key", example = "uploads/items/1/thumbnail/uuid-thumbnail.png")
         String thumbnailKey,
 
         @Schema(description = "목표 수량 (GROUPBUY 전용)", example = "100")

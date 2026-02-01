@@ -13,7 +13,7 @@ public record NoticeSummaryResponseDto(
         @Schema(description = "공지 제목", example = "설 연휴 배송 일정 안내")
         String title,
 
-        @Schema(description = "공지 이미지 S3 key 목록", example = "[\"uploads/notices/notice-001.png\"]")
+        @Schema(description = "공지 이미지 S3 object key 목록", example = "[\"uploads/notices/images/uuid-notice.png\"]")
         List<String> imageKeys,
 
         @Schema(description = "등록일시", example = "2026-01-20T10:15:30")

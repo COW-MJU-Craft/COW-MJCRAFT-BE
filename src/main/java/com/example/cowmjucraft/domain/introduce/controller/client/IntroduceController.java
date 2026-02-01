@@ -1,7 +1,7 @@
 package com.example.cowmjucraft.domain.introduce.controller.client;
 
-import com.example.cowmjucraft.domain.introduce.dto.response.IntroduceDetailResponse;
-import com.example.cowmjucraft.domain.introduce.dto.response.IntroduceMainSummaryResponse;
+import com.example.cowmjucraft.domain.introduce.dto.response.IntroduceDetailResponseDto;
+import com.example.cowmjucraft.domain.introduce.dto.response.IntroduceMainSummaryResponseDto;
 import com.example.cowmjucraft.domain.introduce.service.IntroduceService;
 import com.example.cowmjucraft.global.response.ApiResult;
 import com.example.cowmjucraft.global.response.type.SuccessType;
@@ -19,13 +19,13 @@ public class IntroduceController implements IntroduceControllerDocs {
 
     @GetMapping("/main")
     @Override
-    public ApiResult<IntroduceMainSummaryResponse> getMainSummary() {
+    public ApiResult<IntroduceMainSummaryResponseDto> getMainSummary() {
         return ApiResult.success(SuccessType.SUCCESS, introduceService.getMainSummary());
     }
 
     @GetMapping
     @Override
-    public ApiResult<IntroduceDetailResponse> getDetail() {
+    public ApiResult<IntroduceDetailResponseDto> getDetail() {
         return ApiResult.success(SuccessType.SUCCESS, introduceService.getDetail());
     }
 }

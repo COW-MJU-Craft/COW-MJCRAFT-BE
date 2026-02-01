@@ -6,6 +6,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import java.time.LocalDate;
+import java.util.List;
 
 @Schema(description = "프로젝트 수정 요청")
 public record AdminProjectUpdateRequestDto(
@@ -28,6 +29,9 @@ public record AdminProjectUpdateRequestDto(
         @Size(max = 255)
         @Schema(description = "썸네일 S3 key", example = "uploads/projects/thumbnail-001.png")
         String thumbnailKey,
+
+        @Schema(description = "프로젝트 상세 이미지 S3 object key 목록(정렬 순서대로)", example = "[\"uploads/projects/images/uuid-01.png\", \"uploads/projects/images/uuid-02.png\"]")
+        List<String> imageKeys,
 
         @NotNull
         @Schema(description = "마감일 (YYYY-MM-DD)", example = "2026-03-15")

@@ -2,8 +2,10 @@ package com.example.cowmjucraft.domain.project.controller.admin;
 
 import com.example.cowmjucraft.domain.project.dto.request.AdminProjectCreateRequestDto;
 import com.example.cowmjucraft.domain.project.dto.request.AdminProjectOrderPatchRequestDto;
+import com.example.cowmjucraft.domain.project.dto.request.AdminProjectPresignPutRequestDto;
 import com.example.cowmjucraft.domain.project.dto.request.AdminProjectUpdateRequestDto;
 import com.example.cowmjucraft.domain.project.dto.response.AdminProjectOrderPatchResponseDto;
+import com.example.cowmjucraft.domain.project.dto.response.AdminProjectPresignPutResponseDto;
 import com.example.cowmjucraft.domain.project.dto.response.AdminProjectResponseDto;
 import com.example.cowmjucraft.global.response.ApiResult;
 import io.swagger.v3.oas.annotations.Operation;
@@ -36,7 +38,11 @@ public interface AdminProjectControllerDocs {
                                       "title": "명지공방 머그컵 프로젝트",
                                       "summary": "캠퍼스 감성을 담은 머그컵을 제작합니다.",
                                       "description": "학생들이 함께 디자인한 머그컵 프로젝트입니다.",
-                                      "thumbnailKey": "uploads/projects/thumbnail-001.png",
+                                      "thumbnailKey": "uploads/projects/thumbnails/uuid-thumbnail.png",
+                                      "imageKeys": [
+                                        "uploads/projects/images/uuid-01.png",
+                                        "uploads/projects/images/uuid-02.png"
+                                      ],
                                       "deadlineDate": "2026-03-15",
                                       "status": "OPEN"
                                     }
@@ -46,14 +52,142 @@ public interface AdminProjectControllerDocs {
     )
     @ApiResponses({
             @ApiResponse(
-                    responseCode = "200",
+                    responseCode = "201",
                     description = "성공",
-                    content = @Content(schema = @Schema(implementation = ApiResult.class))
+                    content = @Content(
+                            schema = @Schema(implementation = ApiResult.class),
+                            examples = @ExampleObject(
+                                    name = "create-response",
+                                    value = """
+                                            {
+                                              "resultType": "SUCCESS",
+                                              "httpStatusCode": 201,
+                                              "message": "성공적으로 생성하였습니다.",
+                                              "data": {
+                                                "id": 1,
+                                                "title": "명지공방 머그컵 프로젝트",
+                                                "summary": "캠퍼스 감성을 담은 머그컵을 제작합니다.",
+                                                "description": "학생들이 함께 디자인한 머그컵 프로젝트입니다.",
+                                                "thumbnailKey": "uploads/projects/thumbnails/uuid-thumbnail.png",
+                                                "imageKeys": [
+                                                  "uploads/projects/images/uuid-01.png",
+                                                  "uploads/projects/images/uuid-02.png"
+                                                ],
+                                                "status": "OPEN",
+                                                "deadlineDate": "2026-03-15",
+                                                "pinned": false,
+                                                "pinnedOrder": null,
+                                                "manualOrder": null,
+                                                "createdAt": "2026-01-29T10:00:00",
+                                                "updatedAt": "2026-01-29T10:00:00"
+                                              }
+                                            }
+                                            """
+                            )
+                    )
             ),
             @ApiResponse(responseCode = "422", description = "요청 값 검증 실패")
     })
     ApiResult<AdminProjectResponseDto> createProject(
             @Valid AdminProjectCreateRequestDto request
+    );
+
+    @Operation(
+            summary = "프로젝트 썸네일 presign-put 단건 발급",
+            description = "프로젝트 썸네일 업로드용 presigned PUT URL을 발급합니다."
+    )
+    @RequestBody(
+            required = true,
+            description = "presign-put 요청",
+            content = @Content(
+                    schema = @Schema(implementation = AdminProjectPresignPutRequestDto.class),
+                    examples = @ExampleObject(
+                            name = "thumbnail-presign-request",
+                            value = """
+                                    {
+                                      "fileName": "thumbnail.png",
+                                      "contentType": "image/png"
+                                    }
+                                    """
+                    )
+            )
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "성공",
+                    content = @Content(
+                            schema = @Schema(implementation = ApiResult.class),
+                            examples = @ExampleObject(
+                                    name = "thumbnail-presign-response",
+                                    value = """
+                                            {
+                                              "resultType": "SUCCESS",
+                                              "httpStatusCode": 200,
+                                              "message": "요청에 성공하였습니다.",
+                                              "data": {
+                                                "key": "uploads/projects/thumbnails/uuid-thumbnail.png",
+                                                "uploadUrl": "https://bucket.s3.amazonaws.com/...",
+                                                "expiresInSeconds": 300
+                                              }
+                                            }
+                                            """
+                            )
+                    )
+            ),
+            @ApiResponse(responseCode = "400", description = "요청 값 오류")
+    })
+    ApiResult<AdminProjectPresignPutResponseDto> presignThumbnail(
+            @Valid AdminProjectPresignPutRequestDto request
+    );
+
+    @Operation(
+            summary = "프로젝트 상세 이미지 presign-put 단건 발급",
+            description = "프로젝트 상세 이미지 업로드용 presigned PUT URL을 발급합니다."
+    )
+    @RequestBody(
+            required = true,
+            description = "presign-put 요청",
+            content = @Content(
+                    schema = @Schema(implementation = AdminProjectPresignPutRequestDto.class),
+                    examples = @ExampleObject(
+                            name = "images-presign-request",
+                            value = """
+                                    {
+                                      "fileName": "detail-image.png",
+                                      "contentType": "image/png"
+                                    }
+                                    """
+                    )
+            )
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "성공",
+                    content = @Content(
+                            schema = @Schema(implementation = ApiResult.class),
+                            examples = @ExampleObject(
+                                    name = "images-presign-response",
+                                    value = """
+                                            {
+                                              "resultType": "SUCCESS",
+                                              "httpStatusCode": 200,
+                                              "message": "요청에 성공하였습니다.",
+                                              "data": {
+                                                "key": "uploads/projects/images/uuid-detail-image.png",
+                                                "uploadUrl": "https://bucket.s3.amazonaws.com/...",
+                                                "expiresInSeconds": 300
+                                              }
+                                            }
+                                            """
+                            )
+                    )
+            ),
+            @ApiResponse(responseCode = "400", description = "요청 값 오류")
+    })
+    ApiResult<AdminProjectPresignPutResponseDto> presignImages(
+            @Valid AdminProjectPresignPutRequestDto request
     );
 
     @Operation(
@@ -72,7 +206,11 @@ public interface AdminProjectControllerDocs {
                                       "title": "명지공방 머그컵 프로젝트 (리뉴얼)",
                                       "summary": "굿즈 라인업을 확장합니다.",
                                       "description": "학생들이 함께 디자인한 머그컵 프로젝트입니다.",
-                                      "thumbnailKey": "uploads/projects/thumbnail-001.png",
+                                      "thumbnailKey": "uploads/projects/thumbnails/uuid-thumbnail.png",
+                                      "imageKeys": [
+                                        "uploads/projects/images/uuid-01.png",
+                                        "uploads/projects/images/uuid-02.png"
+                                      ],
                                       "deadlineDate": "2026-03-20",
                                       "status": "OPEN"
                                     }
@@ -84,7 +222,37 @@ public interface AdminProjectControllerDocs {
             @ApiResponse(
                     responseCode = "200",
                     description = "성공",
-                    content = @Content(schema = @Schema(implementation = ApiResult.class))
+                    content = @Content(
+                            schema = @Schema(implementation = ApiResult.class),
+                            examples = @ExampleObject(
+                                    name = "update-response",
+                                    value = """
+                                            {
+                                              "resultType": "SUCCESS",
+                                              "httpStatusCode": 200,
+                                              "message": "요청에 성공하였습니다.",
+                                              "data": {
+                                                "id": 1,
+                                                "title": "명지공방 머그컵 프로젝트 (리뉴얼)",
+                                                "summary": "굿즈 라인업을 확장합니다.",
+                                                "description": "학생들이 함께 디자인한 머그컵 프로젝트입니다.",
+                                                "thumbnailKey": "uploads/projects/thumbnails/uuid-thumbnail.png",
+                                                "imageKeys": [
+                                                  "uploads/projects/images/uuid-01.png",
+                                                  "uploads/projects/images/uuid-02.png"
+                                                ],
+                                                "status": "OPEN",
+                                                "deadlineDate": "2026-03-20",
+                                                "pinned": false,
+                                                "pinnedOrder": null,
+                                                "manualOrder": null,
+                                                "createdAt": "2026-01-20T10:00:00",
+                                                "updatedAt": "2026-01-29T10:00:00"
+                                              }
+                                            }
+                                            """
+                            )
+                    )
             ),
             @ApiResponse(responseCode = "404", description = "요청한 리소스를 찾을 수 없음"),
             @ApiResponse(responseCode = "422", description = "요청 값 검증 실패")
@@ -101,9 +269,22 @@ public interface AdminProjectControllerDocs {
     )
     @ApiResponses({
             @ApiResponse(
-                    responseCode = "200",
+                    responseCode = "204",
                     description = "성공",
-                    content = @Content(schema = @Schema(implementation = ApiResult.class))
+                    content = @Content(
+                            schema = @Schema(implementation = ApiResult.class),
+                            examples = @ExampleObject(
+                                    name = "delete-response",
+                                    value = """
+                                            {
+                                              "resultType": "SUCCESS",
+                                              "httpStatusCode": 204,
+                                              "message": "요청에 성공하였습니다.",
+                                              "data": null
+                                            }
+                                            """
+                            )
+                    )
             ),
             @ApiResponse(responseCode = "404", description = "요청한 리소스를 찾을 수 없음")
     })

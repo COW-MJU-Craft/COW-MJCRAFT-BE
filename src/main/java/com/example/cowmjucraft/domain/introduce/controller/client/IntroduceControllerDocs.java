@@ -1,7 +1,7 @@
 package com.example.cowmjucraft.domain.introduce.controller.client;
 
-import com.example.cowmjucraft.domain.introduce.dto.response.IntroduceDetailResponse;
-import com.example.cowmjucraft.domain.introduce.dto.response.IntroduceMainSummaryResponse;
+import com.example.cowmjucraft.domain.introduce.dto.response.IntroduceDetailResponseDto;
+import com.example.cowmjucraft.domain.introduce.dto.response.IntroduceMainSummaryResponseDto;
 import com.example.cowmjucraft.global.response.ApiResult;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -25,11 +25,11 @@ public interface IntroduceControllerDocs {
             ),
             @ApiResponse(responseCode = "404", description = "리소스 없음")
     })
-    ApiResult<IntroduceMainSummaryResponse> getMainSummary();
+    ApiResult<IntroduceMainSummaryResponseDto> getMainSummary();
 
     @Operation(
             summary = "소개 상세 조회",
-            description = "소개 상세 섹션 목록을 조회합니다."
+            description = "소개 상세 정보를 조회합니다. (intro 포함)"
     )
     @ApiResponses({
             @ApiResponse(
@@ -39,5 +39,5 @@ public interface IntroduceControllerDocs {
             ),
             @ApiResponse(responseCode = "404", description = "리소스 없음")
     })
-    ApiResult<IntroduceDetailResponse> getDetail();
+    ApiResult<IntroduceDetailResponseDto> getDetail();
 }
