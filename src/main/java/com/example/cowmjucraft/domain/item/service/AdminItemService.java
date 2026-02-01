@@ -2,10 +2,12 @@ package com.example.cowmjucraft.domain.item.service;
 
 import com.example.cowmjucraft.domain.item.dto.request.AdminItemImageCreateRequestDto;
 import com.example.cowmjucraft.domain.item.dto.request.AdminItemImageOrderPatchRequestDto;
+import com.example.cowmjucraft.domain.item.dto.request.AdminItemPresignPutBatchRequestDto;
 import com.example.cowmjucraft.domain.item.dto.request.AdminItemPresignPutRequestDto;
 import com.example.cowmjucraft.domain.item.dto.request.AdminProjectItemCreateRequestDto;
 import com.example.cowmjucraft.domain.item.dto.request.AdminProjectItemUpdateRequestDto;
 import com.example.cowmjucraft.domain.item.dto.response.AdminItemImageOrderPatchResponseDto;
+import com.example.cowmjucraft.domain.item.dto.response.AdminItemPresignPutBatchResponseDto;
 import com.example.cowmjucraft.domain.item.dto.response.AdminItemPresignPutResponseDto;
 import com.example.cowmjucraft.domain.item.dto.response.AdminProjectItemResponseDto;
 import com.example.cowmjucraft.domain.item.dto.response.ProjectItemImageResponseDto;
@@ -17,8 +19,10 @@ import com.example.cowmjucraft.domain.item.repository.ProjectItemRepository;
 import com.example.cowmjucraft.global.cloud.S3PresignFacade;
 import com.example.cowmjucraft.domain.project.entity.Project;
 import com.example.cowmjucraft.domain.project.repository.ProjectRepository;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -92,6 +96,19 @@ public class AdminItemService {
         return toSinglePresignResponse(response);
     }
 
+    public AdminItemPresignPutBatchResponseDto createThumbnailPresignPutBatch(
+            Long itemId,
+            AdminItemPresignPutBatchRequestDto request
+    ) {
+        ensureItemExists(itemId);
+        String prefix = "uploads/items/" + itemId + "/thumbnail";
+        S3PresignFacade.PresignPutBatchResult response = s3PresignFacade.createPresignPutBatch(
+                prefix,
+                toPresignFiles(request.files())
+        );
+        return toBatchPresignResponse(response);
+    }
+
     public AdminItemPresignPutResponseDto createImagePresignPut(
             Long itemId,
             AdminItemPresignPutRequestDto request
@@ -103,6 +120,19 @@ public class AdminItemService {
                 List.of(new S3PresignFacade.PresignPutFile(request.fileName(), request.contentType()))
         );
         return toSinglePresignResponse(response);
+    }
+
+    public AdminItemPresignPutBatchResponseDto createImagePresignPutBatch(
+            Long itemId,
+            AdminItemPresignPutBatchRequestDto request
+    ) {
+        ensureItemExists(itemId);
+        String prefix = "uploads/items/" + itemId + "/images";
+        S3PresignFacade.PresignPutBatchResult response = s3PresignFacade.createPresignPutBatch(
+                prefix,
+                toPresignFiles(request.files())
+        );
+        return toBatchPresignResponse(response);
     }
 
     @Transactional
@@ -148,8 +178,20 @@ public class AdminItemService {
                 .map(image -> new ItemImage(item, image.imageKey(), image.sortOrder()))
                 .toList();
 
-        return itemImageRepository.saveAll(entities).stream()
-                .map(ProjectItemImageResponseDto::from)
+        List<ItemImage> saved = itemImageRepository.saveAll(entities);
+        Set<String> keySet = new LinkedHashSet<>();
+        for (ItemImage image : saved) {
+            addIfValidKey(keySet, image.getImageKey());
+        }
+        Map<String, String> urls = presignGetSafely(keySet);
+
+        return saved.stream()
+                .map(image -> new ProjectItemImageResponseDto(
+                        image.getId(),
+                        image.getImageKey(),
+                        resolveUrl(urls, image.getImageKey()),
+                        image.getSortOrder()
+                ))
                 .sorted(Comparator.comparingInt(ProjectItemImageResponseDto::sortOrder))
                 .toList();
     }
@@ -258,6 +300,9 @@ public class AdminItemService {
 
     private AdminProjectItemResponseDto toAdminResponse(ProjectItem item) {
         GroupbuyInfo info = calculateGroupbuyInfo(item);
+        Set<String> keySet = new LinkedHashSet<>();
+        addIfValidKey(keySet, item.getThumbnailKey());
+        Map<String, String> urls = presignGetSafely(keySet);
         return new AdminProjectItemResponseDto(
                 item.getId(),
                 item.getProject().getId(),
@@ -267,6 +312,7 @@ public class AdminItemService {
                 item.getSaleType(),
                 item.getStatus(),
                 item.getThumbnailKey(),
+                resolveUrl(urls, item.getThumbnailKey()),
                 info.targetQty(),
                 info.fundedQty(),
                 info.achievementRate(),
@@ -292,6 +338,78 @@ public class AdminItemService {
                 item.uploadUrl(),
                 item.expiresInSeconds()
         );
+    }
+
+    private AdminItemPresignPutBatchResponseDto toBatchPresignResponse(
+            S3PresignFacade.PresignPutBatchResult response
+    ) {
+        List<S3PresignFacade.PresignPutItem> items = response.items();
+        if (items == null || items.isEmpty()) {
+            throw new IllegalStateException("presign items is empty");
+        }
+
+        List<AdminItemPresignPutBatchResponseDto.ItemDto> result = new ArrayList<>(items.size());
+        for (S3PresignFacade.PresignPutItem item : items) {
+            result.add(new AdminItemPresignPutBatchResponseDto.ItemDto(
+                    item.fileName(),
+                    item.key(),
+                    item.uploadUrl(),
+                    item.expiresInSeconds()
+            ));
+        }
+
+        return new AdminItemPresignPutBatchResponseDto(result);
+    }
+
+    private List<S3PresignFacade.PresignPutFile> toPresignFiles(
+            List<AdminItemPresignPutBatchRequestDto.FileDto> files
+    ) {
+        if (files == null || files.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "files are required");
+        }
+
+        List<S3PresignFacade.PresignPutFile> result = new ArrayList<>(files.size());
+        for (int i = 0; i < files.size(); i++) {
+            AdminItemPresignPutBatchRequestDto.FileDto file = files.get(i);
+            if (file == null) {
+                throw new ResponseStatusException(
+                        HttpStatus.UNPROCESSABLE_ENTITY,
+                        "files[" + i + "] is null"
+                );
+            }
+            result.add(new S3PresignFacade.PresignPutFile(
+                    file.fileName(),
+                    file.contentType()
+            ));
+        }
+
+        return result;
+    }
+
+    private Map<String, String> presignGetSafely(Set<String> keys) {
+        try {
+            return keys == null || keys.isEmpty()
+                    ? Map.of()
+                    : s3PresignFacade.presignGet(new ArrayList<>(keys));
+        } catch (Exception e) {
+            return Map.of();
+        }
+    }
+
+    private String resolveUrl(Map<String, String> urls, String key) {
+        String k = toNonBlankString(key);
+        return k == null ? null : urls.get(k);
+    }
+
+    private void addIfValidKey(Set<String> keys, String value) {
+        String k = toNonBlankString(value);
+        if (k != null) {
+            keys.add(k);
+        }
+    }
+
+    private String toNonBlankString(String value) {
+        return value == null || value.trim().isEmpty() ? null : value.trim();
     }
 
     private GroupbuyInfo calculateGroupbuyInfo(ProjectItem item) {

@@ -41,6 +41,7 @@ public interface ItemControllerDocs {
                                                   "saleType": "GROUPBUY",
                                                   "status": "OPEN",
                                                   "thumbnailKey": "uploads/items/1/thumbnail/uuid-thumbnail.png",
+                                                  "thumbnailUrl": "https://bucket.s3.amazonaws.com/uploads/items/1/thumbnail/uuid-thumbnail.png?X-Amz-Signature=...",
                                                   "targetQty": 100,
                                                   "fundedQty": 40,
                                                   "achievementRate": 40.0,
@@ -85,10 +86,12 @@ public interface ItemControllerDocs {
                                                 "saleType": "GROUPBUY",
                                                 "status": "OPEN",
                                                 "thumbnailKey": "uploads/items/1/thumbnail/uuid-thumbnail.png",
+                                                "thumbnailUrl": "https://bucket.s3.amazonaws.com/uploads/items/1/thumbnail/uuid-thumbnail.png?X-Amz-Signature=...",
                                                 "images": [
                                                   {
                                                     "id": 5,
                                                     "imageKey": "uploads/items/1/images/uuid-detail-01.png",
+                                                    "imageUrl": "https://bucket.s3.amazonaws.com/uploads/items/1/images/uuid-detail-01.png?X-Amz-Signature=...",
                                                     "sortOrder": 0
                                                   }
                                                 ],
