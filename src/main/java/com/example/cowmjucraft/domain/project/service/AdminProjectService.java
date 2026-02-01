@@ -49,7 +49,8 @@ public class AdminProjectService {
                 request.status()
         );
         Project saved = projectRepository.save(project);
-        return toAdminResponse(saved);
+        Map<String, String> urls = presignGetForProject(saved);
+        return toAdminResponse(saved, urls);
     }
 
     @Transactional
@@ -64,13 +65,36 @@ public class AdminProjectService {
                 request.deadlineDate(),
                 request.status()
         );
-        return toAdminResponse(project);
+        Map<String, String> urls = presignGetForProject(project);
+        return toAdminResponse(project, urls);
     }
 
     @Transactional
     public void delete(Long projectId) {
         Project project = findProject(projectId);
         projectRepository.delete(project);
+    }
+
+    @Transactional(readOnly = true)
+    public List<AdminProjectResponseDto> getProjects() {
+        List<Project> projects = projectRepository.findAllOrderedForPublic();
+        Set<String> keySet = new LinkedHashSet<>();
+        for (Project project : projects) {
+            addIfValidKey(keySet, project.getThumbnailKey());
+            addIfValidKey(keySet, project.getImageKeys());
+        }
+        Map<String, String> urls = presignGetSafely(keySet);
+
+        return projects.stream()
+                .map(project -> toAdminResponse(project, urls))
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public AdminProjectResponseDto getProject(Long projectId) {
+        Project project = findProject(projectId);
+        Map<String, String> urls = presignGetForProject(project);
+        return toAdminResponse(project, urls);
     }
 
     public AdminProjectPresignPutBatchResponseDto createThumbnailPresignPutBatch(
@@ -170,12 +194,7 @@ public class AdminProjectService {
         return new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, message);
     }
 
-    private AdminProjectResponseDto toAdminResponse(Project project) {
-        Set<String> keySet = new LinkedHashSet<>();
-        addIfValidKey(keySet, project.getThumbnailKey());
-        addIfValidKey(keySet, project.getImageKeys());
-        Map<String, String> urls = presignGetSafely(keySet);
-
+    private AdminProjectResponseDto toAdminResponse(Project project, Map<String, String> urls) {
         return new AdminProjectResponseDto(
                 project.getId(),
                 project.getTitle(),
@@ -193,6 +212,13 @@ public class AdminProjectService {
                 project.getCreatedAt(),
                 project.getUpdatedAt()
         );
+    }
+
+    private Map<String, String> presignGetForProject(Project project) {
+        Set<String> keySet = new LinkedHashSet<>();
+        addIfValidKey(keySet, project.getThumbnailKey());
+        addIfValidKey(keySet, project.getImageKeys());
+        return presignGetSafely(keySet);
     }
 
     private AdminProjectPresignPutBatchResponseDto toBatchPresignResponse(
