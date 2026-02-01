@@ -3,7 +3,7 @@ package com.example.cowmjucraft.domain.item.dto.response;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.List;
 
-@Schema(description = "물품 presign-put 배치 응답")
+@Schema(description = "물품 presign-put 응답")
 public record AdminItemPresignPutBatchResponseDto(
 
         @Schema(

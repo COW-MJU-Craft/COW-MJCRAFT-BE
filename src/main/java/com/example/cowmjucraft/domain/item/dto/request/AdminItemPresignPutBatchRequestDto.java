@@ -6,7 +6,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import java.util.List;
 
-@Schema(description = "물품 presign-put 배치 요청")
+@Schema(description = "물품 presign-put 요청")
 public record AdminItemPresignPutBatchRequestDto(
 
         @Valid
