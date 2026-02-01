@@ -11,6 +11,7 @@ import com.example.cowmjucraft.global.response.type.SuccessType;
 import java.util.List;
 import org.springframework.web.bind.annotation.*;
 
+@RequestMapping("/api/admin")
 @RestController
 public class FormAdminController implements FormAdminControllerDocs {
 
@@ -21,7 +22,7 @@ public class FormAdminController implements FormAdminControllerDocs {
     }
 
     @Override
-    @PostMapping("/admin/forms")
+    @PostMapping("/forms")
     public ApiResult<FormCreateAdminResponse> createForm(
             @RequestBody FormCreateAdminRequest request
     ) {
@@ -32,21 +33,21 @@ public class FormAdminController implements FormAdminControllerDocs {
     }
 
     @Override
-    @PutMapping("/admin/forms/{formId}/open")
+    @PutMapping("/forms/{formId}/open")
     public ApiResult<?> openForm(@PathVariable Long formId) {
         formAdminService.openForm(formId);
         return ApiResult.success(SuccessType.SUCCESS);
     }
 
     @Override
-    @PutMapping("/admin/forms/{formId}/close")
+    @PutMapping("/forms/{formId}/close")
     public ApiResult<?> closeForm(@PathVariable Long formId) {
         formAdminService.closeForm(formId);
         return ApiResult.success(SuccessType.SUCCESS);
     }
 
     @Override
-    @PostMapping("/admin/forms/{formId}/questions")
+    @PostMapping("/forms/{formId}/questions")
     public ApiResult<AddQuestionAdminResponse> addQuestion(
             @PathVariable Long formId,
             @RequestBody AddQuestionAdminRequest request
@@ -58,7 +59,7 @@ public class FormAdminController implements FormAdminControllerDocs {
     }
 
     @Override
-    @GetMapping("/admin/forms")
+    @GetMapping("/forms")
     public ApiResult<List<FormListAdminResponse>> getForms() {
         return ApiResult.success(
                 SuccessType.SUCCESS,
@@ -67,7 +68,7 @@ public class FormAdminController implements FormAdminControllerDocs {
     }
 
     @Override
-    @GetMapping("/admin/forms/{formId}")
+    @GetMapping("/forms/{formId}")
     public ApiResult<FormDetailAdminResponse> getForm(@PathVariable Long formId) {
         return ApiResult.success(
                 SuccessType.SUCCESS,
@@ -76,7 +77,7 @@ public class FormAdminController implements FormAdminControllerDocs {
     }
 
     @Override
-    @GetMapping("/admin/forms/{formId}/questions")
+    @GetMapping("/forms/{formId}/questions")
     public ApiResult<List<FormQuestionListAdminResponse>> getFormQuestions(
             @PathVariable Long formId
     ) {
@@ -87,17 +88,17 @@ public class FormAdminController implements FormAdminControllerDocs {
     }
 
     @Override
-    @DeleteMapping("/admin/forms/{formId}/questions/{formQuestionId}")
+    @DeleteMapping("/forms/{formId}/questions/{formQuestionId}")
     public ApiResult<?> deleteFormQuestion(
             @PathVariable Long formId,
             @PathVariable Long formQuestionId
     ) {
         formAdminService.deleteFormQuestion(formId, formQuestionId);
-        return ApiResult.success(SuccessType.NO_CONTENT);
+        return ApiResult.success(SuccessType.SUCCESS);
     }
 
     @Override
-    @PutMapping("/admin/forms/{formId}/questions/{formQuestionId}")
+    @PutMapping("/forms/{formId}/questions/{formQuestionId}")
     public ApiResult<?> updateFormQuestion(
             @PathVariable Long formId,
             @PathVariable Long formQuestionId,
@@ -108,7 +109,7 @@ public class FormAdminController implements FormAdminControllerDocs {
     }
 
     @Override
-    @PostMapping("/admin/forms/{targetFormId}/copy")
+    @PostMapping("/forms/{targetFormId}/copy")
     public ApiResult<FormCopyAdminResponse> copyFormQuestionsOverwrite(
             @PathVariable Long targetFormId,
             @RequestBody FormCopyAdminRequest request

@@ -73,7 +73,7 @@ public class AdminItemController implements AdminItemControllerDocs {
             @PathVariable Long itemId
     ) {
         adminItemService.delete(itemId);
-        return ApiResult.success(SuccessType.NO_CONTENT);
+        return ApiResult.success(SuccessType.SUCCESS);
     }
 
     @PostMapping("/items/{itemId}/images")
@@ -101,6 +101,6 @@ public class AdminItemController implements AdminItemControllerDocs {
             @PathVariable Long imageId
     ) {
         adminItemService.deleteImage(itemId, imageId);
-        return ApiResult.success(SuccessType.NO_CONTENT);
+        return ApiResult.success(SuccessType.SUCCESS);
     }
 }

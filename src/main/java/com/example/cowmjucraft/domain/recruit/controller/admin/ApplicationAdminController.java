@@ -9,6 +9,7 @@ import com.example.cowmjucraft.global.response.type.SuccessType;
 import java.util.List;
 import org.springframework.web.bind.annotation.*;
 
+@RequestMapping("/api/admin")
 @RestController
 public class ApplicationAdminController implements ApplicationAdminControllerDocs {
 
@@ -19,13 +20,13 @@ public class ApplicationAdminController implements ApplicationAdminControllerDoc
     }
 
     @Override
-    @GetMapping("/admin/forms/{formId}/applications")
+    @GetMapping("/forms/{formId}/applications")
     public ApiResult<List<ApplicationListAdminResponse>> getApplicationsByFormId(@PathVariable Long formId) {
         return ApiResult.success(SuccessType.SUCCESS, applicationAdminService.getApplicationsByFormId(formId));
     }
 
     @Override
-    @GetMapping("/admin/forms/{formId}/applications/{applicationId}")
+    @GetMapping("/forms/{formId}/applications/{applicationId}")
     public ApiResult<ApplicationDetailAdminResponse> getApplicationByFormId(
             @PathVariable Long formId,
             @PathVariable Long applicationId
@@ -34,19 +35,19 @@ public class ApplicationAdminController implements ApplicationAdminControllerDoc
     }
 
     @Override
-    @DeleteMapping("/admin/applications/{applicationId}")
+    @DeleteMapping("/applications/{applicationId}")
     public ApiResult<?> deleteApplication(@PathVariable Long applicationId) {
         applicationAdminService.deleteApplication(applicationId);
-        return ApiResult.success(SuccessType.NO_CONTENT);
+        return ApiResult.success(SuccessType.SUCCESS);
     }
 
     @Override
-    @PutMapping("/admin/applications/{applicationId}/result")
+    @PutMapping("/applications/{applicationId}/result")
     public ApiResult<?> updateResult(
             @PathVariable Long applicationId,
             @RequestBody ApplicationResultUpdateAdminRequest request
     ) {
         applicationAdminService.updateResult(applicationId, request);
-        return ApiResult.success(SuccessType.NO_CONTENT);
+        return ApiResult.success(SuccessType.SUCCESS);
     }
 }
