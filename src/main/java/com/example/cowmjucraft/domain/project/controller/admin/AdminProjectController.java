@@ -11,8 +11,10 @@ import com.example.cowmjucraft.domain.project.service.AdminProjectService;
 import com.example.cowmjucraft.global.response.ApiResult;
 import com.example.cowmjucraft.global.response.type.SuccessType;
 import jakarta.validation.Valid;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -34,6 +36,20 @@ public class AdminProjectController implements AdminProjectControllerDocs {
             @Valid @RequestBody AdminProjectCreateRequestDto request
     ) {
         return ApiResult.success(SuccessType.CREATED, adminProjectService.create(request));
+    }
+
+    @GetMapping
+    @Override
+    public ApiResult<List<AdminProjectResponseDto>> getProjects() {
+        return ApiResult.success(SuccessType.SUCCESS, adminProjectService.getProjects());
+    }
+
+    @GetMapping("/{projectId}")
+    @Override
+    public ApiResult<AdminProjectResponseDto> getProject(
+            @PathVariable Long projectId
+    ) {
+        return ApiResult.success(SuccessType.SUCCESS, adminProjectService.getProject(projectId));
     }
 
     @PostMapping("/thumbnail/presign-put")

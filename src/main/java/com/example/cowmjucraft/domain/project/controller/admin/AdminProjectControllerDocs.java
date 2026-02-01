@@ -18,9 +18,40 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import jakarta.validation.Valid;
+import java.util.List;
 
 @Tag(name = "Project - Admin", description = "프로젝트 관리자 API")
 public interface AdminProjectControllerDocs {
+
+    @Operation(
+            summary = "프로젝트 전체 조회",
+            description = "프로젝트 목록을 관리자 관점으로 조회합니다."
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "성공",
+                    content = @Content(schema = @Schema(implementation = ApiResult.class))
+            )
+    })
+    ApiResult<List<AdminProjectResponseDto>> getProjects();
+
+    @Operation(
+            summary = "프로젝트 상세 조회",
+            description = "프로젝트 상세를 관리자 관점으로 조회합니다."
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "성공",
+                    content = @Content(schema = @Schema(implementation = ApiResult.class))
+            ),
+            @ApiResponse(responseCode = "404", description = "요청한 리소스를 찾을 수 없음")
+    })
+    ApiResult<AdminProjectResponseDto> getProject(
+            @Parameter(description = "프로젝트 ID", example = "1")
+            Long projectId
+    );
 
     @Operation(
             summary = "프로젝트 생성",
