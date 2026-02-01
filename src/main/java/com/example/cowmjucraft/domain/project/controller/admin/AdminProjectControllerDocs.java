@@ -365,11 +365,12 @@ public interface AdminProjectControllerDocs {
             description = """
                     고정 여부 및 정렬 순서를 일괄로 반영합니다.
                     items에 포함된 프로젝트만 갱신되며, 포함되지 않은 프로젝트는 기존 값을 유지합니다.
+                    pinned 집합 변경(고정 추가/해제)을 허용합니다.
                     pinned=false & manualOrder=null 인 경우 자동정렬 대상으로 저장됩니다.
                     manualOrder는 1 이상이며 pinned=true일 때는 manualOrder를 보낼 수 없습니다.
-                    pinned=true일 때 pinnedOrder는 1 이상 필수이며 pinned=true 항목 내에서 중복 불가합니다.
-                    pinned=true 항목의 pinnedOrder를 변경하는 경우, 현재 pinned=true인 전체 프로젝트를 items에 포함해야 합니다.
-                    (부분 업데이트는 허용되지 않습니다.)
+                    pinned=true일 때 pinnedOrder는 선택값이며 1 이상일 경우 pinned=true 항목 내에서 중복 불가합니다.
+                    pinnedOrder는 pinned=true 전체 프로젝트에 대해 서버가 1..N으로 재부여합니다.
+                    요청 pinnedOrder는 pinned=true 항목의 상대적 우선순위로만 사용됩니다.
                     """
     )
     @RequestBody(

@@ -11,7 +11,9 @@ import com.example.cowmjucraft.domain.project.entity.Project;
 import com.example.cowmjucraft.domain.project.repository.ProjectRepository;
 import com.example.cowmjucraft.global.cloud.S3PresignFacade;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -136,7 +138,6 @@ public class AdminProjectService {
         }
 
         validateOrders(items);
-        validatePinnedSetIsComplete(items);
 
         List<Project> projects = projectRepository.findAllById(ids);
         if (projects.size() != ids.size()) {
@@ -164,7 +165,10 @@ public class AdminProjectService {
             }
         }
 
-        projectRepository.saveAll(projects);
+        List<Project> reassignedPinnedProjects = reassignPinnedOrders(items, projectMap);
+        Set<Project> projectsToSave = new LinkedHashSet<>(projects);
+        projectsToSave.addAll(reassignedPinnedProjects);
+        projectRepository.saveAll(new ArrayList<>(projectsToSave));
 
         return new AdminProjectOrderPatchResponseDto(updatedPinnedCount, updatedManualCount);
     }
@@ -180,14 +184,13 @@ public class AdminProjectService {
         for (AdminProjectOrderPatchRequestDto.ItemDto item : items) {
             if (Boolean.TRUE.equals(item.pinned())) {
                 Integer pinnedOrder = item.pinnedOrder();
-                if (pinnedOrder == null) {
-                    throw validationFailed("pinnedOrder is required when pinned=true");
-                }
-                if (pinnedOrder < 1) {
-                    throw validationFailed("pinnedOrder must be >= 1");
-                }
-                if (!pinnedOrders.add(pinnedOrder)) {
-                    throw validationFailed("duplicate pinnedOrder: " + pinnedOrder);
+                if (pinnedOrder != null) {
+                    if (pinnedOrder < 1) {
+                        throw validationFailed("pinnedOrder must be >= 1");
+                    }
+                    if (!pinnedOrders.add(pinnedOrder)) {
+                        throw validationFailed("duplicate pinnedOrder: " + pinnedOrder);
+                    }
                 }
                 if (item.manualOrder() != null) {
                     throw validationFailed("manualOrder must be null when pinned=true");
@@ -209,28 +212,79 @@ public class AdminProjectService {
         }
     }
 
-    private void validatePinnedSetIsComplete(List<AdminProjectOrderPatchRequestDto.ItemDto> items) {
-        Set<Long> requestedPinnedIds = new HashSet<>();
+    private List<Project> reassignPinnedOrders(
+            List<AdminProjectOrderPatchRequestDto.ItemDto> items,
+            Map<Long, Project> projectMap
+    ) {
+        List<Project> dbPinnedProjects = projectRepository.findAllPinned();
+        Map<Long, AdminProjectOrderPatchRequestDto.ItemDto> itemMap = items.stream()
+                .collect(Collectors.toMap(
+                        AdminProjectOrderPatchRequestDto.ItemDto::projectId,
+                        Function.identity(),
+                        (a, b) -> a
+                ));
+
+        Set<Long> requestPinnedTrueIds = new HashSet<>();
+        Set<Long> requestPinnedFalseIds = new HashSet<>();
         for (AdminProjectOrderPatchRequestDto.ItemDto item : items) {
             if (Boolean.TRUE.equals(item.pinned())) {
-                requestedPinnedIds.add(item.projectId());
+                requestPinnedTrueIds.add(item.projectId());
+            } else {
+                requestPinnedFalseIds.add(item.projectId());
             }
         }
-        if (requestedPinnedIds.isEmpty()) {
-            return;
+
+        Map<Long, Project> pinnedCandidates = new LinkedHashMap<>();
+        for (Project project : dbPinnedProjects) {
+            if (requestPinnedFalseIds.contains(project.getId())) {
+                continue;
+            }
+            pinnedCandidates.put(project.getId(), project);
+        }
+        for (Long id : requestPinnedTrueIds) {
+            Project project = projectMap.get(id);
+            if (project != null) {
+                pinnedCandidates.put(id, project);
+            }
         }
 
-        Set<Long> dbPinnedIds = new HashSet<>(projectRepository.findPinnedIds());
-        if (dbPinnedIds.equals(requestedPinnedIds)) {
-            return;
+        List<Project> requestPinnedWithOrder = new ArrayList<>();
+        List<Project> requestPinnedWithoutOrder = new ArrayList<>();
+        List<Project> existingPinned = new ArrayList<>();
+
+        for (Project project : pinnedCandidates.values()) {
+            AdminProjectOrderPatchRequestDto.ItemDto item = itemMap.get(project.getId());
+            if (item != null && Boolean.TRUE.equals(item.pinned())) {
+                if (item.pinnedOrder() != null) {
+                    requestPinnedWithOrder.add(project);
+                } else {
+                    requestPinnedWithoutOrder.add(project);
+                }
+            } else {
+                existingPinned.add(project);
+            }
         }
 
-        Set<Long> missing = new HashSet<>(dbPinnedIds);
-        missing.removeAll(requestedPinnedIds);
-        Set<Long> extra = new HashSet<>(requestedPinnedIds);
-        extra.removeAll(dbPinnedIds);
+        requestPinnedWithOrder.sort(Comparator.comparing(
+                project -> itemMap.get(project.getId()).pinnedOrder()
+        ));
+        requestPinnedWithoutOrder.sort(Comparator.comparing(Project::getId));
+        existingPinned.sort(Comparator
+                .comparing(Project::getPinnedOrder, Comparator.nullsLast(Integer::compareTo))
+                .thenComparing(Project::getId));
 
-        throw validationFailed("pinned set incomplete: missing=" + missing + ", extra=" + extra);
+        List<Project> ordered = new ArrayList<>(pinnedCandidates.size());
+        ordered.addAll(requestPinnedWithOrder);
+        ordered.addAll(requestPinnedWithoutOrder);
+        ordered.addAll(existingPinned);
+
+        int order = 1;
+        for (Project project : ordered) {
+            project.applyPinned(true, order);
+            project.applyManualOrder(null);
+            order++;
+        }
+        return ordered;
     }
 
     private ResponseStatusException validationFailed(String message) {

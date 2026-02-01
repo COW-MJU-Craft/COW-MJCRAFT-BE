@@ -21,6 +21,6 @@ public interface ProjectRepository extends JpaRepository<Project, Long> {
 """)
     List<Project> findAllOrderedForPublic();
 
-    @Query("select p.id from Project p where p.pinned = true")
-    List<Long> findPinnedIds();
+    @Query("select p from Project p where p.pinned = true")
+    List<Project> findAllPinned();
 }
