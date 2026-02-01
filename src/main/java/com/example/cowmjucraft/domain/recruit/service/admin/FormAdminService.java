@@ -88,16 +88,11 @@ public class FormAdminService {
         Question question = new Question(request.getLabel(), request.getDescription());
         questionRepository.save(question);
 
-        FormQuestion formQuestion = new FormQuestion(
-                form,
-                question,
-                request.getQuestionOrder(),
-                request.getAnswerType(),
-                request.isRequired(),
-                request.getSectionType(),
-                request.getDepartmentType(),
-                request.getSelectOptions()
-        );
+        FormQuestion formQuestion = FormQuestion.builder().form(form)
+                .question(question).questionOrder(request.getQuestionOrder())
+                .answerType(request.getAnswerType()).required(request.isRequired()).sectionType(request.getSectionType())
+                .departmentType(request.getDepartmentType()).selectOptions(request.getSelectOptions()).build();
+
         formQuestionRepository.save(formQuestion);
 
         return new AddQuestionAdminResponse(question.getId(), formQuestion.getId());
@@ -239,16 +234,11 @@ public class FormAdminService {
             Question newQuestion = new Question(srcQ.getLabel(), srcQ.getDescription());
             questionRepository.save(newQuestion);
 
-            FormQuestion newFormQuestion = new FormQuestion(
-                    targetForm,
-                    newQuestion,
-                    formQuestion.getQuestionOrder(),
-                    formQuestion.getAnswerType(),
-                    formQuestion.isRequired(),
-                    formQuestion.getSectionType(),
-                    formQuestion.getDepartmentType(),
-                    formQuestion.getSelectOptions()
-            );
+            FormQuestion newFormQuestion = FormQuestion.builder().form(targetForm).question(newQuestion)
+                    .questionOrder(formQuestion.getQuestionOrder()).answerType(formQuestion.getAnswerType())
+                    .required(formQuestion.isRequired()).sectionType(formQuestion.getSectionType())
+                    .departmentType(formQuestion.getDepartmentType()).selectOptions(formQuestion.getSelectOptions()).build();
+
             formQuestionRepository.save(newFormQuestion);
 
             copied++;

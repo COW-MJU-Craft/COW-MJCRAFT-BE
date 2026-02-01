@@ -1,13 +1,15 @@
 package com.example.cowmjucraft.domain.recruit.entity;
 
 import jakarta.persistence.*;
+import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Entity
 @Table(name = "form_questions")
 @Getter
-@NoArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class FormQuestion {
 
     @Id
@@ -41,6 +43,7 @@ public class FormQuestion {
     @Column(length = 2000)
     private String selectOptions;
 
+    @Builder
     public FormQuestion(Form form, Question question, int questionOrder, AnswerType answerType, boolean required, SectionType sectionType, DepartmentType departmentType, String selectOptions) {
         this.form = form;
         this.question = question;
