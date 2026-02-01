@@ -10,6 +10,7 @@ import com.example.cowmjucraft.domain.recruit.dto.client.response.ApplicationUpd
 import com.example.cowmjucraft.domain.recruit.dto.client.response.ResultReadResponse;
 import com.example.cowmjucraft.domain.recruit.entity.*;
 import com.example.cowmjucraft.domain.recruit.repository.*;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,6 +20,7 @@ import org.springframework.web.server.ResponseStatusException;
 import java.util.ArrayList;
 import java.util.List;
 
+@RequiredArgsConstructor
 @Service
 public class ApplicationService {
 
@@ -28,22 +30,6 @@ public class ApplicationService {
     private final AnswerRepository answerRepository;
     private final PasswordEncoder passwordEncoder;
     private final QuestionRepository questionRepository;
-
-    public ApplicationService(
-            FormRepository formRepository,
-            ApplicationRepository applicationRepository,
-            FormQuestionRepository formQuestionRepository,
-            AnswerRepository answerRepository,
-            PasswordEncoder passwordEncoder,
-            QuestionRepository questionRepository
-    ) {
-        this.formRepository = formRepository;
-        this.applicationRepository = applicationRepository;
-        this.formQuestionRepository = formQuestionRepository;
-        this.answerRepository = answerRepository;
-        this.passwordEncoder = passwordEncoder;
-        this.questionRepository = questionRepository;
-    }
 
     @Transactional
     public ApplicationCreateResponse create(ApplicationCreateRequest request) {

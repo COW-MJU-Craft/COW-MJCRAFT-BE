@@ -11,17 +11,15 @@ import com.example.cowmjucraft.domain.recruit.dto.client.response.ResultReadResp
 import com.example.cowmjucraft.domain.recruit.service.client.ApplicationService;
 import com.example.cowmjucraft.global.response.ApiResult;
 import com.example.cowmjucraft.global.response.type.SuccessType;
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
+@RequiredArgsConstructor
 @RequestMapping("/api")
 @RestController
 public class ApplicationController implements ApplicationControllerDocs {
 
     private final ApplicationService applicationService;
-
-    public ApplicationController(ApplicationService applicationService) {
-        this.applicationService = applicationService;
-    }
 
     @Override
     @PostMapping("/application")

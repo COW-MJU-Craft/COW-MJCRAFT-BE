@@ -9,17 +9,16 @@ import com.example.cowmjucraft.domain.recruit.service.admin.FormAdminService;
 import com.example.cowmjucraft.global.response.ApiResult;
 import com.example.cowmjucraft.global.response.type.SuccessType;
 import java.util.List;
+
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
+@RequiredArgsConstructor
 @RequestMapping("/api/admin")
 @RestController
 public class FormAdminController implements FormAdminControllerDocs {
 
     private final FormAdminService formAdminService;
-
-    public FormAdminController(FormAdminService formAdminService) {
-        this.formAdminService = formAdminService;
-    }
 
     @Override
     @PostMapping("/forms")

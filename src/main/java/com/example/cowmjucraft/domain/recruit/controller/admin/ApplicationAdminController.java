@@ -7,17 +7,16 @@ import com.example.cowmjucraft.domain.recruit.service.admin.ApplicationAdminServ
 import com.example.cowmjucraft.global.response.ApiResult;
 import com.example.cowmjucraft.global.response.type.SuccessType;
 import java.util.List;
+
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
+@RequiredArgsConstructor
 @RequestMapping("/api/admin")
 @RestController
 public class ApplicationAdminController implements ApplicationAdminControllerDocs {
 
     private final ApplicationAdminService applicationAdminService;
-
-    public ApplicationAdminController(ApplicationAdminService applicationAdminService) {
-        this.applicationAdminService = applicationAdminService;
-    }
 
     @Override
     @GetMapping("/forms/{formId}/applications")

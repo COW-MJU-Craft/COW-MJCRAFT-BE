@@ -9,6 +9,7 @@ import com.example.cowmjucraft.domain.recruit.entity.*;
 import com.example.cowmjucraft.domain.recruit.repository.FormQuestionRepository;
 import com.example.cowmjucraft.domain.recruit.repository.FormRepository;
 import com.example.cowmjucraft.domain.recruit.repository.QuestionRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.http.HttpStatus;
@@ -18,22 +19,13 @@ import org.springframework.web.server.ResponseStatusException;
 import java.util.ArrayList;
 import java.util.List;
 
+@RequiredArgsConstructor
 @Service
 public class FormAdminService {
 
     private final FormRepository formRepository;
     private final QuestionRepository questionRepository;
     private final FormQuestionRepository formQuestionRepository;
-
-    public FormAdminService(
-            FormRepository formRepository,
-            QuestionRepository questionRepository,
-            FormQuestionRepository formQuestionRepository
-    ) {
-        this.formRepository = formRepository;
-        this.questionRepository = questionRepository;
-        this.formQuestionRepository = formQuestionRepository;
-    }
 
     @Transactional
     public FormCreateAdminResponse createForm(FormCreateAdminRequest request) {
@@ -51,7 +43,6 @@ public class FormAdminService {
 
         return new FormCreateAdminResponse(form.getId(), form.isOpen());
     }
-
 
     @Transactional
     public void openForm(Long formId) {

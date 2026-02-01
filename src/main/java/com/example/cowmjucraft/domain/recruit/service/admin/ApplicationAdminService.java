@@ -7,6 +7,7 @@ import com.example.cowmjucraft.domain.recruit.entity.*;
 import com.example.cowmjucraft.domain.recruit.repository.AnswerRepository;
 import com.example.cowmjucraft.domain.recruit.repository.ApplicationRepository;
 import com.example.cowmjucraft.domain.recruit.repository.FormRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.http.HttpStatus;
@@ -16,22 +17,13 @@ import org.springframework.web.server.ResponseStatusException;
 import java.util.ArrayList;
 import java.util.List;
 
+@RequiredArgsConstructor
 @Service
 public class ApplicationAdminService {
 
     private final FormRepository formRepository;
     private final ApplicationRepository applicationRepository;
     private final AnswerRepository answerRepository;
-
-    public ApplicationAdminService(
-            FormRepository formRepository,
-            ApplicationRepository applicationRepository,
-            AnswerRepository answerRepository
-    ) {
-        this.formRepository = formRepository;
-        this.applicationRepository = applicationRepository;
-        this.answerRepository = answerRepository;
-    }
 
     @Transactional(readOnly = true)
     public List<ApplicationListAdminResponse> getApplicationsByFormId(Long formId) {
