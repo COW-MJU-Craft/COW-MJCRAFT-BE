@@ -50,7 +50,7 @@ public class ProjectItem extends BaseTimeEntity {
     @Column(nullable = false)
     private ItemStatus status;
 
-    @Column(length = 255, nullable = false)
+    @Column(length = 255)
     private String thumbnailKey;
 
     @Column(name = "target_qty")

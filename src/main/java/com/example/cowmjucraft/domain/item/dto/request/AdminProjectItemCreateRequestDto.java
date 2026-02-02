@@ -30,7 +30,6 @@ public record AdminProjectItemCreateRequestDto(
         @Schema(description = "상태", example = "OPEN")
         ItemStatus status,
 
-        @NotBlank
         @Schema(description = "대표 이미지 S3 object key", example = "uploads/items/1/thumbnail/uuid-thumbnail.png")
         String thumbnailKey,
 
