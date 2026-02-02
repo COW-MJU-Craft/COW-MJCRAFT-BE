@@ -330,6 +330,23 @@ public interface AdminItemControllerDocs {
     );
 
     @Operation(
+            summary = "물품 썸네일 삭제",
+            description = "물품의 대표 이미지(thumbnailKey)를 제거하고 S3에서도 파일을 삭제합니다."
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "204",
+                    description = "성공",
+                    content = @Content(schema = @Schema(implementation = ApiResult.class))
+            ),
+            @ApiResponse(responseCode = "404", description = "요청한 리소스를 찾을 수 없음")
+    })
+    ApiResult<?> deleteThumbnail(
+            @Parameter(description = "물품 ID", example = "1")
+            Long itemId
+    );
+
+    @Operation(
             summary = "물품 이미지 등록",
             description = "물품 상세 이미지 목록을 등록합니다."
     )

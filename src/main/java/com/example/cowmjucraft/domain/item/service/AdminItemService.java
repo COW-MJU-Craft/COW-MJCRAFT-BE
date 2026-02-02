@@ -117,6 +117,23 @@ public class AdminItemService {
         projectItemRepository.delete(item);
     }
 
+    @Transactional
+    public void deleteThumbnail(Long itemId) {
+        ProjectItem item = projectItemRepository.findById(itemId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "item not found"));
+
+        String key = toNonBlankString(item.getThumbnailKey());
+        if (key != null) {
+            try {
+                s3PresignFacade.deleteByKeys(List.of(key));
+            } catch (Exception e) {
+                throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "S3 삭제 실패");
+            }
+        }
+
+        item.clearThumbnail();
+    }
+
     @Transactional(readOnly = true)
     public List<AdminProjectItemResponseDto> getItems(Long projectId) {
         List<ProjectItem> items = projectItemRepository.findByProjectIdOrderByCreatedAtDescIdDesc(projectId);

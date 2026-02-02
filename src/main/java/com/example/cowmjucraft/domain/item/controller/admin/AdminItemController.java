@@ -100,6 +100,15 @@ public class AdminItemController implements AdminItemControllerDocs {
         return ApiResult.success(SuccessType.NO_CONTENT);
     }
 
+    @DeleteMapping("/items/{itemId}/thumbnail")
+    @Override
+    public ApiResult<?> deleteThumbnail(
+            @PathVariable Long itemId
+    ) {
+        adminItemService.deleteThumbnail(itemId);
+        return ApiResult.success(SuccessType.NO_CONTENT);
+    }
+
     @PostMapping("/items/{itemId}/images")
     @Override
     public ApiResult<List<ProjectItemImageResponseDto>> addImages(

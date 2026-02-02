@@ -100,4 +100,8 @@ public class ProjectItem extends BaseTimeEntity {
         this.targetQty = targetQty;
         this.fundedQty = fundedQty;
     }
+
+    public void clearThumbnail() {
+        this.thumbnailKey = null;
+    }
 }
