@@ -47,33 +47,112 @@ public class ApplicationService {
             throw badRequest("FIRST_SECOND_DEPARTMENT_MUST_BE_DIFFERENT");
         }
 
+        DepartmentType firstDepartment = request.getFirstDepartment();
+        DepartmentType secondDepartment = request.getSecondDepartment();
+
+        List<FormQuestion> formQuestions = formQuestionRepository.findAllByForm(form);
+        if (formQuestions == null || formQuestions.isEmpty()) {
+            throw notFound("FORM_QUESTION_NOT_FOUND");
+        }
+
+        java.util.Map<Long, FormQuestion> formQuestionMap = new java.util.HashMap<>();
+        java.util.Set<Long> requiredCommonIds = new java.util.HashSet<>();
+        java.util.Set<Long> requiredDeptIds = new java.util.HashSet<>();
+
+        for (FormQuestion formQuestion : formQuestions) {
+            formQuestionMap.put(formQuestion.getId(), formQuestion);
+
+            if (formQuestion.isRequired()) {
+                if (formQuestion.getSectionType() == SectionType.COMMON) {
+                    requiredCommonIds.add(formQuestion.getId());
+                } else if (formQuestion.getSectionType() == SectionType.DEPARTMENT) {
+                    if (formQuestion.getDepartmentType() == firstDepartment || formQuestion.getDepartmentType() == secondDepartment) {
+                        requiredDeptIds.add(formQuestion.getId());
+                    }
+                }
+            }
+        }
+
+        List<ApplicationCreateRequest.AnswerItemRequest> requestAnswers = (request.getAnswers() == null) ? java.util.List.of() : request.getAnswers();
+
+        java.util.Map<Long, String> answerValueMap = new java.util.HashMap<>();
+
+        for (ApplicationCreateRequest.AnswerItemRequest answer : requestAnswers) {
+            Long formQuestionId = answer.getFormQuestionId();
+            if (formQuestionId == null) {
+                throw badRequest("FORM_QUESTION_ID_REQUIRED");
+            }
+
+            if (!formQuestionMap.containsKey(formQuestionId)) {
+                throw notFound("FORM_QUESTION_NOT_FOUND");
+            }
+
+            if (answerValueMap.containsKey(formQuestionId)) {
+                throw badRequest("DUPLICATE_ANSWER");
+            }
+
+            String value = answer.getValue();
+            if (value != null && value.isBlank()) {
+                value = null;
+            }
+
+            answerValueMap.put(formQuestionId, value);
+        }
+
+        for (Long requiredId : requiredCommonIds) {
+            String value = answerValueMap.get(requiredId);
+            if (value == null) {
+                throw badRequest("REQUIRED_ANSWER_MISSING");
+            }
+        }
+
+        for (Long requiredId : requiredDeptIds) {
+            String value = answerValueMap.get(requiredId);
+            if (value == null) {
+                throw badRequest("REQUIRED_ANSWER_MISSING");
+            }
+        }
+
+        for (java.util.Map.Entry<Long, String> e : answerValueMap.entrySet()) {
+            Long formQuestionId = e.getKey();
+            FormQuestion formQuestion = formQuestionMap.get(formQuestionId);
+
+            if (formQuestion.getSectionType() == SectionType.DEPARTMENT) {
+                DepartmentType departmentType = formQuestion.getDepartmentType();
+                if (departmentType != firstDepartment && departmentType != secondDepartment) {
+                    throw badRequest("ANSWER_FOR_UNSELECTED_DEPARTMENT");
+                }
+            }
+
+            if (formQuestion.isRequired() && e.getValue() == null) {
+                throw badRequest("REQUIRED_ANSWER_MISSING");
+            }
+        }
+
         String passwordHash = passwordEncoder.encode(request.getPassword());
 
         Application application = new Application(
                 form,
                 request.getStudentId(),
                 passwordHash,
-                request.getFirstDepartment(),
-                request.getSecondDepartment()
+                firstDepartment,
+                secondDepartment
         );
         applicationRepository.save(application);
 
-        if (request.getAnswers() != null) {
-            for (ApplicationCreateRequest.AnswerItemRequest a : request.getAnswers()) {
-                FormQuestion formQuestion = formQuestionRepository.findById(a.getFormQuestionId())
-                        .orElseThrow(() -> notFound("FORM_QUESTION_NOT_FOUND"));
-
-                if (!formQuestion.getForm().getId().equals(form.getId())) {
-                    throw badRequest("FORM_QUESTION_NOT_IN_THIS_FORM");
-                }
-
-                Answer answer = new Answer(application, formQuestion, a.getValue());
-                answerRepository.save(answer);
+        for (java.util.Map.Entry<Long, String> e : answerValueMap.entrySet()) {
+            String value = e.getValue();
+            if (value == null) {
+                continue;
             }
+            FormQuestion formQuestion = formQuestionMap.get(e.getKey());
+            Answer answer = new Answer(application, formQuestion, value);
+            answerRepository.save(answer);
         }
 
         return new ApplicationCreateResponse(application.getId());
     }
+
 
     @Transactional(readOnly = true)
     public ApplicationReadResponse read(ApplicationReadRequest request) {
@@ -166,45 +245,82 @@ public class ApplicationService {
 
         if (request.getAnswers() != null) {
 
-            List<Answer> existingAnswers = answerRepository.findAllByApplication(application);
-            java.util.Map<Long, Answer> answerMap = new java.util.HashMap<>();
-            for (Answer answer : existingAnswers) {
-                answerMap.put(answer.getFormQuestion().getId(), answer);
+            List<ApplicationUpdateRequest.AnswerItemRequest> reqAnswers = request.getAnswers();
+
+            java.util.Set<Long> seen = new java.util.HashSet<>();
+            java.util.List<Long> fqIds = new java.util.ArrayList<>();
+
+            for (ApplicationUpdateRequest.AnswerItemRequest a : reqAnswers) {
+                Long id = a.getFormQuestionId();
+                if (id == null) {
+                    throw badRequest("FORM_QUESTION_ID_REQUIRED");
+                }
+                if (!seen.add(id)) {
+                    throw badRequest("DUPLICATE_ANSWER");
+                }
+                fqIds.add(id);
             }
 
-            for (ApplicationUpdateRequest.AnswerItemRequest answer : request.getAnswers()) {
+            java.util.List<FormQuestion> fetched = formQuestionRepository.findAllByIdInAndForm_Id(fqIds, form.getId());
+            if (fetched.size() != fqIds.size()) {
+                throw badRequest("FORM_QUESTION_NOT_IN_THIS_FORM");
+            }
 
-                FormQuestion formQuestion = formQuestionRepository.findById(answer.getFormQuestionId())
-                        .orElseThrow(() -> notFound("FORM_QUESTION_NOT_FOUND"));
+            java.util.Map<Long, FormQuestion> fqMap = new java.util.HashMap<>();
+            for (FormQuestion fq : fetched) {
+                fqMap.put(fq.getId(), fq);
+            }
 
-                if (!formQuestion.getForm().getId().equals(form.getId())) {
-                    throw badRequest("FORM_QUESTION_NOT_IN_THIS_FORM");
+            List<Answer> existingAnswers = answerRepository.findAllByApplicationFetchFormQuestion(application);
+            java.util.Map<Long, Answer> answerMap = new java.util.HashMap<>();
+            for (Answer ans : existingAnswers) {
+                answerMap.put(ans.getFormQuestion().getId(), ans);
+            }
+
+            DepartmentType currentFirst = application.getFirstDepartment();
+            DepartmentType currentSecond = application.getSecondDepartment();
+
+            for (ApplicationUpdateRequest.AnswerItemRequest a : reqAnswers) {
+
+                FormQuestion fq = fqMap.get(a.getFormQuestionId());
+                if (fq == null) {
+                    throw notFound("FORM_QUESTION_NOT_FOUND");
                 }
 
-                Answer existingAnswer = answerMap.get(formQuestion.getId());
+                if (fq.getSectionType() == SectionType.DEPARTMENT) {
+                    DepartmentType dt = fq.getDepartmentType();
+                    if (dt != currentFirst && dt != currentSecond) {
+                        throw badRequest("ANSWER_FOR_UNSELECTED_DEPARTMENT");
+                    }
+                }
 
-                if (answer.getValue() == null) {
-                    if (existingAnswer != null) {
-                        answerRepository.delete(existingAnswer);
+                String value = a.getValue();
+                if (value != null && value.isBlank()) {
+                    value = null;
+                }
+
+                Answer existing = answerMap.get(fq.getId());
+
+                if (value == null) {
+                    if (fq.isRequired()) {
+                        throw badRequest("REQUIRED_ANSWER_CANNOT_BE_DELETED");
+                    }
+                    if (existing != null) {
+                        answerRepository.delete(existing);
                     }
                     continue;
                 }
 
-                if (existingAnswer != null) {
-                    existingAnswer.updateValue(answer.getValue());
+                if (existing != null) {
+                    existing.updateValue(value);
                 } else {
-                    Answer newAnswer = new Answer(application, formQuestion, answer.getValue());
-                    answerRepository.save(newAnswer);
+                    answerRepository.save(new Answer(application, fq, value));
                 }
             }
         }
 
-        applicationRepository.save(application);
-
         return new ApplicationUpdateResponse(application.getId(), application.getUpdatedAt());
     }
-
-
 
     @Transactional(readOnly = true)
     public ResultReadResponse readResult(ResultReadRequest request) {
@@ -242,5 +358,4 @@ public class ApplicationService {
     private ResponseStatusException conflict(String message) {
         return new ResponseStatusException(HttpStatus.CONFLICT, message);
     }
-
 }
