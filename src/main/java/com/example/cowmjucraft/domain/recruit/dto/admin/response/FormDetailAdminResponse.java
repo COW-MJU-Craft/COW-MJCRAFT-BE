@@ -1,13 +1,8 @@
 package com.example.cowmjucraft.domain.recruit.dto.admin.response;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-
-@Getter
-@AllArgsConstructor
-public class FormDetailAdminResponse {
-    private Long formId;
-    private String title;
-    private boolean open;
+public record FormDetailAdminResponse(
+        Long formId,
+        String title,
+        boolean open
+) {
 }
-

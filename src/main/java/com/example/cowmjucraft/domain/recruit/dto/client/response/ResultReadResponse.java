@@ -1,10 +1,8 @@
 package com.example.cowmjucraft.domain.recruit.dto.client.response;
 
-import com.example.cowmjucraft.domain.recruit.entity.ResultStatus;import lombok.AllArgsConstructor;
-import lombok.Getter;
+import com.example.cowmjucraft.domain.recruit.entity.ResultStatus;
 
-@Getter
-@AllArgsConstructor
-public class ResultReadResponse {
-    private ResultStatus resultStatus;
+public record ResultReadResponse(
+        ResultStatus resultStatus
+) {
 }
