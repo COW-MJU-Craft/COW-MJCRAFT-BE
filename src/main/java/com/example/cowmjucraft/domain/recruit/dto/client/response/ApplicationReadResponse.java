@@ -10,7 +10,7 @@ public record ApplicationReadResponse(
         String studentId,
         DepartmentType firstDepartment,
         DepartmentType secondDepartment,
-        LocalDateTime submittedAt,
+        LocalDateTime createdAt,
         LocalDateTime updatedAt,
         List<AnswerItem> commonAnswers,
         List<AnswerItem> firstDepartmentAnswers,

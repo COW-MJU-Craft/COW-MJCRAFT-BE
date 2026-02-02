@@ -60,14 +60,14 @@ public class ApplicationService {
 
         if (request.getAnswers() != null) {
             for (ApplicationCreateRequest.AnswerItemRequest a : request.getAnswers()) {
-                FormQuestion fq = formQuestionRepository.findById(a.getFormQuestionId())
+                FormQuestion formQuestion = formQuestionRepository.findById(a.getFormQuestionId())
                         .orElseThrow(() -> notFound("FORM_QUESTION_NOT_FOUND"));
 
-                if (!fq.getForm().getId().equals(form.getId())) {
+                if (!formQuestion.getForm().getId().equals(form.getId())) {
                     throw badRequest("FORM_QUESTION_NOT_IN_THIS_FORM");
                 }
 
-                Answer answer = new Answer(application, fq, a.getValue());
+                Answer answer = new Answer(application, formQuestion, a.getValue());
                 answerRepository.save(answer);
             }
         }
@@ -97,7 +97,7 @@ public class ApplicationService {
 
         List<Answer> answers = answerRepository.findAllByApplication(application);
 
-          List<ApplicationReadResponse.AnswerItem> common = new ArrayList<>();
+        List<ApplicationReadResponse.AnswerItem> common = new ArrayList<>();
         List<ApplicationReadResponse.AnswerItem> firstDepartment = new ArrayList<>();
         List<ApplicationReadResponse.AnswerItem> secondDepartment = new ArrayList<>();
 
@@ -128,7 +128,7 @@ public class ApplicationService {
                 application.getStudentId(),
                 application.getFirstDepartment(),
                 application.getSecondDepartment(),
-                application.getSubmittedAt(),
+                application.getCreatedAt(),
                 application.getUpdatedAt(),
                 common,
                 firstDepartment,
@@ -199,7 +199,6 @@ public class ApplicationService {
             }
         }
 
-        application.markUpdated();
         applicationRepository.save(application);
 
         return new ApplicationUpdateResponse(application.getId(), application.getUpdatedAt());

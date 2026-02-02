@@ -13,7 +13,7 @@ public class ApplicationListAdminResponse {
     private DepartmentType firstDepartment;
     private DepartmentType secondDepartment;
     private ResultStatus resultStatus;
-    private LocalDateTime submittedAt;
+    private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }
 

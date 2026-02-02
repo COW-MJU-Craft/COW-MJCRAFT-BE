@@ -15,7 +15,7 @@ public class ApplicationDetailAdminResponse {
     private DepartmentType firstDepartment;
     private DepartmentType secondDepartment;
     private ResultStatus resultStatus;
-    private LocalDateTime submittedAt;
+    private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
     private List<AnswerItem> commonAnswers;

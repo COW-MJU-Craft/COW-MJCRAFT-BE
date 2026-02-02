@@ -40,7 +40,7 @@ public class ApplicationAdminService {
                     application.getFirstDepartment(),
                     application.getSecondDepartment(),
                     application.getResultStatus(),
-                    application.getSubmittedAt(),
+                    application.getCreatedAt(),
                     application.getUpdatedAt()
             ));
         }
@@ -90,7 +90,7 @@ public class ApplicationAdminService {
                 application.getFirstDepartment(),
                 application.getSecondDepartment(),
                 application.getResultStatus(),
-                application.getSubmittedAt(),
+                application.getCreatedAt(),
                 application.getUpdatedAt(),
                 common,
                 firstDepartmentAnswers,

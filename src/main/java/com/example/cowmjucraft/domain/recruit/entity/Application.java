@@ -1,10 +1,9 @@
 package com.example.cowmjucraft.domain.recruit.entity;
 
+import com.example.cowmjucraft.domain.common.BaseTimeEntity;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-
-import java.time.LocalDateTime;
 
 @Entity
 @Table(
@@ -15,7 +14,7 @@ import java.time.LocalDateTime;
 )
 @Getter
 @NoArgsConstructor
-public class Application {
+public class Application extends BaseTimeEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -30,17 +29,13 @@ public class Application {
     @Column(nullable = false)
     private String passwordHash;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private DepartmentType firstDepartment;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private DepartmentType secondDepartment;
-
-    @Column(nullable = false)
-    private LocalDateTime submittedAt;
-
-    @Column
-    private LocalDateTime updatedAt;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -58,7 +53,6 @@ public class Application {
         this.passwordHash = passwordHash;
         this.firstDepartment = firstDepartment;
         this.secondDepartment = secondDepartment;
-        this.submittedAt = LocalDateTime.now();
         this.resultStatus = ResultStatus.NOT_PUBLISHED;
     }
 
@@ -67,13 +61,7 @@ public class Application {
         this.secondDepartment = secondDepartment;
     }
 
-    public void markUpdated() {
-        this.updatedAt = LocalDateTime.now();
-    }
-
     public void setResultStatus(ResultStatus resultStatus) {
         this.resultStatus = resultStatus;
     }
-
 }
-
