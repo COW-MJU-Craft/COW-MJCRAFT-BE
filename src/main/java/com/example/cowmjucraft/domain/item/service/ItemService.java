@@ -79,6 +79,7 @@ public class ItemService {
         return new ProjectItemListResponseDto(
                 item.getId(),
                 item.getName(),
+                item.getSummary(),
                 item.getPrice(),
                 item.getSaleType(),
                 item.getStatus(),
@@ -101,6 +102,7 @@ public class ItemService {
                 item.getId(),
                 item.getProject().getId(),
                 item.getName(),
+                item.getSummary(),
                 item.getDescription(),
                 item.getPrice(),
                 item.getSaleType(),

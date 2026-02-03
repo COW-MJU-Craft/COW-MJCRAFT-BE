@@ -51,6 +51,7 @@ public class AdminItemService {
         ProjectItem item = new ProjectItem(
                 project,
                 request.name(),
+                request.summary(),
                 request.description(),
                 request.price(),
                 request.saleType(),
@@ -72,6 +73,7 @@ public class AdminItemService {
         NormalizedItemRequest normalized = normalizeUpdate(request);
         item.update(
                 request.name(),
+                request.summary(),
                 request.description(),
                 request.price(),
                 request.saleType(),
@@ -335,6 +337,7 @@ public class AdminItemService {
                 item.getId(),
                 item.getProject().getId(),
                 item.getName(),
+                item.getSummary(),
                 item.getDescription(),
                 item.getPrice(),
                 item.getSaleType(),
@@ -360,6 +363,7 @@ public class AdminItemService {
                 item.getId(),
                 item.getProject().getId(),
                 item.getName(),
+                item.getSummary(),
                 item.getDescription(),
                 item.getPrice(),
                 item.getSaleType(),

@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 
 @Schema(description = "프로젝트 물품 수정 요청")
 public record AdminProjectItemUpdateRequestDto(
@@ -13,6 +14,10 @@ public record AdminProjectItemUpdateRequestDto(
         @NotBlank
         @Schema(description = "물품명", example = "명지공방 머그컵")
         String name,
+
+        @Size(max = 200)
+        @Schema(description = "물품 한줄 설명", example = "캠퍼스 감성을 담은 데일리 머그컵")
+        String summary,
 
         @NotBlank
         @Schema(description = "물품 설명", example = "캠퍼스 감성을 담은 머그컵입니다.")

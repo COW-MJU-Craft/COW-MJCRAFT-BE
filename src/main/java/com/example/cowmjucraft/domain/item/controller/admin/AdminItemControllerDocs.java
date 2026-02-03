@@ -74,6 +74,7 @@ public interface AdminItemControllerDocs {
                             value = """
                                     {
                                       "name": "명지공방 머그컵",
+                                      "summary": "캠퍼스 감성을 담은 데일리 머그컵",
                                       "description": "캠퍼스 감성을 담은 머그컵입니다.",
                                       "price": 12000,
                                       "saleType": "GROUPBUY",
@@ -103,6 +104,7 @@ public interface AdminItemControllerDocs {
                                                 "id": 1,
                                                 "projectId": 10,
                                                 "name": "명지공방 머그컵",
+                                                "summary": "캠퍼스 감성을 담은 데일리 머그컵",
                                                 "description": "캠퍼스 감성을 담은 머그컵입니다.",
                                                 "price": 12000,
                                                 "saleType": "GROUPBUY",
@@ -142,6 +144,7 @@ public interface AdminItemControllerDocs {
                             value = """
                                     {
                                       "name": "명지공방 머그컵",
+                                      "summary": "캠퍼스 감성을 담은 데일리 머그컵",
                                       "description": "캠퍼스 감성을 담은 머그컵입니다.",
                                       "price": 11000,
                                       "saleType": "NORMAL",

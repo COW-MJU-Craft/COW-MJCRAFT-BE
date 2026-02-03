@@ -35,6 +35,9 @@ public class ProjectItem extends BaseTimeEntity {
     @Column(length = 100, nullable = false)
     private String name;
 
+    @Column(length = 200)
+    private String summary;
+
     @Lob
     @Column(nullable = false)
     private String description;
@@ -62,6 +65,7 @@ public class ProjectItem extends BaseTimeEntity {
     public ProjectItem(
             Project project,
             String name,
+            String summary,
             String description,
             int price,
             ItemSaleType saleType,
@@ -72,6 +76,7 @@ public class ProjectItem extends BaseTimeEntity {
     ) {
         this.project = project;
         this.name = name;
+        this.summary = summary;
         this.description = description;
         this.price = price;
         this.saleType = saleType;
@@ -83,6 +88,7 @@ public class ProjectItem extends BaseTimeEntity {
 
     public void update(
             String name,
+            String summary,
             String description,
             int price,
             ItemSaleType saleType,
@@ -92,6 +98,7 @@ public class ProjectItem extends BaseTimeEntity {
             int fundedQty
     ) {
         this.name = name;
+        this.summary = summary;
         this.description = description;
         this.price = price;
         this.saleType = saleType;
