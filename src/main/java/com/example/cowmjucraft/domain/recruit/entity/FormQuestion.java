@@ -71,5 +71,3 @@ public class FormQuestion {
         this.departmentType = departmentType;
     }
 }
-
-

@@ -20,7 +20,4 @@ public interface AnswerRepository extends JpaRepository<Answer, Long> {
     void deleteAllByApplication(Application application);
 
     Optional<Answer> findByApplicationAndFormQuestion(Application application, FormQuestion formQuestion);
-
 }
-
-

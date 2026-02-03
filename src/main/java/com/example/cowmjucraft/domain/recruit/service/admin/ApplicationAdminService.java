@@ -123,6 +123,4 @@ public class ApplicationAdminService {
     private ResponseStatusException notFound(String reason) {
         return new ResponseStatusException(HttpStatus.NOT_FOUND, reason);
     }
-
 }
-

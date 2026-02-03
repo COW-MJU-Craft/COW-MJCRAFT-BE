@@ -4,4 +4,3 @@ public enum SectionType {
     COMMON,
     DEPARTMENT
 }
-

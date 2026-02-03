@@ -1,6 +1,7 @@
 package com.example.cowmjucraft.domain.recruit.dto.client.request;
 
-import com.example.cowmjucraft.domain.recruit.entity.DepartmentType;import lombok.Getter;
+import com.example.cowmjucraft.domain.recruit.entity.DepartmentType;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.util.List;
@@ -24,4 +25,3 @@ public class ApplicationUpdateRequest {
         private String value;
     }
 }
-

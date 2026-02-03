@@ -12,8 +12,10 @@ public class ApplicationCreateRequest {
 
     private String studentId;
     private String password;
+
     private DepartmentType firstDepartment;
     private DepartmentType secondDepartment;
+
     private List<AnswerItemRequest> answers;
 
     @Getter
@@ -23,4 +25,3 @@ public class ApplicationCreateRequest {
         private String value;
     }
 }
-

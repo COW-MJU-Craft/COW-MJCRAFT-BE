@@ -9,4 +9,3 @@ public class ResultReadRequest {
     private String studentId;
     private String password;
 }
-

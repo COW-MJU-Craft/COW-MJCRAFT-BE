@@ -19,4 +19,3 @@ public interface FormQuestionRepository extends JpaRepository<FormQuestion, Long
 
     boolean existsByFormAndQuestionOrder(Form form, int questionOrder);
 }
-

@@ -9,4 +9,3 @@ public class FormCreateAdminRequest {
     private String title;
     private boolean open;
 }
-

@@ -5,4 +5,3 @@ public enum ResultStatus {
     PASS,
     FAIL
 }
-

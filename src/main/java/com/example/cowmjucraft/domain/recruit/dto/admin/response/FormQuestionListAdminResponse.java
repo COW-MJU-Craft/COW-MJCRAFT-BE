@@ -1,6 +1,9 @@
 package com.example.cowmjucraft.domain.recruit.dto.admin.response;
 
-import com.example.cowmjucraft.domain.recruit.entity.AnswerType;import com.example.cowmjucraft.domain.recruit.entity.DepartmentType;import com.example.cowmjucraft.domain.recruit.entity.SectionType;import lombok.AllArgsConstructor;
+import com.example.cowmjucraft.domain.recruit.entity.AnswerType;
+import com.example.cowmjucraft.domain.recruit.entity.DepartmentType;
+import com.example.cowmjucraft.domain.recruit.entity.SectionType;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 @Getter
@@ -22,4 +25,3 @@ public class FormQuestionListAdminResponse {
     private SectionType sectionType;
     private DepartmentType departmentType;
 }
-

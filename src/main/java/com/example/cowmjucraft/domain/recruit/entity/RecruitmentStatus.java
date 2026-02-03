@@ -4,4 +4,3 @@ public enum RecruitmentStatus {
     OPEN,
     CLOSED
 }
-
