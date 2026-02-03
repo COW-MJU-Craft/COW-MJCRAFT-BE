@@ -1,11 +1,9 @@
 package com.example.cowmjucraft.domain.recruit.service.admin;
 
-import com.example.cowmjucraft.domain.recruit.dto.admin.request.AddQuestionAdminRequest;
-import com.example.cowmjucraft.domain.recruit.dto.admin.request.FormCopyAdminRequest;
-import com.example.cowmjucraft.domain.recruit.dto.admin.request.FormCreateAdminRequest;
-import com.example.cowmjucraft.domain.recruit.dto.admin.request.FormQuestionUpdateAdminRequest;
+import com.example.cowmjucraft.domain.recruit.dto.admin.request.*;
 import com.example.cowmjucraft.domain.recruit.dto.admin.response.*;
 import com.example.cowmjucraft.domain.recruit.entity.*;
+import com.example.cowmjucraft.domain.recruit.repository.FormNoticeRepository;
 import com.example.cowmjucraft.domain.recruit.repository.FormQuestionRepository;
 import com.example.cowmjucraft.domain.recruit.repository.FormRepository;
 import com.example.cowmjucraft.domain.recruit.repository.QuestionRepository;
@@ -26,6 +24,7 @@ public class FormAdminService {
     private final FormRepository formRepository;
     private final QuestionRepository questionRepository;
     private final FormQuestionRepository formQuestionRepository;
+    private final FormNoticeRepository formNoticeRepository;
 
     @Transactional
     public FormCreateAdminResponse createForm(FormCreateAdminRequest request) {
@@ -245,6 +244,70 @@ public class FormAdminService {
         }
 
         return new FormCopyAdminResponse(targetFormId, sourceFormId, copied);
+    }
+
+    @Transactional
+    public AddFormNoticeAdminResponse addFormNotice(Long formId, FormNoticeRequest request) {
+        Form form = formRepository.findById(formId)
+                .orElseThrow(() -> notFound("FORM_NOT_FOUND"));
+
+        validateNoticeRequest(request);
+
+        FormNotice notice = FormNotice.builder()
+                .form(form)
+                .sectionType(request.getSectionType())
+                .departmentType(request.getDepartmentType())
+                .title(request.getTitle())
+                .content(request.getContent())
+                .build();
+
+        formNoticeRepository.save(notice);
+        return new AddFormNoticeAdminResponse(notice.getId());
+    }
+
+    @Transactional
+    public void updateFormNotice(Long formId, Long noticeId, FormNoticeRequest request) {
+        FormNotice notice = formNoticeRepository.findById(noticeId)
+                .orElseThrow(() -> notFound("NOTICE_NOT_FOUND"));
+
+        if (!notice.getForm().getId().equals(formId)) {
+            throw badRequest("NOTICE_NOT_IN_THIS_FORM");
+        }
+
+        if (request.getSectionType() == SectionType.DEPARTMENT && request.getDepartmentType() == null) {
+            throw badRequest("DEPARTMENT_TYPE_REQUIRED_FOR_DEPARTMENT_SECTION");
+        }
+        if (request.getSectionType() == SectionType.COMMON && request.getDepartmentType() != null) {
+            throw badRequest("COMMON_SECTION_CANNOT_HAVE_DEPARTMENT");
+        }
+
+        notice.update(
+                request.getSectionType(),
+                request.getDepartmentType(),
+                request.getTitle(),
+                request.getContent()
+        );
+    }
+
+    @Transactional
+    public void deleteFormNotice(Long formId, Long noticeId) {
+        FormNotice notice = formNoticeRepository.findById(noticeId)
+                .orElseThrow(() -> notFound("NOTICE_NOT_FOUND"));
+
+        if (!notice.getForm().getId().equals(formId)) {
+            throw badRequest("NOTICE_NOT_IN_THIS_FORM");
+        }
+
+        formNoticeRepository.delete(notice);
+    }
+
+    private void validateNoticeRequest(FormNoticeRequest request) {
+        if (request.getSectionType() == SectionType.DEPARTMENT && request.getDepartmentType() == null) {
+            throw badRequest("DEPARTMENT_TYPE_REQUIRED_FOR_DEPARTMENT_SECTION");
+        }
+        if (request.getSectionType() == SectionType.COMMON && request.getDepartmentType() != null) {
+            throw badRequest("COMMON_SECTION_CANNOT_HAVE_DEPARTMENT");
+        }
     }
 
     private ResponseStatusException badRequest(String reason) {

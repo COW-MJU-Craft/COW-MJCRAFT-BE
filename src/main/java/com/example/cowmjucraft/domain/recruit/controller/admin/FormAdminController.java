@@ -1,9 +1,6 @@
 package com.example.cowmjucraft.domain.recruit.controller.admin;
 
-import com.example.cowmjucraft.domain.recruit.dto.admin.request.AddQuestionAdminRequest;
-import com.example.cowmjucraft.domain.recruit.dto.admin.request.FormCopyAdminRequest;
-import com.example.cowmjucraft.domain.recruit.dto.admin.request.FormCreateAdminRequest;
-import com.example.cowmjucraft.domain.recruit.dto.admin.request.FormQuestionUpdateAdminRequest;
+import com.example.cowmjucraft.domain.recruit.dto.admin.request.*;
 import com.example.cowmjucraft.domain.recruit.dto.admin.response.*;
 import com.example.cowmjucraft.domain.recruit.service.admin.FormAdminService;
 import com.example.cowmjucraft.global.cloud.S3PresignFacade;
@@ -118,5 +115,38 @@ public class FormAdminController implements FormAdminControllerDocs {
                 SuccessType.CREATED,
                 formAdminService.copyFormQuestionsOverwrite(targetFormId, request)
         );
+    }
+
+    @Override
+    @PostMapping("/forms/{formId}/notices")
+    public ApiResult<AddFormNoticeAdminResponse> addFormNotice(
+            @PathVariable Long formId,
+            @RequestBody FormNoticeRequest request
+    ) {
+        return ApiResult.success(
+                SuccessType.CREATED,
+                formAdminService.addFormNotice(formId, request)
+        );
+    }
+
+    @Override
+    @PutMapping("/forms/{formId}/notices/{noticeId}")
+    public ApiResult<?> updateFormNotice(
+            @PathVariable Long formId,
+            @PathVariable Long noticeId,
+            @RequestBody FormNoticeRequest request
+    ) {
+        formAdminService.updateFormNotice(formId, noticeId, request);
+        return ApiResult.success(SuccessType.SUCCESS);
+    }
+
+    @Override
+    @DeleteMapping("/forms/{formId}/notices/{noticeId}")
+    public ApiResult<?> deleteFormNotice(
+            @PathVariable Long formId,
+            @PathVariable Long noticeId
+    ) {
+        formAdminService.deleteFormNotice(formId, noticeId);
+        return ApiResult.success(SuccessType.SUCCESS);
     }
 }

@@ -32,6 +32,7 @@ public class ApplicationService {
     private final PasswordEncoder passwordEncoder;
     private final QuestionRepository questionRepository;
     private final S3PresignFacade s3PresignFacade;
+    private final FormNoticeRepository formNoticeRepository;
 
     @Transactional
     public ApplicationCreateResponse create(ApplicationCreateRequest request) {
@@ -217,6 +218,28 @@ public class ApplicationService {
             }
         }
 
+        List<FormNotice> notices = formNoticeRepository.findAllByForm(form);
+
+        ApplicationReadResponse.NoticeItem commonNotice = null;
+        ApplicationReadResponse.NoticeItem firstDepartmentNotice = null;
+        ApplicationReadResponse.NoticeItem secondDepartmentNotice = null;
+
+        for (FormNotice notice : notices) {
+            ApplicationReadResponse.NoticeItem item =
+                    new ApplicationReadResponse.NoticeItem(notice.getTitle(), notice.getContent());
+
+            if (notice.getSectionType() == SectionType.COMMON) {
+                commonNotice = item;
+            }
+            else if (notice.getSectionType() == SectionType.DEPARTMENT) {
+                if (notice.getDepartmentType() == application.getFirstDepartment()) {
+                    firstDepartmentNotice = item;
+                } else if (notice.getDepartmentType() == application.getSecondDepartment()) {
+                    secondDepartmentNotice = item;
+                }
+            }
+        }
+
         return new ApplicationReadResponse(
                 editable,
                 application.getId(),
@@ -225,6 +248,9 @@ public class ApplicationService {
                 application.getSecondDepartment(),
                 application.getCreatedAt(),
                 application.getUpdatedAt(),
+                commonNotice,
+                firstDepartmentNotice,
+                secondDepartmentNotice,
                 common,
                 firstDepartment,
                 secondDepartment

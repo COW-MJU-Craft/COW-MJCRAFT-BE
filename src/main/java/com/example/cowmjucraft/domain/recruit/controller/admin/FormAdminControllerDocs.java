@@ -1,9 +1,6 @@
 package com.example.cowmjucraft.domain.recruit.controller.admin;
 
-import com.example.cowmjucraft.domain.recruit.dto.admin.request.AddQuestionAdminRequest;
-import com.example.cowmjucraft.domain.recruit.dto.admin.request.FormCopyAdminRequest;
-import com.example.cowmjucraft.domain.recruit.dto.admin.request.FormCreateAdminRequest;
-import com.example.cowmjucraft.domain.recruit.dto.admin.request.FormQuestionUpdateAdminRequest;
+import com.example.cowmjucraft.domain.recruit.dto.admin.request.*; // NoticeRequest 등 포함되도록 와일드카드 사용 추천
 import com.example.cowmjucraft.domain.recruit.dto.admin.response.*;
 import com.example.cowmjucraft.global.response.ApiResult;
 import io.swagger.v3.oas.annotations.Operation;
@@ -138,5 +135,49 @@ public interface FormAdminControllerDocs {
     ApiResult<FormCopyAdminResponse> copyFormQuestionsOverwrite(
             @Parameter(description = "대상 Form ID", example = "2") Long targetFormId,
             @Parameter(description = "복사 요청") FormCopyAdminRequest request
+    );
+
+    // ------------------------------------------------------------
+    // [추가된 부분] Notice(안내문) 관련 API
+    // ------------------------------------------------------------
+
+    @Operation(
+            summary = "안내문 추가",
+            description = """
+                Form에 안내문(Notice)을 추가합니다.
+                - sectionType=COMMON이면 departmentType은 null이어야 합니다.
+                """
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "성공"),
+            @ApiResponse(responseCode = "400", description = "규칙 위반/잘못된 요청"),
+            @ApiResponse(responseCode = "404", description = "Form 없음")
+    })
+    ApiResult<AddFormNoticeAdminResponse> addFormNotice(
+            @Parameter(description = "Form ID", example = "1") Long formId,
+            @Parameter(description = "안내문 추가 요청") FormNoticeRequest request
+    );
+
+    @Operation(summary = "안내문 수정", description = "기존 안내문의 내용, 섹션 타입, 학과 설정을 수정합니다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "성공"),
+            @ApiResponse(responseCode = "400", description = "규칙 위반/Form 불일치"),
+            @ApiResponse(responseCode = "404", description = "FormNotice 없음")
+    })
+    ApiResult<?> updateFormNotice(
+            @Parameter(description = "Form ID", example = "1") Long formId,
+            @Parameter(description = "Notice ID", example = "5") Long noticeId,
+            @Parameter(description = "안내문 수정 요청") FormNoticeRequest request
+    );
+
+    @Operation(summary = "안내문 삭제", description = "특정 안내문을 삭제합니다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "성공"),
+            @ApiResponse(responseCode = "400", description = "Form 불일치"),
+            @ApiResponse(responseCode = "404", description = "FormNotice 없음")
+    })
+    ApiResult<?> deleteFormNotice(
+            @Parameter(description = "Form ID", example = "1") Long formId,
+            @Parameter(description = "Notice ID", example = "5") Long noticeId
     );
 }
