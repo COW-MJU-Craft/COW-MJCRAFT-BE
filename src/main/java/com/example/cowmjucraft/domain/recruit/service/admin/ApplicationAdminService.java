@@ -1,5 +1,6 @@
 package com.example.cowmjucraft.domain.recruit.service.admin;
 
+import com.example.cowmjucraft.domain.recruit.dto.admin.response.AnswerGroupsAdmin;
 import com.example.cowmjucraft.domain.recruit.dto.admin.response.ApplicationDetailAdminResponse;
 import com.example.cowmjucraft.domain.recruit.dto.admin.response.ApplicationListAdminResponse;
 import com.example.cowmjucraft.domain.recruit.dto.admin.request.ApplicationResultUpdateAdminRequest;
@@ -62,27 +63,7 @@ public class ApplicationAdminService {
 
         List<Answer> answers = answerRepository.findAllByApplication(application);
 
-        List<ApplicationDetailAdminResponse.AnswerItem> common = new ArrayList<>();
-        List<ApplicationDetailAdminResponse.AnswerItem> firstDepartmentAnswers = new ArrayList<>();
-        List<ApplicationDetailAdminResponse.AnswerItem> secondDepartmentAnswers = new ArrayList<>();
-
-        for (Answer answer : answers) {
-            FormQuestion formQuestion = answer.getFormQuestion();
-
-            if (formQuestion.getSectionType() == SectionType.COMMON) {
-                common.add(new ApplicationDetailAdminResponse.AnswerItem(formQuestion.getId(), answer.getValue()));
-                continue;
-            }
-
-            if (formQuestion.getSectionType() == SectionType.DEPARTMENT) {
-                DepartmentType departmentType = formQuestion.getDepartmentType();
-                if (departmentType == application.getFirstDepartment()) {
-                    firstDepartmentAnswers.add(new ApplicationDetailAdminResponse.AnswerItem(formQuestion.getId(), answer.getValue()));
-                } else if (departmentType == application.getSecondDepartment()) {
-                    secondDepartmentAnswers.add(new ApplicationDetailAdminResponse.AnswerItem(formQuestion.getId(), answer.getValue()));
-                }
-            }
-        }
+        AnswerGroupsAdmin groups = new AnswerGroupsAdmin(application, answers);
 
         return new ApplicationDetailAdminResponse(
                 application.getId(),
@@ -92,9 +73,9 @@ public class ApplicationAdminService {
                 application.getResultStatus(),
                 application.getCreatedAt(),
                 application.getUpdatedAt(),
-                common,
-                firstDepartmentAnswers,
-                secondDepartmentAnswers
+                groups.getCommon(),
+                groups.getFirstDepartment(),
+                groups.getSecondDepartment()
         );
     }
 
