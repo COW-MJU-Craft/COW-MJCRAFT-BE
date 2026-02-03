@@ -8,14 +8,18 @@ import com.example.cowmjucraft.domain.recruit.dto.client.response.ApplicationCre
 import com.example.cowmjucraft.domain.recruit.dto.client.response.ApplicationReadResponse;
 import com.example.cowmjucraft.domain.recruit.dto.client.response.ApplicationUpdateResponse;
 import com.example.cowmjucraft.domain.recruit.dto.client.response.ResultReadResponse;
+import com.example.cowmjucraft.global.cloud.S3PresignFacade;
 import com.example.cowmjucraft.global.response.ApiResult;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+
+import java.util.List;
 
 @Tag(
         name = "Recruit - Application (User)",
@@ -44,6 +48,18 @@ public interface ApplicationControllerDocs {
     ApiResult<ApplicationCreateResponse> createApplication(
             @Parameter(description = "지원서 생성 요청")
             ApplicationCreateRequest request
+    );
+
+    @Operation(
+            summary = "답변 파일 업로드용 Pre-signed URL 발급",
+            description = "지원서 내 파일 첨부 문항을 위해 S3 업로드 URL을 발급받습니다.",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "발급 성공"),
+                    @ApiResponse(responseCode = "400", description = "잘못된 요청 파라미터", content = @Content)
+            }
+    )
+    ApiResult<S3PresignFacade.PresignPutBatchResult> presignFile(
+            @RequestBody List<S3PresignFacade.PresignPutFile> request
     );
 
     // ------------------------------------------------------------

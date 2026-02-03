@@ -6,6 +6,7 @@ import com.example.cowmjucraft.domain.recruit.dto.admin.request.FormCreateAdminR
 import com.example.cowmjucraft.domain.recruit.dto.admin.request.FormQuestionUpdateAdminRequest;
 import com.example.cowmjucraft.domain.recruit.dto.admin.response.*;
 import com.example.cowmjucraft.domain.recruit.service.admin.FormAdminService;
+import com.example.cowmjucraft.global.cloud.S3PresignFacade;
 import com.example.cowmjucraft.global.response.ApiResult;
 import com.example.cowmjucraft.global.response.type.SuccessType;
 import java.util.List;

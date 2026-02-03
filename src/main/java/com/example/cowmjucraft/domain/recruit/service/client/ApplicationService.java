@@ -10,6 +10,7 @@ import com.example.cowmjucraft.domain.recruit.dto.client.response.ApplicationUpd
 import com.example.cowmjucraft.domain.recruit.dto.client.response.ResultReadResponse;
 import com.example.cowmjucraft.domain.recruit.entity.*;
 import com.example.cowmjucraft.domain.recruit.repository.*;
+import com.example.cowmjucraft.global.cloud.S3PresignFacade;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -17,8 +18,8 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 @Service
@@ -30,6 +31,7 @@ public class ApplicationService {
     private final AnswerRepository answerRepository;
     private final PasswordEncoder passwordEncoder;
     private final QuestionRepository questionRepository;
+    private final S3PresignFacade s3PresignFacade;
 
     @Transactional
     public ApplicationCreateResponse create(ApplicationCreateRequest request) {
@@ -98,6 +100,7 @@ public class ApplicationService {
 
             answerValueMap.put(formQuestionId, value);
         }
+
 
         for (Long requiredId : requiredCommonIds) {
             String value = answerValueMap.get(requiredId);
@@ -176,15 +179,28 @@ public class ApplicationService {
 
         List<Answer> answers = answerRepository.findAllByApplication(application);
 
+        List<String> fileKeys = answers.stream()
+                .filter(a -> a.getFormQuestion().getAnswerType() == AnswerType.FILE)
+                .map(Answer::getValue)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+
+        Map<String, String> urlMap = fileKeys.isEmpty() ? Map.of() : s3PresignFacade.presignGet(fileKeys);
+
         List<ApplicationReadResponse.AnswerItem> common = new ArrayList<>();
         List<ApplicationReadResponse.AnswerItem> firstDepartment = new ArrayList<>();
         List<ApplicationReadResponse.AnswerItem> secondDepartment = new ArrayList<>();
 
         for (Answer answer : answers) {
             FormQuestion formQuestion = answer.getFormQuestion();
+            String value = answer.getValue();
+
+            if (formQuestion.getAnswerType() == AnswerType.FILE && value != null) {
+                value = urlMap.getOrDefault(value, value);
+            }
 
             if (formQuestion.getSectionType() == SectionType.COMMON) {
-                common.add(new ApplicationReadResponse.AnswerItem(formQuestion.getId(), answer.getValue()));
+                common.add(new ApplicationReadResponse.AnswerItem(formQuestion.getId(), value));
                 continue;
             }
 
@@ -306,12 +322,18 @@ public class ApplicationService {
                         throw badRequest("REQUIRED_ANSWER_CANNOT_BE_DELETED");
                     }
                     if (existing != null) {
+                        if (fq.getAnswerType() == AnswerType.FILE) {
+                            s3PresignFacade.deleteByKeys(List.of(existing.getValue()));
+                        }
                         answerRepository.delete(existing);
                     }
                     continue;
                 }
 
                 if (existing != null) {
+                    if (fq.getAnswerType() == AnswerType.FILE && !existing.getValue().equals(value)) {
+                        s3PresignFacade.deleteByKeys(List.of(existing.getValue()));
+                    }
                     existing.updateValue(value);
                 } else {
                     answerRepository.save(new Answer(application, fq, value));
@@ -341,6 +363,10 @@ public class ApplicationService {
         }
 
         return new ResultReadResponse(application.getResultStatus());
+    }
+
+    public S3PresignFacade.PresignPutBatchResult createAnswerFilePresignPut(List<S3PresignFacade.PresignPutFile> files) {
+        return s3PresignFacade.createPresignPutBatch("uploads/recruit/answers", files);
     }
 
     private ResponseStatusException badRequest(String message) {

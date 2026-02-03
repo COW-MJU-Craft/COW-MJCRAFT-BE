@@ -9,10 +9,13 @@ import com.example.cowmjucraft.domain.recruit.dto.client.response.ApplicationRea
 import com.example.cowmjucraft.domain.recruit.dto.client.response.ApplicationUpdateResponse;
 import com.example.cowmjucraft.domain.recruit.dto.client.response.ResultReadResponse;
 import com.example.cowmjucraft.domain.recruit.service.client.ApplicationService;
+import com.example.cowmjucraft.global.cloud.S3PresignFacade;
 import com.example.cowmjucraft.global.response.ApiResult;
 import com.example.cowmjucraft.global.response.type.SuccessType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RequiredArgsConstructor
 @RequestMapping("/api")
@@ -62,6 +65,17 @@ public class ApplicationController implements ApplicationControllerDocs {
         return ApiResult.success(
                 SuccessType.SUCCESS,
                 applicationService.readResult(request)
+        );
+    }
+
+    @Override
+    @PostMapping("/forms/files")
+    public ApiResult<S3PresignFacade.PresignPutBatchResult> presignFile(
+            @RequestBody List<S3PresignFacade.PresignPutFile> request
+    ) {
+        return ApiResult.success(
+                SuccessType.SUCCESS,
+                applicationService.createAnswerFilePresignPut(request)
         );
     }
 }
