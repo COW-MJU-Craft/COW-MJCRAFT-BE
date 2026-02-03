@@ -37,6 +37,7 @@ public interface ItemControllerDocs {
                                                 {
                                                   "id": 1,
                                                   "name": "명지공방 머그컵",
+                                                  "summary": "캠퍼스 감성을 담은 데일리 머그컵",
                                                   "price": 12000,
                                                   "saleType": "GROUPBUY",
                                                   "status": "OPEN",
@@ -81,6 +82,7 @@ public interface ItemControllerDocs {
                                                 "id": 1,
                                                 "projectId": 10,
                                                 "name": "명지공방 머그컵",
+                                                "summary": "캠퍼스 감성을 담은 데일리 머그컵",
                                                 "description": "캠퍼스 감성을 담은 머그컵입니다.",
                                                 "price": 12000,
                                                 "saleType": "GROUPBUY",

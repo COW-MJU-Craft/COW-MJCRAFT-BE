@@ -19,6 +19,9 @@ public record AdminProjectItemDetailResponseDto(
         @Schema(description = "물품명", example = "명지공방 머그컵")
         String name,
 
+        @Schema(description = "물품 한줄 설명", example = "캠퍼스 감성을 담은 데일리 머그컵")
+        String summary,
+
         @Schema(description = "물품 설명", example = "캠퍼스 감성을 담은 머그컵입니다.")
         String description,
 
