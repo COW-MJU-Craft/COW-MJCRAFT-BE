@@ -11,5 +11,6 @@ public interface FormRepository extends JpaRepository<Form, Long> {
 
     Form findTopByOrderByIdDesc();
 
+    //TODO: 기존의 form 조회 ui 및 개수 설계 -> 더 효율적인 조회 방식 고민
     List<Form> findAllByOrderByIdDesc();
 }

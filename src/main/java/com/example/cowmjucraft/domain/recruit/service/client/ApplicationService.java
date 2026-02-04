@@ -58,9 +58,9 @@ public class ApplicationService {
             throw notFound("FORM_QUESTION_NOT_FOUND");
         }
 
-        java.util.Map<Long, FormQuestion> formQuestionMap = new java.util.HashMap<>();
-        java.util.Set<Long> requiredCommonIds = new java.util.HashSet<>();
-        java.util.Set<Long> requiredDeptIds = new java.util.HashSet<>();
+        Map<Long, FormQuestion> formQuestionMap = new HashMap<>();
+        Set<Long> requiredCommonIds = new HashSet<>();
+        Set<Long> requiredDeptIds = new HashSet<>();
 
         for (FormQuestion formQuestion : formQuestions) {
             formQuestionMap.put(formQuestion.getId(), formQuestion);
@@ -76,9 +76,9 @@ public class ApplicationService {
             }
         }
 
-        List<ApplicationCreateRequest.AnswerItemRequest> requestAnswers = (request.getAnswers() == null) ? java.util.List.of() : request.getAnswers();
+        List<ApplicationCreateRequest.AnswerItemRequest> requestAnswers = (request.getAnswers() == null) ? List.of() : request.getAnswers();
 
-        java.util.Map<Long, String> answerValueMap = new java.util.HashMap<>();
+       Map<Long, String> answerValueMap = new HashMap<>();
 
         for (ApplicationCreateRequest.AnswerItemRequest answer : requestAnswers) {
             Long formQuestionId = answer.getFormQuestionId();
@@ -117,7 +117,7 @@ public class ApplicationService {
             }
         }
 
-        for (java.util.Map.Entry<Long, String> e : answerValueMap.entrySet()) {
+        for (Map.Entry<Long, String> e : answerValueMap.entrySet()) {
             Long formQuestionId = e.getKey();
             FormQuestion formQuestion = formQuestionMap.get(formQuestionId);
 
@@ -144,7 +144,7 @@ public class ApplicationService {
         );
         applicationRepository.save(application);
 
-        for (java.util.Map.Entry<Long, String> e : answerValueMap.entrySet()) {
+        for (Map.Entry<Long, String> e : answerValueMap.entrySet()) {
             String value = e.getValue();
             if (value == null) {
                 continue;
@@ -287,50 +287,50 @@ public class ApplicationService {
 
         if (request.getAnswers() != null) {
 
-            List<ApplicationUpdateRequest.AnswerItemRequest> reqAnswers = request.getAnswers();
+            List<ApplicationUpdateRequest.AnswerItemRequest> requestAnswers = request.getAnswers();
 
-            java.util.Set<Long> seen = new java.util.HashSet<>();
-            java.util.List<Long> fqIds = new java.util.ArrayList<>();
+            Set<Long> seen = new HashSet<>();
+            List<Long> formIds = new ArrayList<>();
 
-            for (ApplicationUpdateRequest.AnswerItemRequest a : reqAnswers) {
-                Long id = a.getFormQuestionId();
+            for (ApplicationUpdateRequest.AnswerItemRequest answer : requestAnswers) {
+                Long id = answer.getFormQuestionId();
                 if (id == null) {
                     throw badRequest("FORM_QUESTION_ID_REQUIRED");
                 }
                 if (!seen.add(id)) {
                     throw badRequest("DUPLICATE_ANSWER");
                 }
-                fqIds.add(id);
+                formIds.add(id);
             }
 
-            java.util.List<FormQuestion> fetched = formQuestionRepository.findAllByIdInAndForm_Id(fqIds, form.getId());
-            if (fetched.size() != fqIds.size()) {
+            List<FormQuestion> fetched = formQuestionRepository.findAllByIdInAndForm_Id(formIds, form.getId());
+            if (fetched.size() != formIds.size()) {
                 throw badRequest("FORM_QUESTION_NOT_IN_THIS_FORM");
             }
 
-            java.util.Map<Long, FormQuestion> fqMap = new java.util.HashMap<>();
-            for (FormQuestion fq : fetched) {
-                fqMap.put(fq.getId(), fq);
+            Map<Long, FormQuestion> formQuestionMap = new HashMap<>();
+            for (FormQuestion formQuestion : fetched) {
+                formQuestionMap.put(formQuestion.getId(), formQuestion);
             }
 
             List<Answer> existingAnswers = answerRepository.findAllByApplicationFetchFormQuestion(application);
-            java.util.Map<Long, Answer> answerMap = new java.util.HashMap<>();
-            for (Answer ans : existingAnswers) {
-                answerMap.put(ans.getFormQuestion().getId(), ans);
+            Map<Long, Answer> answerMap = new HashMap<>();
+            for (Answer answer : existingAnswers) {
+                answerMap.put(answer.getFormQuestion().getId(), answer);
             }
 
             DepartmentType currentFirst = application.getFirstDepartment();
             DepartmentType currentSecond = application.getSecondDepartment();
 
-            for (ApplicationUpdateRequest.AnswerItemRequest a : reqAnswers) {
+            for (ApplicationUpdateRequest.AnswerItemRequest a : requestAnswers) {
 
-                FormQuestion fq = fqMap.get(a.getFormQuestionId());
-                if (fq == null) {
+                FormQuestion formQuestion = formQuestionMap.get(a.getFormQuestionId());
+                if (formQuestion == null) {
                     throw notFound("FORM_QUESTION_NOT_FOUND");
                 }
 
-                if (fq.getSectionType() == SectionType.DEPARTMENT) {
-                    DepartmentType dt = fq.getDepartmentType();
+                if (formQuestion.getSectionType() == SectionType.DEPARTMENT) {
+                    DepartmentType dt = formQuestion.getDepartmentType();
                     if (dt != currentFirst && dt != currentSecond) {
                         throw badRequest("ANSWER_FOR_UNSELECTED_DEPARTMENT");
                     }
@@ -341,14 +341,14 @@ public class ApplicationService {
                     value = null;
                 }
 
-                Answer existing = answerMap.get(fq.getId());
+                Answer existing = answerMap.get(formQuestion.getId());
 
                 if (value == null) {
-                    if (fq.isRequired()) {
+                    if (formQuestion.isRequired()) {
                         throw badRequest("REQUIRED_ANSWER_CANNOT_BE_DELETED");
                     }
                     if (existing != null) {
-                        if (fq.getAnswerType() == AnswerType.FILE) {
+                        if (formQuestion.getAnswerType() == AnswerType.FILE) {
                             s3PresignFacade.deleteByKeys(List.of(existing.getValue()));
                         }
                         answerRepository.delete(existing);
@@ -357,12 +357,12 @@ public class ApplicationService {
                 }
 
                 if (existing != null) {
-                    if (fq.getAnswerType() == AnswerType.FILE && !existing.getValue().equals(value)) {
+                    if (formQuestion.getAnswerType() == AnswerType.FILE && !existing.getValue().equals(value)) {
                         s3PresignFacade.deleteByKeys(List.of(existing.getValue()));
                     }
                     existing.updateValue(value);
                 } else {
-                    answerRepository.save(new Answer(application, fq, value));
+                    answerRepository.save(new Answer(application, formQuestion, value));
                 }
             }
         }

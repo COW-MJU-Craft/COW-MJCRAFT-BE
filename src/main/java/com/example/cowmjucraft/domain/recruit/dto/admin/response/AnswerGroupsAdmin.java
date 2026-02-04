@@ -7,9 +7,9 @@ import java.util.List;
 
 public class AnswerGroupsAdmin {
 
-    private final List<ApplicationDetailAdminResponse.AnswerItem> common;
-    private final List<ApplicationDetailAdminResponse.AnswerItem> firstDepartment;
-    private final List<ApplicationDetailAdminResponse.AnswerItem> secondDepartment;
+    private final List<AnswerItem> common;
+    private final List<AnswerItem> firstDepartment;
+    private final List<AnswerItem> secondDepartment;
 
     public AnswerGroupsAdmin(Application application, List<Answer> answers) {
         this.common = new ArrayList<>();
@@ -20,33 +20,33 @@ public class AnswerGroupsAdmin {
         DepartmentType second = application.getSecondDepartment();
 
         for (Answer answer : answers) {
-            FormQuestion fq = answer.getFormQuestion();
+            FormQuestion formQuestion = answer.getFormQuestion();
 
-            if (fq.getSectionType() == SectionType.COMMON) {
-                common.add(new ApplicationDetailAdminResponse.AnswerItem(fq.getId(), answer.getValue()));
+            if (formQuestion.getSectionType() == SectionType.COMMON) {
+                common.add(new AnswerItem(formQuestion.getId(), answer.getValue()));
                 continue;
             }
 
-            if (fq.getSectionType() == SectionType.DEPARTMENT) {
-                DepartmentType dt = fq.getDepartmentType();
+            if (formQuestion.getSectionType() == SectionType.DEPARTMENT) {
+                DepartmentType dt = formQuestion.getDepartmentType();
                 if (dt == first) {
-                    firstDepartment.add(new ApplicationDetailAdminResponse.AnswerItem(fq.getId(), answer.getValue()));
+                    firstDepartment.add(new AnswerItem(formQuestion.getId(), answer.getValue()));
                 } else if (dt == second) {
-                    secondDepartment.add(new ApplicationDetailAdminResponse.AnswerItem(fq.getId(), answer.getValue()));
+                    secondDepartment.add(new AnswerItem(formQuestion.getId(), answer.getValue()));
                 }
             }
         }
     }
 
-    public List<ApplicationDetailAdminResponse.AnswerItem> getCommon() {
+    public List<AnswerItem> getCommon() {
         return common;
     }
 
-    public List<ApplicationDetailAdminResponse.AnswerItem> getFirstDepartment() {
+    public List<AnswerItem> getFirstDepartment() {
         return firstDepartment;
     }
 
-    public List<ApplicationDetailAdminResponse.AnswerItem> getSecondDepartment() {
+    public List<AnswerItem> getSecondDepartment() {
         return secondDepartment;
     }
 }

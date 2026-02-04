@@ -27,11 +27,4 @@ public class ApplicationDetailAdminResponse {
     private List<AnswerItem> commonAnswers;
     private List<AnswerItem> firstDepartmentAnswers;
     private List<AnswerItem> secondDepartmentAnswers;
-
-    @Getter
-    @AllArgsConstructor
-    public static class AnswerItem {
-        private Long formQuestionId;
-        private String value;
-    }
 }
