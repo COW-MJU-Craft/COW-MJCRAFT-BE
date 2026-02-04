@@ -3,16 +3,15 @@ package com.example.cowmjucraft.domain.recruit.service.admin;
 import com.example.cowmjucraft.domain.recruit.dto.admin.request.*;
 import com.example.cowmjucraft.domain.recruit.dto.admin.response.*;
 import com.example.cowmjucraft.domain.recruit.entity.*;
+import com.example.cowmjucraft.domain.recruit.exception.RecruitException;
 import com.example.cowmjucraft.domain.recruit.repository.FormNoticeRepository;
 import com.example.cowmjucraft.domain.recruit.repository.FormQuestionRepository;
 import com.example.cowmjucraft.domain.recruit.repository.FormRepository;
 import com.example.cowmjucraft.domain.recruit.repository.QuestionRepository;
+import com.example.cowmjucraft.global.response.type.ErrorType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.http.HttpStatus;
-import org.springframework.web.server.ResponseStatusException;
-
 
 import java.util.ArrayList;
 import java.util.List;
@@ -37,7 +36,7 @@ public class FormAdminService {
             }
         }
 
-        Form form = new Form(request.getTitle(),request.isOpen());
+        Form form = new Form(request.getTitle(), request.isOpen());
         formRepository.save(form);
 
         return new FormCreateAdminResponse(form.getId(), form.isOpen());
@@ -46,7 +45,7 @@ public class FormAdminService {
     @Transactional
     public void openForm(Long formId) {
         Form target = formRepository.findById(formId)
-                .orElseThrow(() -> notFound("FORM_NOT_FOUND"));
+                .orElseThrow(() -> new RecruitException(ErrorType.FORM_NOT_FOUND));
 
         Form openForm = formRepository.findFirstByOpenTrue();
         if (openForm != null && !openForm.getId().equals(target.getId())) {
@@ -61,7 +60,7 @@ public class FormAdminService {
     @Transactional
     public void closeForm(Long formId) {
         Form target = formRepository.findById(formId)
-                .orElseThrow(() -> notFound("FORM_NOT_FOUND"));
+                .orElseThrow(() -> new RecruitException(ErrorType.FORM_NOT_FOUND));
         target.close();
         formRepository.save(target);
     }
@@ -70,18 +69,18 @@ public class FormAdminService {
     public AddQuestionAdminResponse addQuestion(Long formId, AddQuestionAdminRequest request) {
 
         Form form = formRepository.findById(formId)
-                .orElseThrow(() -> notFound("FORM_NOT_FOUND"));
+                .orElseThrow(() -> new RecruitException(ErrorType.FORM_NOT_FOUND));
 
         if (formQuestionRepository.existsByFormAndQuestionOrder(form, request.getQuestionOrder())) {
-            throw badRequest("DUPLICATE_QUESTION_ORDER");
+            throw new RecruitException(ErrorType.DUPLICATE_QUESTION_ORDER);
         }
 
         if (request.getSectionType() == SectionType.COMMON && request.getDepartmentType() != null) {
-            throw badRequest("COMMON_SECTION_CANNOT_HAVE_DEPARTMENT");
+            throw new RecruitException(ErrorType.COMMON_SECTION_CANNOT_HAVE_DEPARTMENT);
         }
 
         if (request.getAnswerType() != AnswerType.SELECT && request.getSelectOptions() != null) {
-            throw badRequest("SELECT_OPTIONS_ONLY_FOR_SELECT");
+            throw new RecruitException(ErrorType.SELECT_OPTIONS_ONLY_FOR_SELECT);
         }
 
         Question question = new Question(request.getLabel(), request.getDescription());
@@ -120,7 +119,7 @@ public class FormAdminService {
     public FormDetailAdminResponse getForm(Long formId) {
 
         Form form = formRepository.findById(formId)
-                .orElseThrow(() -> notFound("FORM_NOT_FOUND"));
+                .orElseThrow(() -> new RecruitException(ErrorType.FORM_NOT_FOUND));
 
         return new FormDetailAdminResponse(
                 form.getId(),
@@ -133,7 +132,7 @@ public class FormAdminService {
     public List<FormQuestionListAdminResponse> getFormQuestions(Long formId) {
 
         Form form = formRepository.findById(formId)
-                .orElseThrow(() -> notFound("FORM_NOT_FOUND"));
+                .orElseThrow(() -> new RecruitException(ErrorType.FORM_NOT_FOUND));
 
         List<FormQuestion> formQuestions =
                 formQuestionRepository.findAllByFormOrderByQuestionOrderAsc(form);
@@ -164,10 +163,10 @@ public class FormAdminService {
     public void deleteFormQuestion(Long formId, Long formQuestionId) {
 
         FormQuestion formQuestion = formQuestionRepository.findById(formQuestionId)
-                .orElseThrow(() -> notFound("FORM_QUESTION_NOT_FOUND"));
+                .orElseThrow(() -> new RecruitException(ErrorType.FORM_QUESTION_NOT_FOUND));
 
         if (!formQuestion.getForm().getId().equals(formId)) {
-            throw notFound("FORM_QUESTION_NOT_IN_THIS_FORM");
+            throw new RecruitException(ErrorType.FORM_QUESTION_NOT_IN_THIS_FORM);
         }
 
         formQuestionRepository.delete(formQuestion);
@@ -177,17 +176,17 @@ public class FormAdminService {
     public void updateFormQuestion(Long formId, Long formQuestionId, FormQuestionUpdateAdminRequest request) {
 
         FormQuestion formQuestion = formQuestionRepository.findById(formQuestionId)
-                .orElseThrow(() -> notFound("FORM_QUESTION_NOT_FOUND"));
+                .orElseThrow(() -> new RecruitException(ErrorType.FORM_QUESTION_NOT_FOUND));
 
         if (!formQuestion.getForm().getId().equals(formId)) {
-            throw notFound("FORM_QUESTION_NOT_IN_THIS_FORM");
+            throw new RecruitException(ErrorType.FORM_QUESTION_NOT_IN_THIS_FORM);
         }
 
         if (request.getSectionType() == SectionType.COMMON && request.getDepartmentType() != null) {
-            throw badRequest("COMMON_SECTION_CANNOT_HAVE_DEPARTMENT");
+            throw new RecruitException(ErrorType.COMMON_SECTION_CANNOT_HAVE_DEPARTMENT);
         }
         if (request.getAnswerType() != AnswerType.SELECT && request.getSelectOptions() != null) {
-            throw badRequest("SELECT_OPTIONS_ONLY_FOR_SELECT");
+            throw new RecruitException(ErrorType.SELECT_OPTIONS_ONLY_FOR_SELECT);
         }
 
         Question question = formQuestion.getQuestion();
@@ -208,17 +207,17 @@ public class FormAdminService {
 
         Long sourceFormId = request.getSourceFormId();
         if (sourceFormId == null) {
-            throw badRequest("SOURCE_FORM_ID_REQUIRED");
+            throw new RecruitException(ErrorType.SOURCE_FORM_ID_REQUIRED);
         }
         if (sourceFormId.equals(targetFormId)) {
-            throw badRequest("SOURCE_AND_TARGET_CANNOT_BE_SAME");
+            throw new RecruitException(ErrorType.SOURCE_AND_TARGET_CANNOT_BE_SAME);
         }
 
         Form targetForm = formRepository.findById(targetFormId)
-                .orElseThrow(() -> notFound("TARGET_FORM_NOT_FOUND"));
+                .orElseThrow(() -> new RecruitException(ErrorType.TARGET_FORM_NOT_FOUND));
 
         Form sourceForm = formRepository.findById(sourceFormId)
-                .orElseThrow(() -> notFound("SOURCE_FORM_NOT_FOUND"));
+                .orElseThrow(() -> new RecruitException(ErrorType.SOURCE_FORM_NOT_FOUND));
 
         formQuestionRepository.deleteAllByForm(targetForm);
 
@@ -249,7 +248,7 @@ public class FormAdminService {
     @Transactional
     public AddFormNoticeAdminResponse addFormNotice(Long formId, FormNoticeRequest request) {
         Form form = formRepository.findById(formId)
-                .orElseThrow(() -> notFound("FORM_NOT_FOUND"));
+                .orElseThrow(() -> new RecruitException(ErrorType.FORM_NOT_FOUND));
 
         validateNoticeRequest(request);
 
@@ -268,17 +267,17 @@ public class FormAdminService {
     @Transactional
     public void updateFormNotice(Long formId, Long noticeId, FormNoticeRequest request) {
         FormNotice notice = formNoticeRepository.findById(noticeId)
-                .orElseThrow(() -> notFound("NOTICE_NOT_FOUND"));
+                .orElseThrow(() -> new RecruitException(ErrorType.NOTICE_NOT_FOUND));
 
         if (!notice.getForm().getId().equals(formId)) {
-            throw badRequest("NOTICE_NOT_IN_THIS_FORM");
+            throw new RecruitException(ErrorType.NOTICE_NOT_IN_THIS_FORM);
         }
 
         if (request.getSectionType() == SectionType.DEPARTMENT && request.getDepartmentType() == null) {
-            throw badRequest("DEPARTMENT_TYPE_REQUIRED_FOR_DEPARTMENT_SECTION");
+            throw new RecruitException(ErrorType.DEPARTMENT_TYPE_REQUIRED_FOR_DEPARTMENT_SECTION);
         }
         if (request.getSectionType() == SectionType.COMMON && request.getDepartmentType() != null) {
-            throw badRequest("COMMON_SECTION_CANNOT_HAVE_DEPARTMENT");
+            throw new RecruitException(ErrorType.COMMON_SECTION_CANNOT_HAVE_DEPARTMENT);
         }
 
         notice.update(
@@ -292,10 +291,10 @@ public class FormAdminService {
     @Transactional
     public void deleteFormNotice(Long formId, Long noticeId) {
         FormNotice notice = formNoticeRepository.findById(noticeId)
-                .orElseThrow(() -> notFound("NOTICE_NOT_FOUND"));
+                .orElseThrow(() -> new RecruitException(ErrorType.NOTICE_NOT_FOUND));
 
         if (!notice.getForm().getId().equals(formId)) {
-            throw badRequest("NOTICE_NOT_IN_THIS_FORM");
+            throw new RecruitException(ErrorType.NOTICE_NOT_IN_THIS_FORM);
         }
 
         formNoticeRepository.delete(notice);
@@ -303,30 +302,10 @@ public class FormAdminService {
 
     private void validateNoticeRequest(FormNoticeRequest request) {
         if (request.getSectionType() == SectionType.DEPARTMENT && request.getDepartmentType() == null) {
-            throw badRequest("DEPARTMENT_TYPE_REQUIRED_FOR_DEPARTMENT_SECTION");
+            throw new RecruitException(ErrorType.DEPARTMENT_TYPE_REQUIRED_FOR_DEPARTMENT_SECTION);
         }
         if (request.getSectionType() == SectionType.COMMON && request.getDepartmentType() != null) {
-            throw badRequest("COMMON_SECTION_CANNOT_HAVE_DEPARTMENT");
+            throw new RecruitException(ErrorType.COMMON_SECTION_CANNOT_HAVE_DEPARTMENT);
         }
-    }
-
-    private ResponseStatusException badRequest(String reason) {
-        return new ResponseStatusException(HttpStatus.BAD_REQUEST, reason);
-    }
-
-    private ResponseStatusException unauthorized(String reason) {
-        return new ResponseStatusException(HttpStatus.UNAUTHORIZED, reason);
-    }
-
-    private ResponseStatusException forbidden(String reason) {
-        return new ResponseStatusException(HttpStatus.FORBIDDEN, reason);
-    }
-
-    private ResponseStatusException notFound(String reason) {
-        return new ResponseStatusException(HttpStatus.NOT_FOUND, reason);
-    }
-
-    private ResponseStatusException conflict(String reason) {
-        return new ResponseStatusException(HttpStatus.CONFLICT, reason);
     }
 }
