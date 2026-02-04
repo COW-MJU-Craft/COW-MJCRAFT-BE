@@ -111,4 +111,11 @@ public class ProjectItem extends BaseTimeEntity {
     public void clearThumbnail() {
         this.thumbnailKey = null;
     }
+
+    public void increaseFundedQty(int quantity) {
+        if (quantity <= 0) {
+            throw new IllegalArgumentException("quantity must be positive");
+        }
+        this.fundedQty += quantity;
+    }
 }
