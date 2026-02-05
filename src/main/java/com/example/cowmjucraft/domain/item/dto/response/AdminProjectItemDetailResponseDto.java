@@ -2,6 +2,7 @@ package com.example.cowmjucraft.domain.item.dto.response;
 
 import com.example.cowmjucraft.domain.item.entity.ItemSaleType;
 import com.example.cowmjucraft.domain.item.entity.ItemStatus;
+import com.example.cowmjucraft.domain.item.entity.ItemType;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.LocalDateTime;
@@ -31,6 +32,9 @@ public record AdminProjectItemDetailResponseDto(
         @Schema(description = "판매 유형", example = "GROUPBUY")
         ItemSaleType saleType,
 
+        @Schema(description = "아이템 타입", example = "PHYSICAL")
+        ItemType itemType,
+
         @Schema(description = "상태", example = "OPEN")
         ItemStatus status,
 
@@ -39,6 +43,9 @@ public record AdminProjectItemDetailResponseDto(
 
         @Schema(description = "대표 이미지 URL", example = "https://bucket.s3.amazonaws.com/uploads/items/1/thumbnail/uuid-thumbnail.png?X-Amz-Signature=...")
         String thumbnailUrl,
+
+        @Schema(description = "저널 파일 S3 object key", example = "uploads/projects/1/journals/uuid-journal.pdf")
+        String journalFileKey,
 
         @Schema(description = "상세 이미지 목록")
         List<ProjectItemImageResponseDto> images,

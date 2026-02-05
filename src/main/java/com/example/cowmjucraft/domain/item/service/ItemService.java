@@ -2,9 +2,11 @@ package com.example.cowmjucraft.domain.item.service;
 
 import com.example.cowmjucraft.domain.item.dto.response.ProjectItemDetailResponseDto;
 import com.example.cowmjucraft.domain.item.dto.response.ProjectItemImageResponseDto;
+import com.example.cowmjucraft.domain.item.dto.response.ProjectItemJournalPresignGetResponseDto;
 import com.example.cowmjucraft.domain.item.dto.response.ProjectItemListResponseDto;
 import com.example.cowmjucraft.domain.item.entity.ItemSaleType;
 import com.example.cowmjucraft.domain.item.entity.ProjectItem;
+import com.example.cowmjucraft.domain.item.entity.ItemType;
 import com.example.cowmjucraft.domain.item.repository.ItemImageRepository;
 import com.example.cowmjucraft.domain.item.repository.ProjectItemRepository;
 import com.example.cowmjucraft.domain.project.entity.Project;
@@ -74,6 +76,41 @@ public class ItemService {
         return toDetailResponse(item, enrichedImages, urls);
     }
 
+    @Transactional(readOnly = true)
+    public ProjectItemJournalPresignGetResponseDto createJournalPresignGet(Long itemId) {
+        ProjectItem item = projectItemRepository.findById(itemId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "item not found"));
+        if (item.getItemType() != ItemType.DIGITAL_JOURNAL) {
+            throw new ResponseStatusException(
+                    HttpStatus.UNPROCESSABLE_ENTITY,
+                    "itemType must be DIGITAL_JOURNAL"
+            );
+        }
+        String key = toNonBlankString(item.getJournalFileKey());
+        if (key == null) {
+            throw new ResponseStatusException(
+                    HttpStatus.UNPROCESSABLE_ENTITY,
+                    "journalFileKey is required"
+            );
+        }
+        String downloadFileName = buildJournalDownloadFileName(item, key);
+        String contentType = isPdfKey(key) ? "application/pdf" : null;
+        try {
+            String url = s3PresignFacade.presignGet(
+                    key,
+                    downloadFileName,
+                    contentType,
+                    true
+            );
+            return new ProjectItemJournalPresignGetResponseDto(url);
+        } catch (Exception e) {
+            throw new ResponseStatusException(
+                    HttpStatus.INTERNAL_SERVER_ERROR,
+                    "presign get failed"
+            );
+        }
+    }
+
     private ProjectItemListResponseDto toListResponse(ProjectItem item, Map<String, String> urls) {
         GroupbuyInfo info = calculateGroupbuyInfo(item);
         return new ProjectItemListResponseDto(
@@ -82,6 +119,7 @@ public class ItemService {
                 item.getSummary(),
                 item.getPrice(),
                 item.getSaleType(),
+                item.getItemType(),
                 item.getStatus(),
                 item.getThumbnailKey(),
                 resolveUrl(urls, item.getThumbnailKey()),
@@ -106,6 +144,7 @@ public class ItemService {
                 item.getDescription(),
                 item.getPrice(),
                 item.getSaleType(),
+                item.getItemType(),
                 item.getStatus(),
                 item.getThumbnailKey(),
                 resolveUrl(urls, item.getThumbnailKey()),
@@ -141,6 +180,37 @@ public class ItemService {
 
     private String toNonBlankString(String value) {
         return value == null || value.trim().isEmpty() ? null : value.trim();
+    }
+
+    private String buildJournalDownloadFileName(ProjectItem item, String journalKey) {
+        String name = toNonBlankString(item.getName());
+        if (name == null) {
+            name = "journal";
+        }
+        String extension = extractExtension(journalKey);
+        if (extension != null && !name.endsWith(extension)) {
+            return name + extension;
+        }
+        return name;
+    }
+
+    private String extractExtension(String key) {
+        String normalized = toNonBlankString(key);
+        if (normalized == null) {
+            return null;
+        }
+        int slash = normalized.lastIndexOf('/');
+        String base = slash >= 0 ? normalized.substring(slash + 1) : normalized;
+        int dot = base.lastIndexOf('.');
+        if (dot < 1 || dot == base.length() - 1) {
+            return null;
+        }
+        return base.substring(dot);
+    }
+
+    private boolean isPdfKey(String key) {
+        String extension = extractExtension(key);
+        return extension != null && extension.equalsIgnoreCase(".pdf");
     }
 
     private GroupbuyInfo calculateGroupbuyInfo(ProjectItem item) {

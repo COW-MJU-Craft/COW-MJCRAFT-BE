@@ -1,5 +1,6 @@
 package com.example.cowmjucraft.domain.project.dto.response;
 
+import com.example.cowmjucraft.domain.project.entity.ProjectCategory;
 import com.example.cowmjucraft.domain.project.entity.ProjectStatus;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.LocalDate;
@@ -28,6 +29,9 @@ public record ProjectListItemResponseDto(
 
         @Schema(description = "프로젝트 상태", example = "OPEN")
         ProjectStatus status,
+
+        @Schema(description = "프로젝트 카테고리", example = "GOODS")
+        ProjectCategory category,
 
         @Schema(description = "마감일 (YYYY-MM-DD)", example = "2026-03-15")
         LocalDate deadlineDate,

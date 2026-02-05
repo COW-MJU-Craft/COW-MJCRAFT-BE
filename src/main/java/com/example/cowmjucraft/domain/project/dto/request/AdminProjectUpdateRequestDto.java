@@ -1,5 +1,6 @@
 package com.example.cowmjucraft.domain.project.dto.request;
 
+import com.example.cowmjucraft.domain.project.entity.ProjectCategory;
 import com.example.cowmjucraft.domain.project.entity.ProjectStatus;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
@@ -39,6 +40,9 @@ public record AdminProjectUpdateRequestDto(
 
         @NotNull
         @Schema(description = "프로젝트 상태", example = "OPEN")
-        ProjectStatus status
+        ProjectStatus status,
+
+        @Schema(description = "프로젝트 카테고리", example = "GOODS")
+        ProjectCategory category
 ) {
 }

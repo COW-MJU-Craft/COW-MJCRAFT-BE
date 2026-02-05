@@ -65,6 +65,18 @@ public class S3PresignFacade {
         return urls;
     }
 
+    public String presignGet(
+            String key,
+            String downloadFileName,
+            String contentType,
+            boolean asAttachment
+    ) {
+        if (key == null || key.isBlank()) {
+            throw new IllegalArgumentException("요청 형식이 올바르지 않습니다. (key: 공백일 수 없습니다.)");
+        }
+        return s3PresignService.presignGet(key.trim(), downloadFileName, contentType, asAttachment).downloadUrl();
+    }
+
     public void deleteByKeys(List<String> keys) {
         if (keys == null || keys.isEmpty()) {
             throw new IllegalArgumentException("요청 형식이 올바르지 않습니다. (keys: 비어 있을 수 없습니다.)");

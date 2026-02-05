@@ -10,6 +10,7 @@ import com.example.cowmjucraft.domain.item.dto.response.AdminItemPresignPutBatch
 import com.example.cowmjucraft.domain.item.dto.response.AdminProjectItemDetailResponseDto;
 import com.example.cowmjucraft.domain.item.dto.response.AdminProjectItemResponseDto;
 import com.example.cowmjucraft.domain.item.dto.response.ProjectItemImageResponseDto;
+import com.example.cowmjucraft.domain.item.dto.response.ProjectItemJournalPresignGetResponseDto;
 import com.example.cowmjucraft.domain.item.service.AdminItemService;
 import com.example.cowmjucraft.global.response.ApiResult;
 import com.example.cowmjucraft.global.response.type.SuccessType;
@@ -91,6 +92,18 @@ public class AdminItemController implements AdminItemControllerDocs {
         );
     }
 
+    @PostMapping("/projects/{projectId}/journals/presign-put")
+    @Override
+    public ApiResult<AdminItemPresignPutBatchResponseDto> presignJournalFile(
+            @PathVariable Long projectId,
+            @Valid @RequestBody AdminItemPresignPutBatchRequestDto request
+    ) {
+        return ApiResult.success(
+                SuccessType.MEDIA_PRESIGN_CREATED,
+                adminItemService.createJournalFilePresignPutBatch(projectId, request)
+        );
+    }
+
     @DeleteMapping("/items/{itemId}")
     @Override
     public ApiResult<?> deleteItem(
@@ -106,7 +119,7 @@ public class AdminItemController implements AdminItemControllerDocs {
             @PathVariable Long itemId
     ) {
         adminItemService.deleteThumbnail(itemId);
-        return ApiResult.success(SuccessType.NO_CONTENT);
+        return ApiResult.success(SuccessType.SUCCESS);
     }
 
     @PostMapping("/items/{itemId}/images")
@@ -135,5 +148,16 @@ public class AdminItemController implements AdminItemControllerDocs {
     ) {
         adminItemService.deleteImage(itemId, imageId);
         return ApiResult.success(SuccessType.SUCCESS);
+    }
+
+    @GetMapping("/items/{itemId}/journal/presign-get")
+    @Override
+    public ApiResult<ProjectItemJournalPresignGetResponseDto> presignJournalDownloadForAdmin(
+            @PathVariable Long itemId
+    ) {
+        return ApiResult.success(
+                SuccessType.MEDIA_PRESIGN_CREATED,
+                adminItemService.createJournalPresignGet(itemId)
+        );
     }
 }

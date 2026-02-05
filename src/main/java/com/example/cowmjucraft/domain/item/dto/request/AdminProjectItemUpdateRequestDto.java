@@ -2,6 +2,7 @@ package com.example.cowmjucraft.domain.item.dto.request;
 
 import com.example.cowmjucraft.domain.item.entity.ItemSaleType;
 import com.example.cowmjucraft.domain.item.entity.ItemStatus;
+import com.example.cowmjucraft.domain.item.entity.ItemType;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
@@ -35,8 +36,7 @@ public record AdminProjectItemUpdateRequestDto(
         @Schema(description = "상태", example = "OPEN")
         ItemStatus status,
 
-        @NotBlank
-        @Schema(description = "대표 이미지 S3 object key", example = "uploads/items/1/thumbnail/uuid-thumbnail.png")
+        @Schema(description = "대표 이미지 S3 object key (PHYSICAL 전용)", example = "uploads/items/1/thumbnail/uuid-thumbnail.png")
         String thumbnailKey,
 
         @Schema(description = "목표 수량 (GROUPBUY 전용)", example = "100")
@@ -44,6 +44,12 @@ public record AdminProjectItemUpdateRequestDto(
 
         @NotNull
         @Schema(description = "현재 모금 수량", example = "0")
-        Integer fundedQty
+        Integer fundedQty,
+
+        @Schema(description = "아이템 타입", example = "PHYSICAL")
+        ItemType itemType,
+
+        @Schema(description = "저널 파일 S3 object key (presign-put 결과 key)", example = "uploads/projects/1/journals/uuid-journal.pdf")
+        String journalFileKey
 ) {
 }

@@ -83,7 +83,7 @@ public class AdminProjectController implements AdminProjectControllerDocs {
             @PathVariable Long projectId
     ) {
         adminProjectService.delete(projectId);
-        return ApiResult.success(SuccessType.NO_CONTENT);
+        return ApiResult.success(SuccessType.SUCCESS);
     }
 
     @PatchMapping("/order")

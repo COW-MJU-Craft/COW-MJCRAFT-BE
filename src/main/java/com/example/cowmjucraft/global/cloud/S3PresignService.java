@@ -1,6 +1,8 @@
 package com.example.cowmjucraft.global.cloud;
 
 import java.time.Duration;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -59,8 +61,74 @@ public class S3PresignService {
         return new PresignGetResult(presigned.url().toString());
     }
 
+    public PresignGetResult presignGet(
+            String key,
+            String downloadFileName,
+            String contentType,
+            boolean asAttachment
+    ) {
+        GetObjectRequest.Builder getReqBuilder = GetObjectRequest.builder()
+                .bucket(bucket)
+                .key(key);
+
+        String disposition = buildContentDisposition(downloadFileName, asAttachment);
+        if (disposition != null) {
+            getReqBuilder.responseContentDisposition(disposition);
+        }
+        if (contentType != null && !contentType.isBlank()) {
+            getReqBuilder.responseContentType(contentType.trim());
+        }
+
+        GetObjectPresignRequest presignReq = GetObjectPresignRequest.builder()
+                .signatureDuration(Duration.ofSeconds(expireSeconds))
+                .getObjectRequest(getReqBuilder.build())
+                .build();
+
+        PresignedGetObjectRequest presigned = s3Presigner.presignGetObject(presignReq);
+
+        return new PresignGetResult(presigned.url().toString());
+    }
+
     public int getExpireSeconds() {
         return Math.toIntExact(expireSeconds);
+    }
+
+    private String buildContentDisposition(String fileName, boolean asAttachment) {
+        String type = asAttachment ? "attachment" : "inline";
+        String normalized = normalizeFileName(fileName);
+        if (normalized == null) {
+            return type;
+        }
+        String encoded = encodeUtf8FileName(normalized);
+        String fallback = toAsciiFallbackFileName(normalized);
+        return type + "; filename=\"" + fallback + "\"; filename*=UTF-8''" + encoded;
+    }
+
+    private String normalizeFileName(String fileName) {
+        if (fileName == null) {
+            return null;
+        }
+        String trimmed = fileName.trim()
+                .replace("/", "_")
+                .replace("\\", "_");
+        return trimmed.isEmpty() ? null : trimmed;
+    }
+
+    private String encodeUtf8FileName(String fileName) {
+        String encoded = URLEncoder.encode(fileName, StandardCharsets.UTF_8);
+        return encoded.replace("+", "%20");
+    }
+
+    private String toAsciiFallbackFileName(String fileName) {
+        String sanitized = fileName
+                .replace("\r", "")
+                .replace("\n", "")
+                .replace("\"", "")
+                .replaceAll("[^A-Za-z0-9._-]", "_");
+        if (sanitized.isBlank()) {
+            return "download";
+        }
+        return sanitized;
     }
 
     public record PresignPutResult(String key, String uploadUrl) {}

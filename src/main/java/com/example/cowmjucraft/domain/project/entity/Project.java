@@ -57,6 +57,10 @@ public class Project extends BaseTimeEntity {
     @Column(nullable = false)
     private ProjectStatus status;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private ProjectCategory category;
+
     @Column(nullable = false)
     private boolean pinned = false;
 
@@ -73,7 +77,8 @@ public class Project extends BaseTimeEntity {
             String thumbnailKey,
             List<String> imageKeys,
             LocalDate deadlineDate,
-            ProjectStatus status
+            ProjectStatus status,
+            ProjectCategory category
     ) {
         this.title = title;
         this.summary = summary;
@@ -82,6 +87,7 @@ public class Project extends BaseTimeEntity {
         replaceImageKeys(imageKeys);
         this.deadlineDate = deadlineDate;
         this.status = status;
+        this.category = category == null ? ProjectCategory.GOODS : category;
     }
 
     public void updateBasic(
@@ -91,7 +97,8 @@ public class Project extends BaseTimeEntity {
             String thumbnailKey,
             List<String> imageKeys,
             LocalDate deadlineDate,
-            ProjectStatus status
+            ProjectStatus status,
+            ProjectCategory category
     ) {
         this.title = title;
         this.summary = summary;
@@ -100,6 +107,9 @@ public class Project extends BaseTimeEntity {
         replaceImageKeys(imageKeys);
         this.deadlineDate = deadlineDate;
         this.status = status;
+        if (category != null) {
+            this.category = category;
+        }
     }
 
     public void applyPinned(boolean pinned, Integer pinnedOrder) {

@@ -53,8 +53,15 @@ public class ProjectItem extends BaseTimeEntity {
     @Column(nullable = false)
     private ItemStatus status;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private ItemType itemType;
+
     @Column(length = 255)
     private String thumbnailKey;
+
+    @Column(length = 255)
+    private String journalFileKey;
 
     @Column(name = "target_qty")
     private Integer targetQty;
@@ -70,7 +77,9 @@ public class ProjectItem extends BaseTimeEntity {
             int price,
             ItemSaleType saleType,
             ItemStatus status,
+            ItemType itemType,
             String thumbnailKey,
+            String journalFileKey,
             Integer targetQty,
             int fundedQty
     ) {
@@ -81,7 +90,9 @@ public class ProjectItem extends BaseTimeEntity {
         this.price = price;
         this.saleType = saleType;
         this.status = status;
+        this.itemType = itemType == null ? ItemType.PHYSICAL : itemType;
         this.thumbnailKey = thumbnailKey;
+        this.journalFileKey = journalFileKey;
         this.targetQty = targetQty;
         this.fundedQty = fundedQty;
     }
@@ -93,7 +104,9 @@ public class ProjectItem extends BaseTimeEntity {
             int price,
             ItemSaleType saleType,
             ItemStatus status,
+            ItemType itemType,
             String thumbnailKey,
+            String journalFileKey,
             Integer targetQty,
             int fundedQty
     ) {
@@ -103,7 +116,11 @@ public class ProjectItem extends BaseTimeEntity {
         this.price = price;
         this.saleType = saleType;
         this.status = status;
+        if (itemType != null) {
+            this.itemType = itemType;
+        }
         this.thumbnailKey = thumbnailKey;
+        this.journalFileKey = journalFileKey;
         this.targetQty = targetQty;
         this.fundedQty = fundedQty;
     }

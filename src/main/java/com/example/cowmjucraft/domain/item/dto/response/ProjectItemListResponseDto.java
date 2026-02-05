@@ -2,6 +2,7 @@ package com.example.cowmjucraft.domain.item.dto.response;
 
 import com.example.cowmjucraft.domain.item.entity.ItemSaleType;
 import com.example.cowmjucraft.domain.item.entity.ItemStatus;
+import com.example.cowmjucraft.domain.item.entity.ItemType;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.swagger.v3.oas.annotations.media.Schema;
 
@@ -22,6 +23,9 @@ public record ProjectItemListResponseDto(
 
         @Schema(description = "판매 유형", example = "NORMAL")
         ItemSaleType saleType,
+
+        @Schema(description = "아이템 타입", example = "PHYSICAL")
+        ItemType itemType,
 
         @Schema(description = "상태", example = "OPEN")
         ItemStatus status,

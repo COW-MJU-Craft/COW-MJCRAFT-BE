@@ -1,6 +1,7 @@
 package com.example.cowmjucraft.domain.item.controller.client;
 
 import com.example.cowmjucraft.domain.item.dto.response.ProjectItemDetailResponseDto;
+import com.example.cowmjucraft.domain.item.dto.response.ProjectItemJournalPresignGetResponseDto;
 import com.example.cowmjucraft.domain.item.dto.response.ProjectItemListResponseDto;
 import com.example.cowmjucraft.domain.item.service.ItemService;
 import com.example.cowmjucraft.global.response.ApiResult;
@@ -9,6 +10,7 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -33,5 +35,13 @@ public class ItemController implements ItemControllerDocs {
             @PathVariable Long itemId
     ) {
         return ApiResult.success(SuccessType.SUCCESS, itemService.getItem(itemId));
+    }
+
+    @PostMapping("/items/{itemId}/journal/presign-get")
+    @Override
+    public ApiResult<ProjectItemJournalPresignGetResponseDto> presignJournalDownload(
+            @PathVariable Long itemId
+    ) {
+        return ApiResult.success(SuccessType.MEDIA_PRESIGN_CREATED, itemService.createJournalPresignGet(itemId));
     }
 }
