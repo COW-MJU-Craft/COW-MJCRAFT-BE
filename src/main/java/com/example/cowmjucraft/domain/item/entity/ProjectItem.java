@@ -39,7 +39,7 @@ public class ProjectItem extends BaseTimeEntity {
     private String summary;
 
     @Lob
-    @Column(nullable = false)
+    @Column(columnDefinition = "MEDIUMTEXT", nullable = false)
     private String description;
 
     @Column(nullable = false)
