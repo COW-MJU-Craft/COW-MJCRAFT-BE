@@ -4,10 +4,7 @@ import com.example.cowmjucraft.domain.recruit.dto.client.request.ApplicationCrea
 import com.example.cowmjucraft.domain.recruit.dto.client.request.ApplicationReadRequest;
 import com.example.cowmjucraft.domain.recruit.dto.client.request.ApplicationUpdateRequest;
 import com.example.cowmjucraft.domain.recruit.dto.client.request.ResultReadRequest;
-import com.example.cowmjucraft.domain.recruit.dto.client.response.ApplicationCreateResponse;
-import com.example.cowmjucraft.domain.recruit.dto.client.response.ApplicationReadResponse;
-import com.example.cowmjucraft.domain.recruit.dto.client.response.ApplicationUpdateResponse;
-import com.example.cowmjucraft.domain.recruit.dto.client.response.ResultReadResponse;
+import com.example.cowmjucraft.domain.recruit.dto.client.response.*;
 import com.example.cowmjucraft.global.cloud.S3PresignFacade;
 import com.example.cowmjucraft.global.response.ApiResult;
 import io.swagger.v3.oas.annotations.Operation;
@@ -143,4 +140,21 @@ public interface ApplicationControllerDocs {
             @Parameter(description = "지원 결과 조회 요청")
             ResultReadRequest request
     );
+
+    @Operation(
+            summary = "지원서 양식(질문 및 공지) 조회",
+            description = """
+                현재 열려있는 모집 폼(Form)의 공지사항과 질문 목록을 조회합니다.
+                지원하기 전 화면을 그릴 때 사용합니다.
+                """
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "성공",
+                    content = @Content(schema = @Schema(implementation = ApiResult.class))
+            ),
+            @ApiResponse(responseCode = "404", description = "현재 모집 중인 폼이 없음")
+    })
+    ApiResult<ApplicationFormInfoResponse> getOpenForm();
 }

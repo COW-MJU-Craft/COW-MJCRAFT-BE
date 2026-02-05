@@ -4,10 +4,7 @@ import com.example.cowmjucraft.domain.recruit.dto.client.request.ApplicationCrea
 import com.example.cowmjucraft.domain.recruit.dto.client.request.ApplicationReadRequest;
 import com.example.cowmjucraft.domain.recruit.dto.client.request.ApplicationUpdateRequest;
 import com.example.cowmjucraft.domain.recruit.dto.client.request.ResultReadRequest;
-import com.example.cowmjucraft.domain.recruit.dto.client.response.ApplicationCreateResponse;
-import com.example.cowmjucraft.domain.recruit.dto.client.response.ApplicationReadResponse;
-import com.example.cowmjucraft.domain.recruit.dto.client.response.ApplicationUpdateResponse;
-import com.example.cowmjucraft.domain.recruit.dto.client.response.ResultReadResponse;
+import com.example.cowmjucraft.domain.recruit.dto.client.response.*;
 import com.example.cowmjucraft.domain.recruit.entity.*;
 import com.example.cowmjucraft.domain.recruit.exception.RecruitException;
 import com.example.cowmjucraft.domain.recruit.repository.*;
@@ -386,6 +383,21 @@ public class ApplicationService {
         }
 
         return new ResultReadResponse(application.getResultStatus());
+    }
+
+    @Transactional(readOnly = true)
+    public ApplicationFormInfoResponse getOpenFormInfo() {
+        Form form = formRepository.findFirstByOpenTrue();
+
+        if (form == null) {
+            throw new RecruitException(ErrorType.FORM_NOT_FOUND);
+        }
+
+        List<FormNotice> notices = formNoticeRepository.findAllByForm(form);
+
+        List<FormQuestion> questions = formQuestionRepository.findAllByFormOrderByQuestionOrderAsc(form);
+
+        return ApplicationFormInfoResponse.from(form, notices, questions);
     }
 
     public S3PresignFacade.PresignPutBatchResult createAnswerFilePresignPut(List<S3PresignFacade.PresignPutFile> files) {
