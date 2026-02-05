@@ -45,6 +45,7 @@ public class ProjectService {
                         project.getThumbnailKey(),
                         resolveUrl(urls, project.getThumbnailKey()),
                         project.getStatus(),
+                        project.getCategory(),
                         project.getDeadlineDate(),
                         calculateDDay(project.getDeadlineDate()),
                         project.isPinned()
@@ -72,6 +73,7 @@ public class ProjectService {
                 project.getImageKeys(),
                 buildUrlsForKeys(project.getImageKeys(), urls),
                 project.getStatus(),
+                project.getCategory(),
                 project.getDeadlineDate(),
                 calculateDDay(project.getDeadlineDate()),
                 project.getCreatedAt(),

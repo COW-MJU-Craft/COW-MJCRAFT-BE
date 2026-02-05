@@ -59,7 +59,7 @@ public class AdminNoticeController implements AdminNoticeControllerDocs {
             @PathVariable Long noticeId
     ) {
         adminNoticeService.delete(noticeId);
-        return ApiResult.success(SuccessType.NO_CONTENT);
+        return ApiResult.success(SuccessType.SUCCESS);
     }
 
     @GetMapping

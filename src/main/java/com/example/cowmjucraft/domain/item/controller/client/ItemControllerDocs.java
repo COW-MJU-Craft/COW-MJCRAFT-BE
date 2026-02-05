@@ -1,6 +1,7 @@
 package com.example.cowmjucraft.domain.item.controller.client;
 
 import com.example.cowmjucraft.domain.item.dto.response.ProjectItemDetailResponseDto;
+import com.example.cowmjucraft.domain.item.dto.response.ProjectItemJournalPresignGetResponseDto;
 import com.example.cowmjucraft.domain.item.dto.response.ProjectItemListResponseDto;
 import com.example.cowmjucraft.global.response.ApiResult;
 import io.swagger.v3.oas.annotations.Operation;
@@ -110,6 +111,42 @@ public interface ItemControllerDocs {
             @ApiResponse(responseCode = "404", description = "요청한 리소스를 찾을 수 없음")
     })
     ApiResult<ProjectItemDetailResponseDto> getItem(
+            @Parameter(description = "물품 ID", example = "1")
+            Long itemId
+    );
+
+    @Operation(
+            summary = "저널 다운로드 presign-get 발급",
+            description = """
+                    DIGITAL_JOURNAL 아이템 다운로드용 presigned GET URL을 발급합니다.
+                    downloadUrl은 Content-Disposition=attachment로 내려가며 브라우저 다운로드가 동작합니다.
+                    """
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "성공",
+                    content = @Content(
+                            schema = @Schema(implementation = ApiResult.class),
+                            examples = @ExampleObject(
+                                    name = "journal-presign-get-response",
+                                    value = """
+                                            {
+                                              "resultType": "SUCCESS",
+                                              "httpStatusCode": 200,
+                                              "message": "Presign URL 발급 완료",
+                                              "data": {
+                                                "downloadUrl": "https://bucket.s3.amazonaws.com/uploads/projects/1/journals/uuid-journal.pdf?X-Amz-Signature=..."
+                                              }
+                                            }
+                                            """
+                            )
+                    )
+            ),
+            @ApiResponse(responseCode = "404", description = "요청한 리소스를 찾을 수 없음"),
+            @ApiResponse(responseCode = "422", description = "요청 값 검증 실패")
+    })
+    ApiResult<ProjectItemJournalPresignGetResponseDto> presignJournalDownload(
             @Parameter(description = "물품 ID", example = "1")
             Long itemId
     );

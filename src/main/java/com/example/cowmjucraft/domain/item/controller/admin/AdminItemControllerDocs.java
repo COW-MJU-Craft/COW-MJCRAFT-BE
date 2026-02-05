@@ -10,6 +10,7 @@ import com.example.cowmjucraft.domain.item.dto.response.AdminItemPresignPutBatch
 import com.example.cowmjucraft.domain.item.dto.response.AdminProjectItemDetailResponseDto;
 import com.example.cowmjucraft.domain.item.dto.response.AdminProjectItemResponseDto;
 import com.example.cowmjucraft.domain.item.dto.response.ProjectItemImageResponseDto;
+import com.example.cowmjucraft.domain.item.dto.response.ProjectItemJournalPresignGetResponseDto;
 import com.example.cowmjucraft.global.response.ApiResult;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -62,29 +63,52 @@ public interface AdminItemControllerDocs {
 
     @Operation(
             summary = "프로젝트 물품 생성",
-            description = "프로젝트에 새로운 물품을 생성합니다."
+            description = """
+                    프로젝트에 새로운 물품을 생성합니다.
+                    JOURNAL 아이템 업로드는 2-step입니다.
+                    Step1) /api/admin/projects/{projectId}/journals/presign-put 호출 → uploadUrl로 PUT 업로드
+                    Step2) 생성 요청의 journalFileKey에 Step1의 key 저장
+                    """
     )
     @RequestBody(
             required = true,
             description = "물품 생성 요청",
             content = @Content(
                     schema = @Schema(implementation = AdminProjectItemCreateRequestDto.class),
-                    examples = @ExampleObject(
-                            name = "item-create-request",
-                            value = """
-                                    {
-                                      "name": "명지공방 머그컵",
-                                      "summary": "캠퍼스 감성을 담은 데일리 머그컵",
-                                      "description": "캠퍼스 감성을 담은 머그컵입니다.",
-                                      "price": 12000,
-                                      "saleType": "GROUPBUY",
-                                      "status": "OPEN",
-                                      "thumbnailKey": "uploads/items/1/thumbnail/uuid-thumbnail.png",
-                                      "targetQty": 100,
-                                      "fundedQty": 0
-                                    }
-                                    """
-                    )
+                    examples = {
+                            @ExampleObject(
+                                    name = "item-create-request",
+                                    value = """
+                                            {
+                                              "name": "명지공방 머그컵",
+                                              "summary": "캠퍼스 감성을 담은 데일리 머그컵",
+                                              "description": "캠퍼스 감성을 담은 머그컵입니다.",
+                                              "price": 12000,
+                                              "saleType": "GROUPBUY",
+                                              "itemType": "PHYSICAL",
+                                              "status": "OPEN",
+                                              "thumbnailKey": "uploads/items/1/thumbnail/uuid-thumbnail.png",
+                                              "targetQty": 100,
+                                              "fundedQty": 0
+                                            }
+                                            """
+                            ),
+                            @ExampleObject(
+                                    name = "journal-item-create-request",
+                                    value = """
+                                            {
+                                              "name": "2026 겨울 저널",
+                                              "summary": "연말 회고 저널",
+                                              "description": "2026 연말 회고용 디지털 저널입니다.",
+                                              "price": 0,
+                                              "saleType": "NORMAL",
+                                              "itemType": "DIGITAL_JOURNAL",
+                                              "status": "OPEN",
+                                              "journalFileKey": "uploads/projects/1/journals/uuid-journal-2026.pdf"
+                                            }
+                                            """
+                            )
+                    }
             )
     )
     @ApiResponses({
@@ -132,29 +156,52 @@ public interface AdminItemControllerDocs {
 
     @Operation(
             summary = "프로젝트 물품 수정",
-            description = "물품 정보를 수정합니다."
+            description = """
+                    물품 정보를 수정합니다.
+                    JOURNAL 아이템 업로드는 2-step입니다.
+                    Step1) /api/admin/projects/{projectId}/journals/presign-put 호출 → uploadUrl로 PUT 업로드
+                    Step2) 수정 요청의 journalFileKey에 Step1의 key 저장
+                    """
     )
     @RequestBody(
             required = true,
             description = "물품 수정 요청",
             content = @Content(
                     schema = @Schema(implementation = AdminProjectItemUpdateRequestDto.class),
-                    examples = @ExampleObject(
-                            name = "item-update-request",
-                            value = """
-                                    {
-                                      "name": "명지공방 머그컵",
-                                      "summary": "캠퍼스 감성을 담은 데일리 머그컵",
-                                      "description": "캠퍼스 감성을 담은 머그컵입니다.",
-                                      "price": 11000,
-                                      "saleType": "NORMAL",
-                                      "status": "OPEN",
-                                      "thumbnailKey": "uploads/items/1/thumbnail/uuid-thumbnail.png",
-                                      "targetQty": 100,
-                                      "fundedQty": 0
-                                    }
-                                    """
-                    )
+                    examples = {
+                            @ExampleObject(
+                                    name = "item-update-request",
+                                    value = """
+                                            {
+                                              "name": "명지공방 머그컵",
+                                              "summary": "캠퍼스 감성을 담은 데일리 머그컵",
+                                              "description": "캠퍼스 감성을 담은 머그컵입니다.",
+                                              "price": 11000,
+                                              "saleType": "NORMAL",
+                                              "itemType": "PHYSICAL",
+                                              "status": "OPEN",
+                                              "thumbnailKey": "uploads/items/1/thumbnail/uuid-thumbnail.png",
+                                              "targetQty": 100,
+                                              "fundedQty": 0
+                                            }
+                                            """
+                            ),
+                            @ExampleObject(
+                                    name = "journal-item-update-request",
+                                    value = """
+                                            {
+                                              "name": "2026 겨울 저널",
+                                              "summary": "연말 회고 저널",
+                                              "description": "2026 연말 회고용 디지털 저널입니다.",
+                                              "price": 0,
+                                              "saleType": "NORMAL",
+                                              "itemType": "DIGITAL_JOURNAL",
+                                              "status": "OPEN",
+                                              "journalFileKey": "uploads/projects/1/journals/uuid-journal-2026.pdf"
+                                            }
+                                            """
+                            )
+                    }
             )
     )
     @ApiResponses({
@@ -303,12 +350,76 @@ public interface AdminItemControllerDocs {
     );
 
     @Operation(
+            summary = "저널 파일 presign-put 발급",
+            description = """
+                    저널 파일 업로드용 presigned PUT URL을 발급합니다.
+                    Step1) presign-put으로 key, uploadUrl 획득
+                    Step2) uploadUrl로 PUT 업로드
+                    Step3) 아이템 생성/수정 요청의 journalFileKey에 Step1의 key 저장
+                    """
+    )
+    @RequestBody(
+            required = true,
+            description = "presign-put 요청",
+            content = @Content(
+                    schema = @Schema(implementation = AdminItemPresignPutBatchRequestDto.class),
+                    examples = @ExampleObject(
+                            name = "journal-presign-request",
+                            value = """
+                                    {
+                                      "files": [
+                                        { "fileName": "journal-2026-01.pdf", "contentType": "application/pdf" }
+                                      ]
+                                    }
+                                    """
+                    )
+            )
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "성공",
+                    content = @Content(
+                            schema = @Schema(implementation = ApiResult.class),
+                            examples = @ExampleObject(
+                                    name = "journal-presign-response",
+                                    value = """
+                                            {
+                                              "resultType": "SUCCESS",
+                                              "httpStatusCode": 200,
+                                              "message": "Presign URL 발급 완료",
+                                              "data": {
+                                                "items": [
+                                                  {
+                                                    "fileName": "journal-2026-01.pdf",
+                                                    "key": "uploads/projects/1/journals/uuid-journal-2026-01.pdf",
+                                                    "uploadUrl": "https://bucket.s3.amazonaws.com/...",
+                                                    "expiresInSeconds": 300
+                                                  }
+                                                ]
+                                              }
+                                            }
+                                            """
+                            )
+                    )
+            ),
+            @ApiResponse(responseCode = "404", description = "요청한 리소스를 찾을 수 없음"),
+            @ApiResponse(responseCode = "422", description = "요청 값 검증 실패")
+    })
+    ApiResult<AdminItemPresignPutBatchResponseDto> presignJournalFile(
+            @Parameter(description = "프로젝트 ID", example = "1")
+            Long projectId,
+            @Valid AdminItemPresignPutBatchRequestDto request
+    );
+
+    // ✅ 변경: 204 -> 200
+    @Operation(
             summary = "프로젝트 물품 삭제",
             description = "물품을 삭제합니다."
     )
     @ApiResponses({
             @ApiResponse(
-                    responseCode = "204",
+                    responseCode = "200",
                     description = "성공",
                     content = @Content(
                             schema = @Schema(implementation = ApiResult.class),
@@ -317,7 +428,7 @@ public interface AdminItemControllerDocs {
                                     value = """
                                             {
                                               "resultType": "SUCCESS",
-                                              "httpStatusCode": 204,
+                                              "httpStatusCode": 200,
                                               "message": "요청에 성공하였습니다.",
                                               "data": null
                                             }
@@ -332,13 +443,14 @@ public interface AdminItemControllerDocs {
             Long itemId
     );
 
+    // ✅ 변경: 204 -> 200
     @Operation(
             summary = "물품 썸네일 삭제",
             description = "물품의 대표 이미지(thumbnailKey)를 제거하고 S3에서도 파일을 삭제합니다."
     )
     @ApiResponses({
             @ApiResponse(
-                    responseCode = "204",
+                    responseCode = "200",
                     description = "성공",
                     content = @Content(schema = @Schema(implementation = ApiResult.class))
             ),
@@ -442,13 +554,14 @@ public interface AdminItemControllerDocs {
             @Valid AdminItemImageOrderPatchRequestDto request
     );
 
+    // ✅ 변경: 204 -> 200
     @Operation(
             summary = "물품 이미지 삭제",
             description = "단일 물품 이미지를 삭제합니다."
     )
     @ApiResponses({
             @ApiResponse(
-                    responseCode = "204",
+                    responseCode = "200",
                     description = "성공",
                     content = @Content(
                             schema = @Schema(implementation = ApiResult.class),
@@ -457,7 +570,7 @@ public interface AdminItemControllerDocs {
                                     value = """
                                             {
                                               "resultType": "SUCCESS",
-                                              "httpStatusCode": 204,
+                                              "httpStatusCode": 200,
                                               "message": "요청에 성공하였습니다.",
                                               "data": null
                                             }
@@ -473,5 +586,41 @@ public interface AdminItemControllerDocs {
             Long itemId,
             @Parameter(description = "이미지 ID", example = "1")
             Long imageId
+    );
+
+    @Operation(
+            summary = "저널 다운로드 presign-get 발급 (관리자)",
+            description = """
+                    DIGITAL_JOURNAL 아이템 다운로드용 presigned GET URL을 발급합니다.
+                    downloadUrl은 Content-Disposition=attachment로 내려가며 브라우저 다운로드가 동작합니다.
+                    """
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "성공",
+                    content = @Content(
+                            schema = @Schema(implementation = ApiResult.class),
+                            examples = @ExampleObject(
+                                    name = "admin-journal-presign-get-response",
+                                    value = """
+                                            {
+                                              "resultType": "SUCCESS",
+                                              "httpStatusCode": 200,
+                                              "message": "Presign URL 발급 완료",
+                                              "data": {
+                                                "downloadUrl": "https://bucket.s3.amazonaws.com/uploads/projects/1/journals/uuid-journal-2026.pdf?X-Amz-Signature=..."
+                                              }
+                                            }
+                                            """
+                            )
+                    )
+            ),
+            @ApiResponse(responseCode = "404", description = "요청한 리소스를 찾을 수 없음"),
+            @ApiResponse(responseCode = "422", description = "요청 값 검증 실패")
+    })
+    ApiResult<ProjectItemJournalPresignGetResponseDto> presignJournalDownloadForAdmin(
+            @Parameter(description = "물품 ID", example = "1")
+            Long itemId
     );
 }

@@ -8,6 +8,7 @@ import com.example.cowmjucraft.domain.project.dto.response.AdminProjectOrderPatc
 import com.example.cowmjucraft.domain.project.dto.response.AdminProjectPresignPutBatchResponseDto;
 import com.example.cowmjucraft.domain.project.dto.response.AdminProjectResponseDto;
 import com.example.cowmjucraft.domain.project.entity.Project;
+import com.example.cowmjucraft.domain.project.entity.ProjectCategory;
 import com.example.cowmjucraft.domain.project.repository.ProjectRepository;
 import com.example.cowmjucraft.global.cloud.S3PresignFacade;
 import java.util.ArrayList;
@@ -48,7 +49,8 @@ public class AdminProjectService {
                 request.thumbnailKey(),
                 normalizeImageKeys(request.imageKeys()),
                 request.deadlineDate(),
-                request.status()
+                request.status(),
+                resolveCategory(request.category())
         );
         Project saved = projectRepository.save(project);
         Map<String, String> urls = presignGetForProject(saved);
@@ -65,7 +67,8 @@ public class AdminProjectService {
                 request.thumbnailKey(),
                 normalizeImageKeys(request.imageKeys()),
                 request.deadlineDate(),
-                request.status()
+                request.status(),
+                request.category()
         );
         Map<String, String> urls = presignGetForProject(project);
         return toAdminResponse(project, urls);
@@ -291,6 +294,10 @@ public class AdminProjectService {
         return new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, message);
     }
 
+    private ProjectCategory resolveCategory(ProjectCategory category) {
+        return category == null ? ProjectCategory.GOODS : category;
+    }
+
     private AdminProjectResponseDto toAdminResponse(Project project, Map<String, String> urls) {
         return new AdminProjectResponseDto(
                 project.getId(),
@@ -302,6 +309,7 @@ public class AdminProjectService {
                 project.getImageKeys(),
                 buildUrlsForKeys(project.getImageKeys(), urls),
                 project.getStatus(),
+                project.getCategory(),
                 project.getDeadlineDate(),
                 project.isPinned(),
                 project.getPinnedOrder(),
