@@ -22,6 +22,8 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
+import com.example.cowmjucraft.domain.recruit.exception.RecruitException;
+
 
 @Slf4j
 @RestControllerAdvice
@@ -108,6 +110,14 @@ public class GlobalExceptionHandler {
         log.error("Unhandled exception", exception);
         return json(errorType(ErrorType.INTERNAL_ERROR), ErrorType.INTERNAL_ERROR.getMessage());
     }
+
+    @ExceptionHandler(RecruitException.class)
+    public ResponseEntity<ApiResult<?>> handleRecruitException(RecruitException exception) {
+        ErrorType errorType = exception.getErrorType();
+        String message = exception.getMessage();
+        return json(errorType, message);
+    }
+
 
     private ResponseEntity<ApiResult<?>> json(ErrorType errorType, String message) {
         return ResponseEntity.status(errorType.getHttpStatusCode())

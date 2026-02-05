@@ -56,7 +56,7 @@ public class MyPageController implements MyPageControllerDocs {
             @AuthenticationPrincipal String memberId
     ) {
         myPageService.deleteAddress(parseMemberId(memberId));
-        return ApiResult.success(SuccessType.NO_CONTENT);
+        return ApiResult.success(SuccessType.SUCCESS);
     }
 
     private Long parseMemberId(String principal) {

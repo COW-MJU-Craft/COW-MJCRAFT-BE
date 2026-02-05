@@ -1,0 +1,152 @@
+package com.example.cowmjucraft.domain.recruit.controller.admin;
+
+import com.example.cowmjucraft.domain.recruit.dto.admin.request.*;
+import com.example.cowmjucraft.domain.recruit.dto.admin.response.*;
+import com.example.cowmjucraft.domain.recruit.service.admin.FormAdminService;
+import com.example.cowmjucraft.global.cloud.S3PresignFacade;
+import com.example.cowmjucraft.global.response.ApiResult;
+import com.example.cowmjucraft.global.response.type.SuccessType;
+import java.util.List;
+
+import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.*;
+
+@RequiredArgsConstructor
+@RequestMapping("/api/admin")
+@RestController
+public class FormAdminController implements FormAdminControllerDocs {
+
+    private final FormAdminService formAdminService;
+
+    @Override
+    @PostMapping("/forms")
+    public ApiResult<FormCreateAdminResponse> createForm(
+            @RequestBody FormCreateAdminRequest request
+    ) {
+        return ApiResult.success(
+                SuccessType.CREATED,
+                formAdminService.createForm(request)
+        );
+    }
+
+    @Override
+    @PutMapping("/forms/{formId}/open")
+    public ApiResult<?> openForm(@PathVariable Long formId) {
+        formAdminService.openForm(formId);
+        return ApiResult.success(SuccessType.SUCCESS);
+    }
+
+    @Override
+    @PutMapping("/forms/{formId}/close")
+    public ApiResult<?> closeForm(@PathVariable Long formId) {
+        formAdminService.closeForm(formId);
+        return ApiResult.success(SuccessType.SUCCESS);
+    }
+
+    @Override
+    @PostMapping("/forms/{formId}/questions")
+    public ApiResult<AddQuestionAdminResponse> addQuestion(
+            @PathVariable Long formId,
+            @RequestBody AddQuestionAdminRequest request
+    ) {
+        return ApiResult.success(
+                SuccessType.CREATED,
+                formAdminService.addQuestion(formId, request)
+        );
+    }
+
+    @Override
+    @GetMapping("/forms")
+    public ApiResult<List<FormListAdminResponse>> getForms() {
+        return ApiResult.success(
+                SuccessType.SUCCESS,
+                formAdminService.getForms()
+        );
+    }
+
+    @Override
+    @GetMapping("/forms/{formId}")
+    public ApiResult<FormDetailAdminResponse> getForm(@PathVariable Long formId) {
+        return ApiResult.success(
+                SuccessType.SUCCESS,
+                formAdminService.getForm(formId)
+        );
+    }
+
+    @Override
+    @GetMapping("/forms/{formId}/questions")
+    public ApiResult<List<FormQuestionListAdminResponse>> getFormQuestions(
+            @PathVariable Long formId
+    ) {
+        return ApiResult.success(
+                SuccessType.SUCCESS,
+                formAdminService.getFormQuestions(formId)
+        );
+    }
+
+    @Override
+    @DeleteMapping("/forms/{formId}/questions/{formQuestionId}")
+    public ApiResult<?> deleteFormQuestion(
+            @PathVariable Long formId,
+            @PathVariable Long formQuestionId
+    ) {
+        formAdminService.deleteFormQuestion(formId, formQuestionId);
+        return ApiResult.success(SuccessType.SUCCESS);
+    }
+
+    @Override
+    @PutMapping("/forms/{formId}/questions/{formQuestionId}")
+    public ApiResult<?> updateFormQuestion(
+            @PathVariable Long formId,
+            @PathVariable Long formQuestionId,
+            @RequestBody FormQuestionUpdateAdminRequest request
+    ) {
+        formAdminService.updateFormQuestion(formId, formQuestionId, request);
+        return ApiResult.success(SuccessType.SUCCESS);
+    }
+
+    @Override
+    @PostMapping("/forms/{targetFormId}/copy")
+    public ApiResult<FormCopyAdminResponse> copyFormQuestionsOverwrite(
+            @PathVariable Long targetFormId,
+            @RequestBody FormCopyAdminRequest request
+    ) {
+        return ApiResult.success(
+                SuccessType.CREATED,
+                formAdminService.copyFormQuestionsOverwrite(targetFormId, request)
+        );
+    }
+
+    @Override
+    @PostMapping("/forms/{formId}/notices")
+    public ApiResult<AddFormNoticeAdminResponse> addFormNotice(
+            @PathVariable Long formId,
+            @RequestBody FormNoticeRequest request
+    ) {
+        return ApiResult.success(
+                SuccessType.CREATED,
+                formAdminService.addFormNotice(formId, request)
+        );
+    }
+
+    @Override
+    @PutMapping("/forms/{formId}/notices/{noticeId}")
+    public ApiResult<?> updateFormNotice(
+            @PathVariable Long formId,
+            @PathVariable Long noticeId,
+            @RequestBody FormNoticeRequest request
+    ) {
+        formAdminService.updateFormNotice(formId, noticeId, request);
+        return ApiResult.success(SuccessType.SUCCESS);
+    }
+
+    @Override
+    @DeleteMapping("/forms/{formId}/notices/{noticeId}")
+    public ApiResult<?> deleteFormNotice(
+            @PathVariable Long formId,
+            @PathVariable Long noticeId
+    ) {
+        formAdminService.deleteFormNotice(formId, noticeId);
+        return ApiResult.success(SuccessType.SUCCESS);
+    }
+}
