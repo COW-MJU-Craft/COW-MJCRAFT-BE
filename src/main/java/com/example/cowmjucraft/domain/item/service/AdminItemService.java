@@ -60,7 +60,7 @@ public class AdminItemService {
                 request.saleType(),
                 request.status(),
                 normalized.itemType(),
-                request.thumbnailKey(),
+                normalized.thumbnailKey(),
                 normalized.journalFileKey(),
                 normalized.targetQty(),
                 normalized.fundedQty()
@@ -84,7 +84,7 @@ public class AdminItemService {
                 request.saleType(),
                 request.status(),
                 normalized.itemType(),
-                request.thumbnailKey(),
+                normalized.thumbnailKey(),
                 normalized.journalFileKey(),
                 normalized.targetQty(),
                 normalized.fundedQty()
@@ -451,7 +451,8 @@ public class AdminItemService {
                         "journalFileKey is required for DIGITAL_JOURNAL"
                 );
             }
-            return new NormalizedItemRequest(itemType, null, 0, normalizedJournalKey);
+            String normalizedThumbnailKey = toNonBlankString(thumbnailKey);
+            return new NormalizedItemRequest(itemType, null, 0, normalizedJournalKey, normalizedThumbnailKey);
         }
 
         String normalizedThumbnailKey = toNonBlankString(thumbnailKey);
@@ -486,7 +487,7 @@ public class AdminItemService {
             normalizedTargetQty = null;
         }
 
-        return new NormalizedItemRequest(itemType, normalizedTargetQty, normalizedFundedQty, null);
+        return new NormalizedItemRequest(itemType, normalizedTargetQty, normalizedFundedQty, null, normalizedThumbnailKey);
     }
 
     private ItemType resolveItemType(Project project, ItemType requested, ItemType fallback) {
@@ -696,7 +697,8 @@ public class AdminItemService {
             ItemType itemType,
             Integer targetQty,
             int fundedQty,
-            String journalFileKey
+            String journalFileKey,
+            String thumbnailKey
     ) {
     }
 
