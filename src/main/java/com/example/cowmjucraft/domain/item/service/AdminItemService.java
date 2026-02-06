@@ -165,6 +165,34 @@ public class AdminItemService {
         item.clearThumbnail();
     }
 
+    @Transactional
+    public void deleteJournalFile(Long itemId) {
+        ProjectItem item = projectItemRepository.findById(itemId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "item not found"));
+        if (item.getItemType() != ItemType.DIGITAL_JOURNAL) {
+            throw new ResponseStatusException(
+                    HttpStatus.UNPROCESSABLE_ENTITY,
+                    "itemType must be DIGITAL_JOURNAL"
+            );
+        }
+
+        String key = toNonBlankString(item.getJournalFileKey());
+        if (key == null) {
+            throw new ResponseStatusException(
+                    HttpStatus.UNPROCESSABLE_ENTITY,
+                    "journalFileKey is required"
+            );
+        }
+
+        try {
+            s3PresignFacade.deleteByKeys(List.of(key));
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "S3 삭제 실패");
+        }
+
+        item.clearJournalFileKey();
+    }
+
     @Transactional(readOnly = true)
     public List<AdminProjectItemResponseDto> getItems(Long projectId) {
         List<ProjectItem> items = projectItemRepository.findByProjectIdOrderByCreatedAtDescIdDesc(projectId);

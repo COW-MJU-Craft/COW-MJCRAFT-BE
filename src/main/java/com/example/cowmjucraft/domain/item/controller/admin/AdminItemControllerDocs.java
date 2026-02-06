@@ -412,7 +412,6 @@ public interface AdminItemControllerDocs {
             @Valid AdminItemPresignPutBatchRequestDto request
     );
 
-    // ✅ 변경: 204 -> 200
     @Operation(
             summary = "프로젝트 물품 삭제",
             description = "물품을 삭제합니다."
@@ -429,7 +428,7 @@ public interface AdminItemControllerDocs {
                                             {
                                               "resultType": "SUCCESS",
                                               "httpStatusCode": 200,
-                                              "message": "요청에 성공하였습니다.",
+                                              "message": "미디어 삭제 완료",
                                               "data": null
                                             }
                                             """
@@ -443,7 +442,6 @@ public interface AdminItemControllerDocs {
             Long itemId
     );
 
-    // ✅ 변경: 204 -> 200
     @Operation(
             summary = "물품 썸네일 삭제",
             description = "물품의 대표 이미지(thumbnailKey)를 제거하고 S3에서도 파일을 삭제합니다."
@@ -452,11 +450,59 @@ public interface AdminItemControllerDocs {
             @ApiResponse(
                     responseCode = "200",
                     description = "성공",
-                    content = @Content(schema = @Schema(implementation = ApiResult.class))
+                    content = @Content(
+                            schema = @Schema(implementation = ApiResult.class),
+                            examples = @ExampleObject(
+                                    name = "item-thumbnail-delete-response",
+                                    value = """
+                                            {
+                                              "resultType": "SUCCESS",
+                                              "httpStatusCode": 200,
+                                              "message": "미디어 삭제 완료",
+                                              "data": null
+                                            }
+                                            """
+                            )
+                    )
             ),
             @ApiResponse(responseCode = "404", description = "요청한 리소스를 찾을 수 없음")
     })
     ApiResult<?> deleteThumbnail(
+            @Parameter(description = "물품 ID", example = "1")
+            Long itemId
+    );
+
+    @Operation(
+            summary = "저널 파일 삭제 (관리자)",
+            description = """
+                    DIGITAL_JOURNAL 아이템의 journalFileKey에 해당하는 S3 파일을 삭제하고,
+                    DB의 journalFileKey를 null로 clear 합니다.
+                    """
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "성공",
+                    content = @Content(
+                            schema = @Schema(implementation = ApiResult.class),
+                            examples = @ExampleObject(
+                                    name = "item-journal-delete-response",
+                                    value = """
+                                            {
+                                              "resultType": "SUCCESS",
+                                              "httpStatusCode": 200,
+                                              "message": "미디어 삭제 완료",
+                                              "data": null
+                                            }
+                                            """
+                            )
+                    )
+            ),
+            @ApiResponse(responseCode = "404", description = "요청한 리소스를 찾을 수 없음"),
+            @ApiResponse(responseCode = "422", description = "itemType != DIGITAL_JOURNAL 또는 journalFileKey 없음"),
+            @ApiResponse(responseCode = "500", description = "S3 삭제 실패(내부 오류)")
+    })
+    ApiResult<?> deleteJournalFile(
             @Parameter(description = "물품 ID", example = "1")
             Long itemId
     );
@@ -554,7 +600,6 @@ public interface AdminItemControllerDocs {
             @Valid AdminItemImageOrderPatchRequestDto request
     );
 
-    // ✅ 변경: 204 -> 200
     @Operation(
             summary = "물품 이미지 삭제",
             description = "단일 물품 이미지를 삭제합니다."
@@ -571,7 +616,7 @@ public interface AdminItemControllerDocs {
                                             {
                                               "resultType": "SUCCESS",
                                               "httpStatusCode": 200,
-                                              "message": "요청에 성공하였습니다.",
+                                              "message": "미디어 삭제 완료",
                                               "data": null
                                             }
                                             """
