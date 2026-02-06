@@ -128,4 +128,8 @@ public class ProjectItem extends BaseTimeEntity {
     public void clearThumbnail() {
         this.thumbnailKey = null;
     }
+
+    public void clearJournalFileKey() {
+        this.journalFileKey = null;
+    }
 }

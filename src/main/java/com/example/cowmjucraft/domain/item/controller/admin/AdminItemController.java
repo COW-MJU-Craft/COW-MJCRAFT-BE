@@ -110,7 +110,7 @@ public class AdminItemController implements AdminItemControllerDocs {
             @PathVariable Long itemId
     ) {
         adminItemService.delete(itemId);
-        return ApiResult.success(SuccessType.SUCCESS);
+        return ApiResult.success(SuccessType.MEDIA_DELETED);
     }
 
     @DeleteMapping("/items/{itemId}/thumbnail")
@@ -119,7 +119,16 @@ public class AdminItemController implements AdminItemControllerDocs {
             @PathVariable Long itemId
     ) {
         adminItemService.deleteThumbnail(itemId);
-        return ApiResult.success(SuccessType.SUCCESS);
+        return ApiResult.success(SuccessType.MEDIA_DELETED);
+    }
+
+    @DeleteMapping("/items/{itemId}/journal")
+    @Override
+    public ApiResult<?> deleteJournalFile(
+            @PathVariable Long itemId
+    ) {
+        adminItemService.deleteJournalFile(itemId);
+        return ApiResult.success(SuccessType.MEDIA_DELETED);
     }
 
     @PostMapping("/items/{itemId}/images")
@@ -147,7 +156,7 @@ public class AdminItemController implements AdminItemControllerDocs {
             @PathVariable Long imageId
     ) {
         adminItemService.deleteImage(itemId, imageId);
-        return ApiResult.success(SuccessType.SUCCESS);
+        return ApiResult.success(SuccessType.MEDIA_DELETED);
     }
 
     @GetMapping("/items/{itemId}/journal/presign-get")
