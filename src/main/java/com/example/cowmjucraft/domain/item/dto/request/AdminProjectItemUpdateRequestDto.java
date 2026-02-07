@@ -20,7 +20,6 @@ public record AdminProjectItemUpdateRequestDto(
         @Schema(description = "물품 한줄 설명", example = "캠퍼스 감성을 담은 데일리 머그컵")
         String summary,
 
-        @NotBlank
         @Schema(description = "물품 설명", example = "캠퍼스 감성을 담은 머그컵입니다.")
         String description,
 
