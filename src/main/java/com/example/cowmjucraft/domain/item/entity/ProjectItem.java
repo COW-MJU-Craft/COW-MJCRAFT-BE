@@ -133,7 +133,7 @@ public class ProjectItem extends BaseTimeEntity {
         );
     }
 
-    private void update(
+    private void updateInternal(
             String name,
             String summary,
             String description,
@@ -174,9 +174,39 @@ public class ProjectItem extends BaseTimeEntity {
             String thumbnailKey,
             String journalFileKey,
             Integer targetQty,
+            int fundedQty,
+            Integer stockQty
+    ) {
+        updateInternal(
+                name,
+                summary,
+                description,
+                price,
+                saleType,
+                status,
+                itemType,
+                thumbnailKey,
+                journalFileKey,
+                targetQty,
+                fundedQty,
+                stockQty
+        );
+    }
+
+    public void update(
+            String name,
+            String summary,
+            String description,
+            int price,
+            ItemSaleType saleType,
+            ItemStatus status,
+            ItemType itemType,
+            String thumbnailKey,
+            String journalFileKey,
+            Integer targetQty,
             int fundedQty
     ) {
-        update(
+        updateInternal(
                 name,
                 summary,
                 description,

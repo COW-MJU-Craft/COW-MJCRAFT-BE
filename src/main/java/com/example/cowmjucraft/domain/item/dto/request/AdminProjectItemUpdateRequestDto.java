@@ -49,6 +49,10 @@ public record AdminProjectItemUpdateRequestDto(
         ItemType itemType,
 
         @Schema(description = "저널 파일 S3 object key (presign-put 결과 key)", example = "uploads/projects/1/journals/uuid-journal.pdf")
-        String journalFileKey
+        String journalFileKey,
+
+        @Min(0)
+        @Schema(description = "재고 수량 (NORMAL 전용)", example = "50")
+        Integer stockQty
 ) {
 }
