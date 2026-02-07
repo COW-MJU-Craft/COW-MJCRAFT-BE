@@ -69,6 +69,39 @@ public class ProjectItem extends BaseTimeEntity {
     @Column(name = "funded_qty", nullable = false)
     private int fundedQty;
 
+    @Column(name = "stock_qty")
+    private Integer stockQty;
+
+    public ProjectItem(
+            Project project,
+            String name,
+            String summary,
+            String description,
+            int price,
+            ItemSaleType saleType,
+            ItemStatus status,
+            ItemType itemType,
+            String thumbnailKey,
+            String journalFileKey,
+            Integer targetQty,
+            int fundedQty,
+            Integer stockQty
+    ) {
+        this.project = project;
+        this.name = name;
+        this.summary = summary;
+        this.description = description;
+        this.price = price;
+        this.saleType = saleType;
+        this.status = status;
+        this.itemType = itemType == null ? ItemType.PHYSICAL : itemType;
+        this.thumbnailKey = thumbnailKey;
+        this.journalFileKey = journalFileKey;
+        this.targetQty = targetQty;
+        this.fundedQty = fundedQty;
+        this.stockQty = stockQty;
+    }
+
     public ProjectItem(
             Project project,
             String name,
@@ -83,18 +116,51 @@ public class ProjectItem extends BaseTimeEntity {
             Integer targetQty,
             int fundedQty
     ) {
-        this.project = project;
+        this(
+                project,
+                name,
+                summary,
+                description,
+                price,
+                saleType,
+                status,
+                itemType,
+                thumbnailKey,
+                journalFileKey,
+                targetQty,
+                fundedQty,
+                null
+        );
+    }
+
+    private void update(
+            String name,
+            String summary,
+            String description,
+            int price,
+            ItemSaleType saleType,
+            ItemStatus status,
+            ItemType itemType,
+            String thumbnailKey,
+            String journalFileKey,
+            Integer targetQty,
+            int fundedQty,
+            Integer stockQty
+    ) {
         this.name = name;
         this.summary = summary;
         this.description = description;
         this.price = price;
         this.saleType = saleType;
         this.status = status;
-        this.itemType = itemType == null ? ItemType.PHYSICAL : itemType;
+        if (itemType != null) {
+            this.itemType = itemType;
+        }
         this.thumbnailKey = thumbnailKey;
         this.journalFileKey = journalFileKey;
         this.targetQty = targetQty;
         this.fundedQty = fundedQty;
+        this.stockQty = stockQty;
     }
 
     public void update(
@@ -110,19 +176,24 @@ public class ProjectItem extends BaseTimeEntity {
             Integer targetQty,
             int fundedQty
     ) {
-        this.name = name;
-        this.summary = summary;
-        this.description = description;
-        this.price = price;
-        this.saleType = saleType;
-        this.status = status;
-        if (itemType != null) {
-            this.itemType = itemType;
-        }
-        this.thumbnailKey = thumbnailKey;
-        this.journalFileKey = journalFileKey;
-        this.targetQty = targetQty;
-        this.fundedQty = fundedQty;
+        update(
+                name,
+                summary,
+                description,
+                price,
+                saleType,
+                status,
+                itemType,
+                thumbnailKey,
+                journalFileKey,
+                targetQty,
+                fundedQty,
+                this.stockQty
+        );
+    }
+
+    public void updateStockQty(Integer stockQty) {
+        this.stockQty = stockQty;
     }
 
     public void clearThumbnail() {
