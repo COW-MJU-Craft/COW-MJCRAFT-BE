@@ -16,23 +16,16 @@ import com.example.cowmjucraft.domain.order.entity.OrderFulfillment;
 import com.example.cowmjucraft.domain.order.entity.OrderFulfillmentMethod;
 import com.example.cowmjucraft.domain.order.entity.OrderItem;
 import com.example.cowmjucraft.domain.order.entity.OrderStatus;
-import com.example.cowmjucraft.domain.order.entity.OrderViewToken;
 import com.example.cowmjucraft.domain.order.repository.OrderAuthRepository;
 import com.example.cowmjucraft.domain.order.repository.OrderBuyerRepository;
 import com.example.cowmjucraft.domain.order.repository.OrderFulfillmentRepository;
 import com.example.cowmjucraft.domain.order.repository.OrderItemRepository;
 import com.example.cowmjucraft.domain.order.repository.OrderRepository;
-import com.example.cowmjucraft.domain.order.repository.OrderViewTokenRepository;
-import com.example.cowmjucraft.global.config.AppProperties;
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Base64;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -55,11 +48,10 @@ public class OrderCreateService {
     private final OrderBuyerRepository orderBuyerRepository;
     private final OrderFulfillmentRepository orderFulfillmentRepository;
     private final OrderAuthRepository orderAuthRepository;
-    private final OrderViewTokenRepository orderViewTokenRepository;
     private final ProjectItemRepository projectItemRepository;
     private final PasswordEncoder passwordEncoder;
+    private final OrderViewTokenService orderViewTokenService;
     private final EmailService emailService;
-    private final AppProperties appProperties;
 
     @Transactional
     public OrderCreateResponseDto createOrder(OrderCreateRequestDto request) {
@@ -132,9 +124,9 @@ public class OrderCreateService {
 
         LocalDateTime now = LocalDateTime.now();
         LocalDate today = now.toLocalDate();
-        boolean privacyAgreed = Boolean.TRUE.equals(request.privacyAgreed());
-        boolean refundAgreed = Boolean.TRUE.equals(request.refundAgreed());
-        boolean cancelRiskAgreed = Boolean.TRUE.equals(request.cancelRiskAgreed());
+        boolean privacyAgreed = true;
+        boolean refundAgreed = true;
+        boolean cancelRiskAgreed = true;
         Order order = new Order(
                 generateOrderNo(now),
                 OrderStatus.PENDING_DEPOSIT,
@@ -144,11 +136,11 @@ public class OrderCreateService {
                 today.plusDays(1).atTime(23, 59, 59),
                 depositorName,
                 privacyAgreed,
-                privacyAgreed ? now : null,
+                now,
                 refundAgreed,
-                refundAgreed ? now : null,
+                now,
                 cancelRiskAgreed,
-                cancelRiskAgreed ? now : null
+                now
         );
 
         Order savedOrder = orderRepository.save(order);
@@ -206,15 +198,10 @@ public class OrderCreateService {
                 passwordEncoder.encode(password)
         ));
 
-        String rawViewToken = generateRawToken();
-        orderViewTokenRepository.save(new OrderViewToken(
-                savedOrder,
-                hash(rawViewToken),
-                now.plusMinutes(appProperties.getOrderViewTokenTtlMinutes())
-        ));
+        String rawViewToken = orderViewTokenService.issueNewToken(savedOrder, now);
 
         OrderCreateBuyerRequestDto buyerForMail = request.buyer();
-        String viewUrl = buildOrderViewUrl(rawViewToken);
+        String viewUrl = orderViewTokenService.buildOrderViewUrl(rawViewToken);
         emailService.sendOrderViewLink(
                 buyerForMail.email(),
                 buyerForMail.name(),
@@ -275,36 +262,6 @@ public class OrderCreateService {
             }
         }
         throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "주문 번호 생성에 실패했습니다.");
-    }
-
-    private String generateRawToken() {
-        byte[] bytes = new byte[32];
-        SECURE_RANDOM.nextBytes(bytes);
-        return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
-    }
-
-    private String buildOrderViewUrl(String token) {
-        String base = appProperties.getPublicBaseUrl();
-        String path = appProperties.getOrderViewPath();
-
-        if (base.endsWith("/")) {
-            base = base.substring(0, base.length() - 1);
-        }
-        if (!path.startsWith("/")) {
-            path = "/" + path;
-        }
-
-        return base + path + "?token=" + token;
-    }
-
-    private String hash(String raw) {
-        try {
-            MessageDigest digest = MessageDigest.getInstance("SHA-256");
-            byte[] hashed = digest.digest(raw.getBytes(StandardCharsets.UTF_8));
-            return java.util.HexFormat.of().formatHex(hashed);
-        } catch (NoSuchAlgorithmException exception) {
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "토큰 처리 중 오류가 발생했습니다.");
-        }
     }
 
     private String normalizeRequiredText(String value, String fieldName) {

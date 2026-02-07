@@ -11,6 +11,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -27,7 +28,7 @@ public interface ClientOrderControllerDocs {
                     - 재고 차감은 주문 생성 시점이 아니라 입금 확인(PAID) 시점에만 수행됩니다.
                     - 응답의 viewToken은 이메일 링크 조회용 원본 토큰이며 DB에는 해시만 저장됩니다.
                     """,
-            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
+            requestBody = @RequestBody(
                     required = true,
                     description = "비회원 주문 생성 요청",
                     content = @Content(

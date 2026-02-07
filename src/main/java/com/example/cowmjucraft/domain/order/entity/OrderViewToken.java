@@ -35,13 +35,25 @@ public class OrderViewToken {
     @Column(name = "expires_at", nullable = false)
     private LocalDateTime expiresAt;
 
+    @Column(name = "revoked_at")
+    private LocalDateTime revokedAt;
+
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
-    public OrderViewToken(Order order, String tokenHash, LocalDateTime expiresAt) {
+    public OrderViewToken(Order order, String tokenHash, LocalDateTime expiresAt, LocalDateTime revokedAt) {
         this.order = order;
         this.tokenHash = tokenHash;
         this.expiresAt = expiresAt;
+        this.revokedAt = revokedAt;
+    }
+
+    public OrderViewToken(Order order, String tokenHash, LocalDateTime expiresAt) {
+        this(order, tokenHash, expiresAt, null);
+    }
+
+    public void revoke(LocalDateTime revokedAt) {
+        this.revokedAt = revokedAt;
     }
 }

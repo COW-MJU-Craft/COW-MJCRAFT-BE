@@ -3,9 +3,12 @@ package com.example.cowmjucraft.domain.order.service;
 import com.example.cowmjucraft.domain.item.entity.ItemSaleType;
 import com.example.cowmjucraft.domain.item.entity.ProjectItem;
 import com.example.cowmjucraft.domain.item.repository.ProjectItemRepository;
+import com.example.cowmjucraft.domain.order.dto.response.AdminOrderStatusResponseDto;
 import com.example.cowmjucraft.domain.order.entity.Order;
+import com.example.cowmjucraft.domain.order.entity.OrderBuyer;
 import com.example.cowmjucraft.domain.order.entity.OrderItem;
 import com.example.cowmjucraft.domain.order.entity.OrderStatus;
+import com.example.cowmjucraft.domain.order.repository.OrderBuyerRepository;
 import com.example.cowmjucraft.domain.order.repository.OrderItemRepository;
 import com.example.cowmjucraft.domain.order.repository.OrderRepository;
 import java.time.LocalDateTime;
@@ -23,21 +26,19 @@ public class AdminOrderPaymentService {
     private final OrderRepository orderRepository;
     private final OrderItemRepository orderItemRepository;
     private final ProjectItemRepository projectItemRepository;
+    private final OrderBuyerRepository orderBuyerRepository;
+    private final OrderViewTokenService orderViewTokenService;
+    private final EmailService emailService;
 
     @Transactional
-    public void confirmPaid(Long orderId) {
+    public AdminOrderStatusResponseDto confirmPaid(Long orderId) {
         Order order = orderRepository.findByIdForUpdate(orderId)
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.NOT_FOUND,
                         "주문을 찾을 수 없습니다. (orderId=" + orderId + ")"
                 ));
 
-        if (order.getStatus() != OrderStatus.PENDING_DEPOSIT) {
-            throw new ResponseStatusException(
-                    HttpStatus.CONFLICT,
-                    "입금 대기 상태의 주문만 결제 확정할 수 있습니다. (orderId=" + orderId + ")"
-            );
-        }
+        OrderStatusTransitionPolicy.validate(order.getStatus(), OrderStatus.PAID);
 
         if (order.getStockDeductedAt() != null) {
             throw new ResponseStatusException(
@@ -89,9 +90,21 @@ public class AdminOrderPaymentService {
         }
 
         LocalDateTime now = LocalDateTime.now();
+        order.confirmPaid(now, now);
 
-        order.updateStatus(OrderStatus.PAID);
-        order.updatePaidAt(now);
-        order.updateStockDeductedAt(now);
+        OrderBuyer buyer = orderBuyerRepository.findById(orderId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "주문자 정보를 찾을 수 없습니다. (orderId=" + orderId + ")"));
+
+        String rawToken = orderViewTokenService.rotateToken(order, now);
+        String viewUrl = orderViewTokenService.buildOrderViewUrl(rawToken);
+        emailService.sendPaidConfirmed(
+                buyer.getEmail(),
+                buyer.getName(),
+                order.getOrderNo(),
+                viewUrl,
+                now
+        );
+
+        return new AdminOrderStatusResponseDto(order.getId(), order.getStatus().name());
     }
 }

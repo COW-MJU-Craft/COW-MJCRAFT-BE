@@ -40,7 +40,19 @@ public record OrderDetailResponseDto(
             LocalDateTime depositDeadline,
 
             @Schema(description = "주문 생성 시각", example = "2026-02-07T19:00:00")
-            LocalDateTime createdAt
+            LocalDateTime createdAt,
+
+            @Schema(description = "주문 취소 시각(취소되지 않은 주문은 null)", example = "2026-02-08T09:12:00", nullable = true)
+            LocalDateTime canceledAt,
+
+            @Schema(description = "주문 취소 사유(취소되지 않은 주문은 null)", example = "고객 요청", nullable = true)
+            String cancelReason,
+
+            @Schema(description = "환불 요청 시각(환불 요청이 없으면 null)", example = "2026-02-08T11:00:00", nullable = true)
+            LocalDateTime refundRequestedAt,
+
+            @Schema(description = "환불 완료 시각(환불 완료 전이면 null)", example = "2026-02-08T14:30:00", nullable = true)
+            LocalDateTime refundedAt
     ) {
     }
 

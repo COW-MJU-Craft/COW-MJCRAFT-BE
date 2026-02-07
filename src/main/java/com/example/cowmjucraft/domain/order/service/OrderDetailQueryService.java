@@ -11,10 +11,8 @@ import com.example.cowmjucraft.domain.order.repository.OrderAuthRepository;
 import com.example.cowmjucraft.domain.order.repository.OrderBuyerRepository;
 import com.example.cowmjucraft.domain.order.repository.OrderFulfillmentRepository;
 import com.example.cowmjucraft.domain.order.repository.OrderItemRepository;
+import com.example.cowmjucraft.domain.order.repository.OrderRepository;
 import com.example.cowmjucraft.domain.order.repository.OrderViewTokenRepository;
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -33,6 +31,8 @@ public class OrderDetailQueryService {
     private final OrderItemRepository orderItemRepository;
     private final OrderBuyerRepository orderBuyerRepository;
     private final OrderFulfillmentRepository orderFulfillmentRepository;
+    private final OrderRepository orderRepository;
+    private final OrderViewTokenService orderViewTokenService;
     private final PasswordEncoder passwordEncoder;
 
     @Transactional(readOnly = true)
@@ -56,14 +56,21 @@ public class OrderDetailQueryService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "token이 필요합니다.");
         }
 
-        OrderViewToken orderViewToken = orderViewTokenRepository.findByTokenHash(hash(plainToken))
+        OrderViewToken orderViewToken = orderViewTokenRepository.findByTokenHash(orderViewTokenService.hashToken(plainToken))
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "유효하지 않은 조회 링크입니다."));
 
-        if (!orderViewToken.getExpiresAt().isAfter(LocalDateTime.now())) {
-            throw new ResponseStatusException(HttpStatus.GONE, "만료된 조회 링크입니다.");
+        if (orderViewToken.getRevokedAt() != null || !orderViewToken.getExpiresAt().isAfter(LocalDateTime.now())) {
+            throw new ResponseStatusException(HttpStatus.GONE, "만료되었거나 폐기된 조회 링크입니다.");
         }
 
         return buildOrderDetail(orderViewToken.getOrder());
+    }
+
+    @Transactional(readOnly = true)
+    public OrderDetailResponseDto getByOrderId(Long orderId) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "주문을 찾을 수 없습니다. (orderId=" + orderId + ")"));
+        return buildOrderDetail(order);
     }
 
     private OrderDetailResponseDto buildOrderDetail(Order order) {
@@ -93,7 +100,11 @@ public class OrderDetailQueryService {
                         order.getShippingFee(),
                         order.getFinalAmount(),
                         order.getDepositDeadline(),
-                        order.getCreatedAt()
+                        order.getCreatedAt(),
+                        order.getCanceledAt(),
+                        order.getCancelReason(),
+                        order.getRefundRequestedAt(),
+                        order.getRefundedAt()
                 ),
                 new OrderDetailResponseDto.BuyerInfo(
                         buyer.getName(),
@@ -131,13 +142,4 @@ public class OrderDetailQueryService {
         return new ResponseStatusException(HttpStatus.UNAUTHORIZED, "조회 아이디 또는 비밀번호가 올바르지 않습니다.");
     }
 
-    private String hash(String raw) {
-        try {
-            MessageDigest digest = MessageDigest.getInstance("SHA-256");
-            byte[] hashed = digest.digest(raw.getBytes(StandardCharsets.UTF_8));
-            return java.util.HexFormat.of().formatHex(hashed);
-        } catch (NoSuchAlgorithmException exception) {
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "토큰 처리 중 오류가 발생했습니다.");
-        }
-    }
 }

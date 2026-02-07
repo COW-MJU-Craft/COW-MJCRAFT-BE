@@ -49,6 +49,15 @@ public class Order extends BaseTimeEntity {
     @Column(name = "canceled_at")
     private LocalDateTime canceledAt;
 
+    @Column(name = "cancel_reason", length = 500)
+    private String cancelReason;
+
+    @Column(name = "refund_requested_at")
+    private LocalDateTime refundRequestedAt;
+
+    @Column(name = "refunded_at")
+    private LocalDateTime refundedAt;
+
     @Column(name = "stock_deducted_at")
     private LocalDateTime stockDeductedAt;
 
@@ -113,5 +122,28 @@ public class Order extends BaseTimeEntity {
 
     public void updateStockDeductedAt(LocalDateTime stockDeductedAt) {
         this.stockDeductedAt = stockDeductedAt;
+    }
+
+    public void confirmPaid(LocalDateTime paidAt, LocalDateTime stockDeductedAt) {
+        this.status = OrderStatus.PAID;
+        this.paidAt = paidAt;
+        this.stockDeductedAt = stockDeductedAt;
+    }
+
+    public void cancelPendingDeposit(LocalDateTime canceledAt, String reason) {
+        this.status = OrderStatus.CANCELED;
+        this.canceledAt = canceledAt;
+        this.cancelReason = reason;
+    }
+
+    public void requestRefund(LocalDateTime refundRequestedAt, String reason) {
+        this.status = OrderStatus.REFUND_REQUESTED;
+        this.refundRequestedAt = refundRequestedAt;
+        this.cancelReason = reason;
+    }
+
+    public void confirmRefund(LocalDateTime refundedAt) {
+        this.status = OrderStatus.REFUNDED;
+        this.refundedAt = refundedAt;
     }
 }
