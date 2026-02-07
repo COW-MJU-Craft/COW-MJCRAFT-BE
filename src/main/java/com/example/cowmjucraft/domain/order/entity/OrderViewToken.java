@@ -1,6 +1,5 @@
 package com.example.cowmjucraft.domain.order.entity;
 
-import com.example.cowmjucraft.domain.item.entity.ProjectItem;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -19,8 +18,8 @@ import org.hibernate.annotations.CreationTimestamp;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
-@Table(name = "order_items")
-public class OrderItem {
+@Table(name = "order_view_tokens")
+public class OrderViewToken {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -30,39 +29,31 @@ public class OrderItem {
     @JoinColumn(name = "order_id", nullable = false)
     private Order order;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "project_item_id", nullable = false)
-    private ProjectItem projectItem;
+    @Column(name = "token_hash", nullable = false, unique = true, length = 64)
+    private String tokenHash;
 
-    @Column(nullable = false)
-    private int quantity;
+    @Column(name = "expires_at", nullable = false)
+    private LocalDateTime expiresAt;
 
-    @Column(name = "unit_price", nullable = false)
-    private int unitPrice;
-
-    @Column(name = "line_amount", nullable = false)
-    private int lineAmount;
-
-    @Column(name = "item_name_snapshot", nullable = false, length = 255)
-    private String itemNameSnapshot;
+    @Column(name = "revoked_at")
+    private LocalDateTime revokedAt;
 
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
-    public OrderItem(
-            Order order,
-            ProjectItem projectItem,
-            int quantity,
-            int unitPrice,
-            int lineAmount,
-            String itemNameSnapshot
-    ) {
+    public OrderViewToken(Order order, String tokenHash, LocalDateTime expiresAt, LocalDateTime revokedAt) {
         this.order = order;
-        this.projectItem = projectItem;
-        this.quantity = quantity;
-        this.unitPrice = unitPrice;
-        this.lineAmount = lineAmount;
-        this.itemNameSnapshot = itemNameSnapshot;
+        this.tokenHash = tokenHash;
+        this.expiresAt = expiresAt;
+        this.revokedAt = revokedAt;
+    }
+
+    public OrderViewToken(Order order, String tokenHash, LocalDateTime expiresAt) {
+        this(order, tokenHash, expiresAt, null);
+    }
+
+    public void revoke(LocalDateTime revokedAt) {
+        this.revokedAt = revokedAt;
     }
 }

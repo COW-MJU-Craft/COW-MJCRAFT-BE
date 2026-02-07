@@ -63,7 +63,8 @@ public class AdminItemService {
                 normalized.thumbnailKey(),
                 normalized.journalFileKey(),
                 normalized.targetQty(),
-                normalized.fundedQty()
+                normalized.fundedQty(),
+                normalized.stockQty()
         );
         ProjectItem saved = projectItemRepository.save(item);
         Map<String, String> urls = presignGetForItem(saved);
@@ -87,7 +88,8 @@ public class AdminItemService {
                 normalized.thumbnailKey(),
                 normalized.journalFileKey(),
                 normalized.targetQty(),
-                normalized.fundedQty()
+                normalized.fundedQty(),
+                normalized.stockQty()
         );
         Map<String, String> urls = presignGetForItem(item);
         return toAdminResponse(item, urls);
@@ -392,7 +394,8 @@ public class AdminItemService {
                 request.thumbnailKey(),
                 request.targetQty(),
                 request.fundedQty(),
-                request.journalFileKey()
+                request.journalFileKey(),
+                request.stockQty()
         );
     }
 
@@ -410,7 +413,8 @@ public class AdminItemService {
                 request.thumbnailKey(),
                 request.targetQty(),
                 request.fundedQty(),
-                request.journalFileKey()
+                request.journalFileKey(),
+                request.stockQty()
         );
     }
 
@@ -421,7 +425,8 @@ public class AdminItemService {
             String thumbnailKey,
             Integer targetQty,
             Integer fundedQty,
-            String journalFileKey
+            String journalFileKey,
+            Integer stockQty
     ) {
         if (itemType == ItemType.DIGITAL_JOURNAL) {
             if (price != 0) {
@@ -454,7 +459,7 @@ public class AdminItemService {
                 );
             }
             String normalizedThumbnailKey = toNonBlankString(thumbnailKey);
-            return new NormalizedItemRequest(itemType, null, 0, normalizedJournalKey, normalizedThumbnailKey);
+            return new NormalizedItemRequest(itemType, null, 0, normalizedJournalKey, normalizedThumbnailKey, null);
         }
 
         String normalizedThumbnailKey = toNonBlankString(thumbnailKey);
@@ -478,6 +483,7 @@ public class AdminItemService {
         }
 
         Integer normalizedTargetQty = targetQty;
+        Integer normalizedStockQty;
         if (saleType == ItemSaleType.GROUPBUY) {
             if (normalizedTargetQty == null || normalizedTargetQty < 1) {
                 throw new ResponseStatusException(
@@ -485,11 +491,32 @@ public class AdminItemService {
                         "targetQty must be >= 1 for GROUPBUY"
                 );
             }
+            normalizedStockQty = null;
         } else {
             normalizedTargetQty = null;
+            if (stockQty == null) {
+                throw new ResponseStatusException(
+                        HttpStatus.UNPROCESSABLE_ENTITY,
+                        "stockQty is required for NORMAL"
+                );
+            }
+            if (stockQty < 0) {
+                throw new ResponseStatusException(
+                        HttpStatus.UNPROCESSABLE_ENTITY,
+                        "stockQty must be >= 0"
+                );
+            }
+            normalizedStockQty = stockQty;
         }
 
-        return new NormalizedItemRequest(itemType, normalizedTargetQty, normalizedFundedQty, null, normalizedThumbnailKey);
+        return new NormalizedItemRequest(
+                itemType,
+                normalizedTargetQty,
+                normalizedFundedQty,
+                null,
+                normalizedThumbnailKey,
+                normalizedStockQty
+        );
     }
 
     private void validateDescription(ItemType itemType, String description) {
@@ -524,6 +551,7 @@ public class AdminItemService {
 
     private AdminProjectItemResponseDto toAdminResponse(ProjectItem item, Map<String, String> urls) {
         GroupbuyInfo info = calculateGroupbuyInfo(item);
+        Integer stockQty = item.getSaleType() == ItemSaleType.NORMAL ? item.getStockQty() : null;
         return new AdminProjectItemResponseDto(
                 item.getId(),
                 item.getProject().getId(),
@@ -537,6 +565,7 @@ public class AdminItemService {
                 item.getThumbnailKey(),
                 resolveUrl(urls, item.getThumbnailKey()),
                 item.getJournalFileKey(),
+                stockQty,
                 info.targetQty(),
                 info.fundedQty(),
                 info.achievementRate(),
@@ -552,6 +581,7 @@ public class AdminItemService {
             Map<String, String> urls
     ) {
         GroupbuyInfo info = calculateGroupbuyInfo(item);
+        Integer stockQty = item.getSaleType() == ItemSaleType.NORMAL ? item.getStockQty() : null;
         return new AdminProjectItemDetailResponseDto(
                 item.getId(),
                 item.getProject().getId(),
@@ -565,6 +595,7 @@ public class AdminItemService {
                 item.getThumbnailKey(),
                 resolveUrl(urls, item.getThumbnailKey()),
                 item.getJournalFileKey(),
+                stockQty,
                 images,
                 info.targetQty(),
                 info.fundedQty(),
@@ -709,7 +740,8 @@ public class AdminItemService {
             Integer targetQty,
             int fundedQty,
             String journalFileKey,
-            String thumbnailKey
+            String thumbnailKey,
+            Integer stockQty
     ) {
     }
 

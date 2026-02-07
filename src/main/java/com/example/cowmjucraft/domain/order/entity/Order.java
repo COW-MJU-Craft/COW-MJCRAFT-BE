@@ -24,15 +24,93 @@ public class Order extends BaseTimeEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name = "order_no", nullable = false, unique = true, length = 50)
+    private String orderNo;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private OrderStatus status;
 
+    @Column(name = "total_amount", nullable = false)
+    private int totalAmount;
+
+    @Column(name = "shipping_fee", nullable = false)
+    private int shippingFee;
+
+    @Column(name = "final_amount", nullable = false)
+    private int finalAmount;
+
+    @Column(name = "deposit_deadline", nullable = false)
+    private LocalDateTime depositDeadline;
+
     @Column(name = "paid_at")
     private LocalDateTime paidAt;
 
+    @Column(name = "canceled_at")
+    private LocalDateTime canceledAt;
+
+    @Column(name = "cancel_reason", length = 500)
+    private String cancelReason;
+
+    @Column(name = "refund_requested_at")
+    private LocalDateTime refundRequestedAt;
+
+    @Column(name = "refunded_at")
+    private LocalDateTime refundedAt;
+
     @Column(name = "stock_deducted_at")
     private LocalDateTime stockDeductedAt;
+
+    @Column(name = "depositor_name", nullable = false, length = 100)
+    private String depositorName;
+
+    @Column(name = "privacy_agreed", nullable = false)
+    private boolean privacyAgreed;
+
+    @Column(name = "privacy_agreed_at", nullable = false)
+    private LocalDateTime privacyAgreedAt;
+
+    @Column(name = "refund_agreed", nullable = false)
+    private boolean refundAgreed;
+
+    @Column(name = "refund_agreed_at", nullable = false)
+    private LocalDateTime refundAgreedAt;
+
+    @Column(name = "cancel_risk_agreed", nullable = false)
+    private boolean cancelRiskAgreed;
+
+    @Column(name = "cancel_risk_agreed_at", nullable = false)
+    private LocalDateTime cancelRiskAgreedAt;
+
+    public Order(
+            String orderNo,
+            OrderStatus status,
+            int totalAmount,
+            int shippingFee,
+            int finalAmount,
+            LocalDateTime depositDeadline,
+            String depositorName,
+            boolean privacyAgreed,
+            LocalDateTime privacyAgreedAt,
+            boolean refundAgreed,
+            LocalDateTime refundAgreedAt,
+            boolean cancelRiskAgreed,
+            LocalDateTime cancelRiskAgreedAt
+    ) {
+        this.orderNo = orderNo;
+        this.status = status;
+        this.totalAmount = totalAmount;
+        this.shippingFee = shippingFee;
+        this.finalAmount = finalAmount;
+        this.depositDeadline = depositDeadline;
+        this.depositorName = depositorName;
+        this.privacyAgreed = privacyAgreed;
+        this.privacyAgreedAt = privacyAgreedAt;
+        this.refundAgreed = refundAgreed;
+        this.refundAgreedAt = refundAgreedAt;
+        this.cancelRiskAgreed = cancelRiskAgreed;
+        this.cancelRiskAgreedAt = cancelRiskAgreedAt;
+    }
 
     public void updateStatus(OrderStatus status) {
         this.status = status;
@@ -44,5 +122,28 @@ public class Order extends BaseTimeEntity {
 
     public void updateStockDeductedAt(LocalDateTime stockDeductedAt) {
         this.stockDeductedAt = stockDeductedAt;
+    }
+
+    public void confirmPaid(LocalDateTime paidAt, LocalDateTime stockDeductedAt) {
+        this.status = OrderStatus.PAID;
+        this.paidAt = paidAt;
+        this.stockDeductedAt = stockDeductedAt;
+    }
+
+    public void cancelPendingDeposit(LocalDateTime canceledAt, String reason) {
+        this.status = OrderStatus.CANCELED;
+        this.canceledAt = canceledAt;
+        this.cancelReason = reason;
+    }
+
+    public void requestRefund(LocalDateTime refundRequestedAt, String reason) {
+        this.status = OrderStatus.REFUND_REQUESTED;
+        this.refundRequestedAt = refundRequestedAt;
+        this.cancelReason = reason;
+    }
+
+    public void confirmRefund(LocalDateTime refundedAt) {
+        this.status = OrderStatus.REFUNDED;
+        this.refundedAt = refundedAt;
     }
 }

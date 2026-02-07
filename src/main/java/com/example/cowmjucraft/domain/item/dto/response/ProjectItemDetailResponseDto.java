@@ -47,6 +47,10 @@ public record ProjectItemDetailResponseDto(
         @Schema(description = "대표 이미지 URL", example = "https://bucket.s3.amazonaws.com/uploads/items/1/thumbnail/uuid-thumbnail.png?X-Amz-Signature=...")
         String thumbnailUrl,
 
+        @JsonInclude(JsonInclude.Include.NON_NULL)
+        @Schema(description = "재고 수량 (NORMAL 전용)", example = "50")
+        Integer stockQty,
+
         @Schema(description = "상세 이미지 목록")
         List<ProjectItemImageResponseDto> images,
 

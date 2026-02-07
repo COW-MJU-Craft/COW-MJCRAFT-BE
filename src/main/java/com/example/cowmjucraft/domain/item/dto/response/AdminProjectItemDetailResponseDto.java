@@ -47,6 +47,10 @@ public record AdminProjectItemDetailResponseDto(
         @Schema(description = "저널 파일 S3 object key", example = "uploads/projects/1/journals/uuid-journal.pdf")
         String journalFileKey,
 
+        @JsonInclude(JsonInclude.Include.NON_NULL)
+        @Schema(description = "재고 수량 (NORMAL 전용)", example = "50")
+        Integer stockQty,
+
         @Schema(description = "상세 이미지 목록")
         List<ProjectItemImageResponseDto> images,
 

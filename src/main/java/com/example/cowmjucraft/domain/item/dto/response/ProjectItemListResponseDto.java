@@ -41,6 +41,10 @@ public record ProjectItemListResponseDto(
         String thumbnailUrl,
 
         @JsonInclude(JsonInclude.Include.NON_NULL)
+        @Schema(description = "재고 수량 (NORMAL 전용)", example = "50")
+        Integer stockQty,
+
+        @JsonInclude(JsonInclude.Include.NON_NULL)
         @Schema(description = "목표 수량 (GROUPBUY 전용)", example = "100")
         Integer targetQty,
 

@@ -44,10 +44,15 @@ public record AdminProjectItemCreateRequestDto(
         @Schema(description = "현재 모금 수량 (미입력 시 0)", example = "0")
         Integer fundedQty,
 
+        @NotNull
         @Schema(description = "아이템 타입", example = "PHYSICAL")
         ItemType itemType,
 
-        @Schema(description = "저널 파일 S3 object key (presign-put 결과 key)", example = "uploads/projects/1/journals/uuid-journal.pdf")
-        String journalFileKey
+        @Schema(description = "저널 파일 S3 object key (선택)", example = "uploads/projects/1/journals/uuid-journal.pdf")
+        String journalFileKey,
+
+        @Min(0)
+        @Schema(description = "재고 수량 (NORMAL 전용)", example = "50")
+        Integer stockQty
 ) {
 }

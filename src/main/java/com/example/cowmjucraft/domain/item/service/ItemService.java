@@ -113,6 +113,7 @@ public class ItemService {
 
     private ProjectItemListResponseDto toListResponse(ProjectItem item, Map<String, String> urls) {
         GroupbuyInfo info = calculateGroupbuyInfo(item);
+        Integer stockQty = item.getSaleType() == ItemSaleType.NORMAL ? item.getStockQty() : null;
         return new ProjectItemListResponseDto(
                 item.getId(),
                 item.getName(),
@@ -123,6 +124,7 @@ public class ItemService {
                 item.getStatus(),
                 item.getThumbnailKey(),
                 resolveUrl(urls, item.getThumbnailKey()),
+                stockQty,
                 info.targetQty(),
                 info.fundedQty(),
                 info.achievementRate(),
@@ -136,6 +138,7 @@ public class ItemService {
             Map<String, String> urls
     ) {
         GroupbuyInfo info = calculateGroupbuyInfo(item);
+        Integer stockQty = item.getSaleType() == ItemSaleType.NORMAL ? item.getStockQty() : null;
         return new ProjectItemDetailResponseDto(
                 item.getId(),
                 item.getProject().getId(),
@@ -148,6 +151,7 @@ public class ItemService {
                 item.getStatus(),
                 item.getThumbnailKey(),
                 resolveUrl(urls, item.getThumbnailKey()),
+                stockQty,
                 images,
                 info.targetQty(),
                 info.fundedQty(),

@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -79,6 +80,15 @@ public class GlobalExceptionHandler {
         log.debug("ResponseStatusException: status={}, reason={}", exception.getStatusCode(), exception.getReason(), exception);
 
         return json(errorType(errorType), message);
+    }
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<ApiResult<?>> handleDataIntegrityViolation(DataIntegrityViolationException exception) {
+        log.debug("DataIntegrityViolationException: {}", exception.getMessage(), exception);
+        if (isLookupIdUniqueViolation(exception)) {
+            return json(errorType(ErrorType.CONFLICT), "이미 사용 중인 조회 아이디입니다.");
+        }
+        return json(errorType(ErrorType.CONFLICT), ErrorType.CONFLICT.getMessage());
     }
 
     @ExceptionHandler(HttpMediaTypeNotAcceptableException.class)
@@ -164,6 +174,31 @@ public class GlobalExceptionHandler {
         return path;
     }
 
+    private boolean isLookupIdUniqueViolation(Throwable throwable) {
+        Throwable current = throwable;
+        while (current != null) {
+            String message = current.getMessage();
+            if (message != null) {
+                String lower = message.toLowerCase();
+                boolean hasUniqueSignal = lower.contains("duplicate")
+                        || lower.contains("duplicate entry")
+                        || lower.contains("unique constraint")
+                        || lower.contains("violates unique constraint")
+                        || lower.contains("constraint")
+                        || lower.contains("uk_");
+                boolean hasLookupSignal = lower.contains("lookup_id")
+                        || lower.contains("lookupid")
+                        || lower.contains("lookup");
+                boolean hasOrderAuthLookup = lower.contains("order_auth") && hasLookupSignal;
+                if ((hasUniqueSignal && hasLookupSignal) || hasOrderAuthLookup) {
+                    return true;
+                }
+            }
+            current = current.getCause();
+        }
+        return false;
+    }
+
     private ErrorType mapStatusToErrorType(HttpStatusCode statusCode) {
         if (statusCode == null) return ErrorType.INTERNAL_ERROR;
         int value = statusCode.value();
@@ -172,6 +207,7 @@ public class GlobalExceptionHandler {
             case 401 -> ErrorType.UNAUTHORIZED;
             case 403 -> ErrorType.FORBIDDEN;
             case 404 -> ErrorType.NOT_FOUND;
+            case 410 -> ErrorType.GONE;
             case 409 -> ErrorType.CONFLICT;
             default -> ErrorType.INTERNAL_ERROR;
         };
