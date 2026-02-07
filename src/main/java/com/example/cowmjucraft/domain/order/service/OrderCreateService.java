@@ -23,6 +23,7 @@ import com.example.cowmjucraft.domain.order.repository.OrderFulfillmentRepositor
 import com.example.cowmjucraft.domain.order.repository.OrderItemRepository;
 import com.example.cowmjucraft.domain.order.repository.OrderRepository;
 import com.example.cowmjucraft.domain.order.repository.OrderViewTokenRepository;
+import com.example.cowmjucraft.global.config.AppProperties;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -57,6 +58,8 @@ public class OrderCreateService {
     private final OrderViewTokenRepository orderViewTokenRepository;
     private final ProjectItemRepository projectItemRepository;
     private final PasswordEncoder passwordEncoder;
+    private final EmailService emailService;
+    private final AppProperties appProperties;
 
     @Transactional
     public OrderCreateResponseDto createOrder(OrderCreateRequestDto request) {
@@ -209,8 +212,18 @@ public class OrderCreateService {
         orderViewTokenRepository.save(new OrderViewToken(
                 savedOrder,
                 hash(rawViewToken),
-                now.plusDays(30)
+                now.plusMinutes(appProperties.getOrderViewTokenTtlMinutes())
         ));
+
+        OrderCreateBuyerRequestDto buyerForMail = request.buyer();
+        String viewUrl = buildOrderViewUrl(rawViewToken);
+        emailService.sendOrderViewLink(
+                buyerForMail.email(),
+                buyerForMail.name(),
+                savedOrder.getOrderNo(),
+                viewUrl,
+                savedOrder.getDepositDeadline()
+        );
 
         return new OrderCreateResponseDto(
                 savedOrder.getId(),
@@ -270,6 +283,20 @@ public class OrderCreateService {
         byte[] bytes = new byte[32];
         SECURE_RANDOM.nextBytes(bytes);
         return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
+    }
+
+    private String buildOrderViewUrl(String token) {
+        String base = appProperties.getPublicBaseUrl();
+        String path = appProperties.getOrderViewPath();
+
+        if (base.endsWith("/")) {
+            base = base.substring(0, base.length() - 1);
+        }
+        if (!path.startsWith("/")) {
+            path = "/" + path;
+        }
+
+        return base + path + "?token=" + token;
     }
 
     private String hash(String raw) {

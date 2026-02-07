@@ -11,8 +11,29 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: create
+      ddl-auto: update
     show-sql: true
+
+  mail:
+    host: ${MAIL_HOST}
+    port: ${MAIL_PORT}
+    username: ${MAIL_USERNAME}
+    password: ${MAIL_PASSWORD}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
+app:
+  public-base-url: ${APP_PUBLIC_BASE_URL}
+  order-view-path: ${APP_ORDER_VIEW_PATH}
+  order-view-token-ttl-minutes: ${APP_ORDER_VIEW_TOKEN_TTL_MINUTES}
+
+mail:
+  from: ${MAIL_FROM:${MAIL_USERNAME}}
+  from-name: ${MAIL_FROM_NAME}
 
 admin:
   login-id: ${ADMIN_LOGIN_ID}
