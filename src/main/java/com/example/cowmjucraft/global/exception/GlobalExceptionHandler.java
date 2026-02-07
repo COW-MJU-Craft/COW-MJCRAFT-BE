@@ -207,6 +207,7 @@ public class GlobalExceptionHandler {
             case 401 -> ErrorType.UNAUTHORIZED;
             case 403 -> ErrorType.FORBIDDEN;
             case 404 -> ErrorType.NOT_FOUND;
+            case 410 -> ErrorType.GONE;
             case 409 -> ErrorType.CONFLICT;
             default -> ErrorType.INTERNAL_ERROR;
         };

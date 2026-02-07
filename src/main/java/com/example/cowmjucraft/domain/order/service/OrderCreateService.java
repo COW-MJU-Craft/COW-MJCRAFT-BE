@@ -203,9 +203,7 @@ public class OrderCreateService {
         orderAuthRepository.save(new OrderAuth(
                 savedOrder,
                 lookupId,
-                passwordEncoder.encode(password),
-                0,
-                null
+                passwordEncoder.encode(password)
         ));
 
         String rawViewToken = generateRawToken();

@@ -34,21 +34,13 @@ public class OrderAuth {
     @Column(name = "password_hash", nullable = false, length = 255)
     private String passwordHash;
 
-    @Column(name = "failed_attempts", nullable = false)
-    private int failedAttempts;
-
-    @Column(name = "locked_until")
-    private LocalDateTime lockedUntil;
-
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
-    public OrderAuth(Order order, String lookupId, String passwordHash, int failedAttempts, LocalDateTime lockedUntil) {
+    public OrderAuth(Order order, String lookupId, String passwordHash) {
         this.order = order;
         this.lookupId = lookupId;
         this.passwordHash = passwordHash;
-        this.failedAttempts = failedAttempts;
-        this.lockedUntil = lockedUntil;
     }
 }

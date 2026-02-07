@@ -1,10 +1,13 @@
 package com.example.cowmjucraft.domain.order.controller.client;
 
 import com.example.cowmjucraft.domain.order.dto.request.OrderCreateRequestDto;
+import com.example.cowmjucraft.domain.order.dto.request.OrderLookupRequestDto;
 import com.example.cowmjucraft.domain.order.dto.response.OrderCreateResponseDto;
+import com.example.cowmjucraft.domain.order.dto.response.OrderDetailResponseDto;
 import com.example.cowmjucraft.domain.order.dto.response.OrderLookupIdAvailabilityResponseDto;
 import com.example.cowmjucraft.global.response.ApiResult;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -137,4 +140,94 @@ public interface ClientOrderControllerDocs {
             @ApiResponse(responseCode = "400", description = "lookupId 누락 또는 공백")
     })
     ApiResult<OrderLookupIdAvailabilityResponseDto> checkLookupIdAvailability(String lookupId);
+
+    @Operation(
+            summary = "조회 아이디/비밀번호로 주문 상세 조회",
+            description = """
+                    비회원 주문을 조회 아이디와 비밀번호로 조회합니다.
+                    - 조회 아이디 또는 비밀번호가 일치하지 않으면 401 Unauthorized를 반환합니다.
+                    """
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "조회 성공"),
+            @ApiResponse(responseCode = "401", description = "조회 아이디 또는 비밀번호 불일치")
+    })
+    ApiResult<OrderDetailResponseDto> lookupOrder(OrderLookupRequestDto request);
+
+    @Operation(
+            summary = "이메일 토큰으로 주문 상세 조회",
+            description = """
+                    이메일로 받은 조회 링크의 토큰으로 비회원 주문 상세를 조회합니다.
+                    - 토큰이 없거나 공백이면 400 Bad Request
+                    - 토큰이 유효하지 않으면 404 Not Found
+                    - 토큰이 만료되면 410 Gone
+                    """
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "조회 성공",
+                    content = @Content(
+                            schema = @Schema(implementation = ApiResult.class),
+                            examples = @ExampleObject(
+                                    name = "order-view-by-token-response",
+                                    value = """
+                                            {
+                                              "resultType": "SUCCESS",
+                                              "httpStatusCode": 200,
+                                              "message": "요청에 성공하였습니다.",
+                                              "data": {
+                                                "order": {
+                                                  "orderNo": "ORD-20260207190000-123456",
+                                                  "status": "PENDING_DEPOSIT",
+                                                  "totalAmount": 24000,
+                                                  "shippingFee": 0,
+                                                  "finalAmount": 24000,
+                                                  "depositDeadline": "2026-02-08T23:59:59",
+                                                  "createdAt": "2026-02-07T19:00:00"
+                                                },
+                                                "buyer": {
+                                                  "name": "홍길동",
+                                                  "phone": "010-1234-5678",
+                                                  "email": "hong@example.com",
+                                                  "buyerType": "STUDENT",
+                                                  "campus": "SEOUL",
+                                                  "departmentOrMajor": "컴퓨터공학과",
+                                                  "studentNo": "60123456",
+                                                  "refundBank": "국민은행",
+                                                  "refundAccount": "123456-78-901234",
+                                                  "referralSource": "instagram"
+                                                },
+                                                "fulfillment": {
+                                                  "method": "DELIVERY",
+                                                  "receiverName": "홍길동",
+                                                  "receiverPhone": "010-1234-5678",
+                                                  "addressLine1": "서울시 중구 세종대로 110",
+                                                  "addressLine2": "101동 1001호",
+                                                  "postalCode": "04524",
+                                                  "deliveryMemo": "부재 시 문 앞에 놓아주세요"
+                                                },
+                                                "items": [
+                                                  {
+                                                    "projectItemId": 1,
+                                                    "itemNameSnapshot": "후드티",
+                                                    "quantity": 2,
+                                                    "unitPrice": 12000,
+                                                    "lineAmount": 24000
+                                                  }
+                                                ]
+                                              }
+                                            }
+                                            """
+                            )
+                    )
+            ),
+            @ApiResponse(responseCode = "400", description = "token 누락 또는 공백"),
+            @ApiResponse(responseCode = "404", description = "토큰 없음 또는 불일치"),
+            @ApiResponse(responseCode = "410", description = "토큰 만료")
+    })
+    ApiResult<OrderDetailResponseDto> viewOrderByToken(
+            @Parameter(description = "이메일 링크 조회 토큰", required = true, example = "raw-view-token-string")
+            String token
+    );
 }
