@@ -79,6 +79,16 @@ jobs:
               "NAVER_CLIENT_SECRET=${{ secrets.NAVER_CLIENT_SECRET }}",
               "NAVER_REDIRECT_URI=${{ secrets.NAVER_REDIRECT_URI }}",
 
+              "MAIL_HOST=${{ secrets.MAIL_HOST }}",
+              "MAIL_PORT=${{ secrets.MAIL_PORT }}",
+              "MAIL_USERNAME=${{ secrets.MAIL_USERNAME }}",
+              "MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }}",
+              "MAIL_FROM=${{ secrets.MAIL_FROM }}",
+              "MAIL_FROM_NAME=${{ secrets.MAIL_FROM_NAME }}",
+              "APP_PUBLIC_BASE_URL=${{ secrets.APP_PUBLIC_BASE_URL }}",
+              "APP_ORDER_VIEW_PATH=${{ secrets.APP_ORDER_VIEW_PATH }}",
+              "APP_ORDER_VIEW_TOKEN_TTL_MINUTES=${{ secrets.APP_ORDER_VIEW_TOKEN_TTL_MINUTES }}",
+
               "EOF",
               "sudo chmod 600 /opt/cowmjucraft/prod.env",
               "sudo docker pull yunjin1213/cowmjucraft:latest",
@@ -86,7 +96,7 @@ jobs:
               "sudo docker rm cowmjucraft || true",
               "sudo docker run -d --name cowmjucraft --restart always -p 8080:8080 --env-file /opt/cowmjucraft/prod.env yunjin1213/cowmjucraft:latest",
               "sudo docker ps --filter name=cowmjucraft",
-              "sudo grep -n '\''SPRING_DATASOURCE_URL'\'' /opt/cowmjucraft/prod.env || true"
+              "sudo egrep -n '\''^(MAIL_|APP_)'\'' /opt/cowmjucraft/prod.env || true"
             ]' \
             --query "Command.CommandId" \
             --output text)
