@@ -2,6 +2,7 @@ package com.example.cowmjucraft.domain.order.controller.client;
 
 import com.example.cowmjucraft.domain.order.dto.request.OrderCreateRequestDto;
 import com.example.cowmjucraft.domain.order.dto.response.OrderCreateResponseDto;
+import com.example.cowmjucraft.domain.order.dto.response.OrderLookupIdAvailabilityResponseDto;
 import com.example.cowmjucraft.global.response.ApiResult;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -106,4 +107,34 @@ public interface ClientOrderControllerDocs {
             @ApiResponse(responseCode = "409", description = "재고 부족 또는 상태 충돌")
     })
     ApiResult<OrderCreateResponseDto> createOrder(OrderCreateRequestDto request);
+
+    @Operation(
+            summary = "조회 아이디 사용 가능 여부 확인",
+            description = "주문 생성 전에 조회 아이디의 중복 여부를 확인합니다."
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "확인 성공",
+                    content = @Content(
+                            schema = @Schema(implementation = ApiResult.class),
+                            examples = @ExampleObject(
+                                    name = "lookup-id-availability-response",
+                                    value = """
+                                            {
+                                              "resultType": "SUCCESS",
+                                              "httpStatusCode": 200,
+                                              "message": "요청에 성공하였습니다.",
+                                              "data": {
+                                                "lookupId": "guest-mju-001",
+                                                "available": true
+                                              }
+                                            }
+                                            """
+                            )
+                    )
+            ),
+            @ApiResponse(responseCode = "400", description = "lookupId 누락 또는 공백")
+    })
+    ApiResult<OrderLookupIdAvailabilityResponseDto> checkLookupIdAvailability(String lookupId);
 }
