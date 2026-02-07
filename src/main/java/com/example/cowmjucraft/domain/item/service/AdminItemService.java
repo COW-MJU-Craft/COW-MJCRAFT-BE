@@ -384,6 +384,7 @@ public class AdminItemService {
 
     private NormalizedItemRequest normalizeCreate(Project project, AdminProjectItemCreateRequestDto request) {
         ItemType itemType = resolveItemType(project, request.itemType(), null);
+        validateDescription(itemType, request.description());
         return normalize(
                 itemType,
                 request.price(),
@@ -401,6 +402,7 @@ public class AdminItemService {
             AdminProjectItemUpdateRequestDto request
     ) {
         ItemType itemType = resolveItemType(project, request.itemType(), item.getItemType());
+        validateDescription(itemType, request.description());
         return normalize(
                 itemType,
                 request.price(),
@@ -488,6 +490,15 @@ public class AdminItemService {
         }
 
         return new NormalizedItemRequest(itemType, normalizedTargetQty, normalizedFundedQty, null, normalizedThumbnailKey);
+    }
+
+    private void validateDescription(ItemType itemType, String description) {
+        if (itemType != ItemType.DIGITAL_JOURNAL && toNonBlankString(description) == null) {
+            throw new ResponseStatusException(
+                    HttpStatus.UNPROCESSABLE_ENTITY,
+                    "description is required for PHYSICAL"
+            );
+        }
     }
 
     private ItemType resolveItemType(Project project, ItemType requested, ItemType fallback) {
