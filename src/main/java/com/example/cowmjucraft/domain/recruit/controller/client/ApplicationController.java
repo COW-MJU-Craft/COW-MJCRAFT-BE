@@ -4,10 +4,7 @@ import com.example.cowmjucraft.domain.recruit.dto.client.request.ApplicationCrea
 import com.example.cowmjucraft.domain.recruit.dto.client.request.ApplicationReadRequest;
 import com.example.cowmjucraft.domain.recruit.dto.client.request.ApplicationUpdateRequest;
 import com.example.cowmjucraft.domain.recruit.dto.client.request.ResultReadRequest;
-import com.example.cowmjucraft.domain.recruit.dto.client.response.ApplicationCreateResponse;
-import com.example.cowmjucraft.domain.recruit.dto.client.response.ApplicationReadResponse;
-import com.example.cowmjucraft.domain.recruit.dto.client.response.ApplicationUpdateResponse;
-import com.example.cowmjucraft.domain.recruit.dto.client.response.ResultReadResponse;
+import com.example.cowmjucraft.domain.recruit.dto.client.response.*;
 import com.example.cowmjucraft.domain.recruit.service.client.ApplicationService;
 import com.example.cowmjucraft.global.cloud.S3PresignFacade;
 import com.example.cowmjucraft.global.response.ApiResult;
@@ -76,6 +73,15 @@ public class ApplicationController implements ApplicationControllerDocs {
         return ApiResult.success(
                 SuccessType.SUCCESS,
                 applicationService.createAnswerFilePresignPut(request)
+        );
+    }
+
+    @Override
+    @GetMapping("/application/form")
+    public ApiResult<ApplicationFormInfoResponse> getOpenForm() {
+        return ApiResult.success(
+                SuccessType.SUCCESS,
+                applicationService.getOpenFormInfo()
         );
     }
 }
