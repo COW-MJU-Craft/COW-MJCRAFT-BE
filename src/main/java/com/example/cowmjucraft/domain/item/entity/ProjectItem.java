@@ -66,8 +66,8 @@ public class ProjectItem extends BaseTimeEntity {
     @Column(name = "target_qty")
     private Integer targetQty;
 
-    @Column(name = "funded_qty", nullable = false)
-    private int fundedQty;
+    @Column(name = "funded_qty")
+    private Integer fundedQty;
 
     @Column(name = "stock_qty")
     private Integer stockQty;
@@ -84,7 +84,7 @@ public class ProjectItem extends BaseTimeEntity {
             String thumbnailKey,
             String journalFileKey,
             Integer targetQty,
-            int fundedQty,
+            Integer fundedQty,
             Integer stockQty
     ) {
         this.project = project;
@@ -114,7 +114,7 @@ public class ProjectItem extends BaseTimeEntity {
             String thumbnailKey,
             String journalFileKey,
             Integer targetQty,
-            int fundedQty
+            Integer fundedQty
     ) {
         this(
                 project,
@@ -144,7 +144,7 @@ public class ProjectItem extends BaseTimeEntity {
             String thumbnailKey,
             String journalFileKey,
             Integer targetQty,
-            int fundedQty,
+            Integer fundedQty,
             Integer stockQty
     ) {
         this.name = name;
@@ -174,7 +174,7 @@ public class ProjectItem extends BaseTimeEntity {
             String thumbnailKey,
             String journalFileKey,
             Integer targetQty,
-            int fundedQty,
+            Integer fundedQty,
             Integer stockQty
     ) {
         updateInternal(
@@ -204,7 +204,7 @@ public class ProjectItem extends BaseTimeEntity {
             String thumbnailKey,
             String journalFileKey,
             Integer targetQty,
-            int fundedQty
+            Integer fundedQty
     ) {
         updateInternal(
                 name,

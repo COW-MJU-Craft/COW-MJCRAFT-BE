@@ -444,11 +444,10 @@ public class AdminItemService {
                         "targetQty must be null for DIGITAL_JOURNAL"
                 );
             }
-            int normalizedFundedQty = fundedQty == null ? 0 : fundedQty;
-            if (normalizedFundedQty != 0) {
+            if (fundedQty != null && fundedQty != 0) {
                 throw new ResponseStatusException(
                         HttpStatus.UNPROCESSABLE_ENTITY,
-                        "fundedQty must be 0 for DIGITAL_JOURNAL"
+                        "fundedQty must be null or 0 for DIGITAL_JOURNAL"
                 );
             }
             String normalizedJournalKey = toNonBlankString(journalFileKey);
@@ -459,7 +458,7 @@ public class AdminItemService {
                 );
             }
             String normalizedThumbnailKey = toNonBlankString(thumbnailKey);
-            return new NormalizedItemRequest(itemType, null, 0, normalizedJournalKey, normalizedThumbnailKey, null);
+            return new NormalizedItemRequest(itemType, null, fundedQty, normalizedJournalKey, normalizedThumbnailKey, null);
         }
 
         String normalizedThumbnailKey = toNonBlankString(thumbnailKey);
@@ -477,8 +476,7 @@ public class AdminItemService {
             );
         }
 
-        int normalizedFundedQty = fundedQty == null ? 0 : fundedQty;
-        if (normalizedFundedQty < 0) {
+        if (fundedQty != null && fundedQty < 0) {
             throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "fundedQty must be >= 0");
         }
 
@@ -512,7 +510,7 @@ public class AdminItemService {
         return new NormalizedItemRequest(
                 itemType,
                 normalizedTargetQty,
-                normalizedFundedQty,
+                fundedQty,
                 null,
                 normalizedThumbnailKey,
                 normalizedStockQty
@@ -726,19 +724,20 @@ public class AdminItemService {
             return new GroupbuyInfo(null, null, null, null);
         }
         Integer targetQty = item.getTargetQty();
-        int fundedQty = item.getFundedQty();
+        Integer fundedQty = item.getFundedQty();
+        int fundedQtyValue = fundedQty == null ? 0 : fundedQty;
         double rate = 0.0;
         if (targetQty != null && targetQty > 0) {
-            rate = (double) fundedQty / targetQty * 100.0;
+            rate = (double) fundedQtyValue / targetQty * 100.0;
         }
-        int remainingQty = targetQty == null ? 0 : Math.max(targetQty - fundedQty, 0);
+        int remainingQty = targetQty == null ? 0 : Math.max(targetQty - fundedQtyValue, 0);
         return new GroupbuyInfo(targetQty, fundedQty, rate, remainingQty);
     }
 
     private record NormalizedItemRequest(
             ItemType itemType,
             Integer targetQty,
-            int fundedQty,
+            Integer fundedQty,
             String journalFileKey,
             String thumbnailKey,
             Integer stockQty
