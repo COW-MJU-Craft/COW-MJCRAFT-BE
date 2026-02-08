@@ -222,12 +222,13 @@ public class ItemService {
             return new GroupbuyInfo(null, null, null, null);
         }
         Integer targetQty = item.getTargetQty();
-        int fundedQty = item.getFundedQty();
+        Integer fundedQty = item.getFundedQty();
+        int fundedQtyValue = fundedQty == null ? 0 : fundedQty;
         double rate = 0.0;
         if (targetQty != null && targetQty > 0) {
-            rate = (double) fundedQty / targetQty * 100.0;
+            rate = (double) fundedQtyValue / targetQty * 100.0;
         }
-        int remainingQty = targetQty == null ? 0 : Math.max(targetQty - fundedQty, 0);
+        int remainingQty = targetQty == null ? 0 : Math.max(targetQty - fundedQtyValue, 0);
         return new GroupbuyInfo(targetQty, fundedQty, rate, remainingQty);
     }
 

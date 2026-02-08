@@ -41,7 +41,7 @@ public record AdminProjectItemCreateRequestDto(
         @Schema(description = "목표 수량 (GROUPBUY 전용)", example = "100")
         Integer targetQty,
 
-        @Schema(description = "현재 모금 수량 (미입력 시 0)", example = "0")
+        @Schema(description = "현재 모금 수량 (null 허용)", example = "0")
         Integer fundedQty,
 
         @NotNull
