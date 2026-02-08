@@ -117,14 +117,19 @@ public class FormAdminService {
 
     @Transactional(readOnly = true)
     public FormDetailAdminResponse getForm(Long formId) {
-
         Form form = formRepository.findById(formId)
                 .orElseThrow(() -> new RecruitException(ErrorType.FORM_NOT_FOUND));
+
+        List<FormNotice> notices = formNoticeRepository.findAllByForm(form);
+
+        List<FormQuestion> questions = formQuestionRepository.findAllByFormOrderByQuestionOrderAsc(form);
 
         return new FormDetailAdminResponse(
                 form.getId(),
                 form.getTitle(),
-                form.isOpen()
+                form.isOpen(),
+                notices.stream().map(FormDetailAdminResponse.NoticeResponse::from).toList(),
+                questions.stream().map(FormDetailAdminResponse.QuestionResponse::from).toList()
         );
     }
 
