@@ -10,7 +10,7 @@
 
 ### Infra
 
-<img width="4060" height="2456" alt="Image" src="https://github.com/user-attachments/assets/b9dfee4b-f1ef-4651-9d3b-198b5f7c7193" />
+<img width="4060" height="2456" alt="제목 없는 다이어그램-3" src="https://github.com/user-attachments/assets/e92028c1-1334-47b5-bc72-ea03b1cc1b85" />
 
 ### ERD
 
