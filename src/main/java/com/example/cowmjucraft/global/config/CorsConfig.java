@@ -15,19 +15,30 @@ public class CorsConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
 
-        config.setAllowedOrigins(List.of(
+        config.setAllowedOriginPatterns(List.of(
                 "https://mju-craft.shop",
                 "https://api.mju-craft.shop",
                 "http://localhost:5173",
-                "http://localhost:5174"
+                "http://localhost:5174",
+                "https://*.s3.ap-northeast-2.amazonaws.com",
+                "https://*.s3.amazonaws.com",
+                "https://*.cloudfront.net"
         ));
 
         config.setAllowedMethods(List.of(
-                "GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"
+                "GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"
         ));
 
         config.setAllowedHeaders(List.of("*"));
+        config.setExposedHeaders(List.of(
+                "Authorization",
+                "Set-Cookie",
+                "ETag",
+                "Content-Disposition",
+                "Location"
+        ));
         config.setAllowCredentials(true);
+        config.setMaxAge(3600L);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
