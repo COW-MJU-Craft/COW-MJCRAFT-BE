@@ -58,6 +58,7 @@ public interface AdminNoticeControllerDocs {
                                                 "title": "설 연휴 배송 일정 안내",
                                                 "content": "설 연휴 기간 동안 배송이 중단됩니다.",
                                                 "imageKeys": ["uploads/notices/images/uuid-notice.png"],
+                                                "imageUrls": ["https://bucket.s3.amazonaws.com/uploads/notices/images/uuid-notice.png?X-Amz-Signature=..."],
                                                 "createdAt": "2026-01-20T10:15:30",
                                                 "updatedAt": "2026-01-20T10:15:30"
                                               }

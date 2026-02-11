@@ -9,7 +9,11 @@ import com.example.cowmjucraft.domain.notice.dto.response.NoticeSummaryResponseD
 import com.example.cowmjucraft.domain.notice.entity.Notice;
 import com.example.cowmjucraft.domain.notice.repository.NoticeRepository;
 import com.example.cowmjucraft.global.cloud.S3PresignFacade;
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -33,7 +37,10 @@ public class AdminNoticeService {
     public NoticeDetailResponseDto create(AdminNoticeCreateRequestDto request) {
         Notice notice = new Notice(request.title(), request.content(), request.imageKeys());
         Notice saved = noticeRepository.save(notice);
-        return toDetailResponse(saved);
+        Set<String> keySet = new LinkedHashSet<>();
+        addIfValidKey(keySet, saved.getImageKeys());
+        Map<String, String> urls = presignGetSafely(keySet);
+        return toDetailResponse(saved, urls);
     }
 
     @Transactional
@@ -41,7 +48,10 @@ public class AdminNoticeService {
         Notice notice = noticeRepository.findById(noticeId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "notice not found"));
         notice.update(request.title(), request.content(), request.imageKeys());
-        return toDetailResponse(notice);
+        Set<String> keySet = new LinkedHashSet<>();
+        addIfValidKey(keySet, notice.getImageKeys());
+        Map<String, String> urls = presignGetSafely(keySet);
+        return toDetailResponse(notice, urls);
     }
 
     @Transactional
@@ -53,9 +63,16 @@ public class AdminNoticeService {
 
     @Transactional(readOnly = true)
     public List<NoticeSummaryResponseDto> getNotices() {
-        return noticeRepository.findAllByOrderByCreatedAtDesc()
+        List<Notice> notices = noticeRepository.findAllByOrderByCreatedAtDesc();
+        Set<String> keySet = new LinkedHashSet<>();
+        for (Notice notice : notices) {
+            addIfValidKey(keySet, notice.getImageKeys());
+        }
+        Map<String, String> urls = presignGetSafely(keySet);
+
+        return notices
                 .stream()
-                .map(this::toSummaryResponse)
+                .map(notice -> toSummaryResponse(notice, urls))
                 .toList();
     }
 
@@ -63,7 +80,10 @@ public class AdminNoticeService {
     public NoticeDetailResponseDto getNotice(Long noticeId) {
         Notice notice = noticeRepository.findById(noticeId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "notice not found"));
-        return toDetailResponse(notice);
+        Set<String> keySet = new LinkedHashSet<>();
+        addIfValidKey(keySet, notice.getImageKeys());
+        Map<String, String> urls = presignGetSafely(keySet);
+        return toDetailResponse(notice, urls);
     }
 
     public AdminNoticePresignPutResponseDto createImagePresignPut(AdminNoticePresignPutRequestDto request) {
@@ -74,21 +94,23 @@ public class AdminNoticeService {
         return toSinglePresignResponse(response);
     }
 
-    private NoticeSummaryResponseDto toSummaryResponse(Notice notice) {
+    private NoticeSummaryResponseDto toSummaryResponse(Notice notice, Map<String, String> urls) {
         return new NoticeSummaryResponseDto(
                 notice.getId(),
                 notice.getTitle(),
                 notice.getImageKeys(),
+                buildUrlsForKeys(notice.getImageKeys(), urls),
                 notice.getCreatedAt()
         );
     }
 
-    private NoticeDetailResponseDto toDetailResponse(Notice notice) {
+    private NoticeDetailResponseDto toDetailResponse(Notice notice, Map<String, String> urls) {
         return new NoticeDetailResponseDto(
                 notice.getId(),
                 notice.getTitle(),
                 notice.getContent(),
                 notice.getImageKeys(),
+                buildUrlsForKeys(notice.getImageKeys(), urls),
                 notice.getCreatedAt(),
                 notice.getUpdatedAt()
         );
@@ -104,5 +126,43 @@ public class AdminNoticeService {
                 item.uploadUrl(),
                 item.expiresInSeconds()
         );
+    }
+
+    private Map<String, String> presignGetSafely(Set<String> keys) {
+        try {
+            return keys == null || keys.isEmpty()
+                    ? Map.of()
+                    : s3PresignFacade.presignGet(new ArrayList<>(keys));
+        } catch (Exception e) {
+            return Map.of();
+        }
+    }
+
+    private List<String> buildUrlsForKeys(List<String> keys, Map<String, String> urls) {
+        if (keys == null || keys.isEmpty()) {
+            return List.of();
+        }
+        List<String> result = new ArrayList<>(keys.size());
+        for (String key : keys) {
+            String normalized = toNonBlankString(key);
+            result.add(normalized == null ? null : urls.get(normalized));
+        }
+        return result;
+    }
+
+    private void addIfValidKey(Set<String> keys, List<String> values) {
+        if (values == null) {
+            return;
+        }
+        for (String value : values) {
+            String k = toNonBlankString(value);
+            if (k != null) {
+                keys.add(k);
+            }
+        }
+    }
+
+    private String toNonBlankString(String value) {
+        return value == null || value.trim().isEmpty() ? null : value.trim();
     }
 }
