@@ -19,6 +19,9 @@ public record NoticeDetailResponseDto(
         @Schema(description = "공지 이미지 S3 object key 목록", example = "[\"uploads/notices/images/uuid-notice.png\"]")
         List<String> imageKeys,
 
+        @Schema(description = "공지 이미지 presigned URL 목록", example = "[\"https://bucket.s3.amazonaws.com/uploads/notices/images/uuid-notice.png?X-Amz-Signature=...\"]")
+        List<String> imageUrls,
+
         @Schema(description = "등록일시", example = "2026-01-20T10:15:30")
         LocalDateTime createdAt,
 
