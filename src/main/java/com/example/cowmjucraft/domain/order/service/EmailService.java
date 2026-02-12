@@ -124,24 +124,18 @@ public class EmailService {
             String viewUrl
     ) {
         try {
-            StringBuilder html = new StringBuilder();
-            html.append("<p>").append(escapeHtml(nullToEmpty(buyerName))).append("님, 주문 상태가 변경되었습니다.</p>")
-                    .append("<p><strong>주문번호:</strong> ").append(escapeHtml(orderNo)).append("</p>")
-                    .append("<p><strong>현재 상태:</strong> ").append(escapeHtml(statusLabel)).append(" (").append(escapeHtml(statusCode)).append(")</p>")
-                    .append("<p><strong>").append(escapeHtml(eventTimeLabel)).append(":</strong> ")
-                    .append(escapeHtml(formatDateTime(eventTime))).append("</p>");
+            Context context = new Context();
+            context.setVariable("buyerName", buyerName);
+            context.setVariable("orderNo", orderNo);
+            context.setVariable("statusCode", statusCode);
+            context.setVariable("statusLabel", statusLabel);
+            context.setVariable("reason", reason);
+            context.setVariable("eventTimeLabel", eventTimeLabel);
+            context.setVariable("eventTime", formatDateTime(eventTime));
+            context.setVariable("viewUrl", viewUrl);
 
-            if (reason != null && !reason.isBlank()) {
-                html.append("<p><strong>사유:</strong> ").append(escapeHtml(reason)).append("</p>");
-            }
-
-            html.append("<p><strong>주문 조회 링크:</strong> <a href=\"")
-                    .append(escapeHtml(viewUrl))
-                    .append("\">")
-                    .append(escapeHtml(viewUrl))
-                    .append("</a></p>");
-
-            sendHtml(to, ORDER_STATUS_SUBJECT, html.toString(), orderNo);
+            String html = templateEngine.process("mail/order-status-email-template", context);
+            sendHtml(to, ORDER_STATUS_SUBJECT, html, orderNo);
         } catch (Exception exception) {
             log.error("주문 상태 메일 발송 실패: to={}, orderNo={}", to, orderNo, exception);
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "주문 메일 발송에 실패했습니다.");
