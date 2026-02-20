@@ -12,6 +12,7 @@ import com.example.cowmjucraft.domain.item.dto.response.AdminProjectItemResponse
 import com.example.cowmjucraft.domain.item.dto.response.ProjectItemImageResponseDto;
 import com.example.cowmjucraft.domain.item.dto.response.ProjectItemJournalPresignGetResponseDto;
 import com.example.cowmjucraft.global.response.ApiResult;
+import org.springframework.http.ResponseEntity;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -39,7 +40,7 @@ public interface AdminItemControllerDocs {
             ),
             @ApiResponse(responseCode = "404", description = "요청한 리소스를 찾을 수 없음")
     })
-    ApiResult<List<AdminProjectItemResponseDto>> getItems(
+    ResponseEntity<ApiResult<List<AdminProjectItemResponseDto>>> getItems(
             @Parameter(description = "프로젝트 ID", example = "1")
             Long projectId
     );
@@ -56,7 +57,7 @@ public interface AdminItemControllerDocs {
             ),
             @ApiResponse(responseCode = "404", description = "요청한 리소스를 찾을 수 없음")
     })
-    ApiResult<AdminProjectItemDetailResponseDto> getItem(
+    ResponseEntity<ApiResult<AdminProjectItemDetailResponseDto>> getItem(
             @Parameter(description = "물품 ID", example = "1")
             Long itemId
     );
@@ -148,7 +149,7 @@ public interface AdminItemControllerDocs {
             @ApiResponse(responseCode = "404", description = "요청한 리소스를 찾을 수 없음"),
             @ApiResponse(responseCode = "422", description = "요청 값 검증 실패")
     })
-    ApiResult<AdminProjectItemResponseDto> createItem(
+    ResponseEntity<ApiResult<AdminProjectItemResponseDto>> createItem(
             @Parameter(description = "프로젝트 ID", example = "1")
             Long projectId,
             @Valid AdminProjectItemCreateRequestDto request
@@ -213,7 +214,7 @@ public interface AdminItemControllerDocs {
             @ApiResponse(responseCode = "404", description = "요청한 리소스를 찾을 수 없음"),
             @ApiResponse(responseCode = "422", description = "요청 값 검증 실패")
     })
-    ApiResult<AdminProjectItemResponseDto> updateItem(
+    ResponseEntity<ApiResult<AdminProjectItemResponseDto>> updateItem(
             @Parameter(description = "물품 ID", example = "1")
             Long itemId,
             @Valid AdminProjectItemUpdateRequestDto request
@@ -278,7 +279,7 @@ public interface AdminItemControllerDocs {
             @ApiResponse(responseCode = "404", description = "요청한 리소스를 찾을 수 없음"),
             @ApiResponse(responseCode = "422", description = "요청 값 검증 실패")
     })
-    ApiResult<AdminItemPresignPutBatchResponseDto> presignThumbnail(
+    ResponseEntity<ApiResult<AdminItemPresignPutBatchResponseDto>> presignThumbnail(
             @Parameter(description = "물품 ID", example = "1")
             Long itemId,
             @Valid AdminItemPresignPutBatchRequestDto request
@@ -343,7 +344,7 @@ public interface AdminItemControllerDocs {
             @ApiResponse(responseCode = "404", description = "요청한 리소스를 찾을 수 없음"),
             @ApiResponse(responseCode = "422", description = "요청 값 검증 실패")
     })
-    ApiResult<AdminItemPresignPutBatchResponseDto> presignImage(
+    ResponseEntity<ApiResult<AdminItemPresignPutBatchResponseDto>> presignImage(
             @Parameter(description = "물품 ID", example = "1")
             Long itemId,
             @Valid AdminItemPresignPutBatchRequestDto request
@@ -406,7 +407,7 @@ public interface AdminItemControllerDocs {
             @ApiResponse(responseCode = "404", description = "요청한 리소스를 찾을 수 없음"),
             @ApiResponse(responseCode = "422", description = "요청 값 검증 실패")
     })
-    ApiResult<AdminItemPresignPutBatchResponseDto> presignJournalFile(
+    ResponseEntity<ApiResult<AdminItemPresignPutBatchResponseDto>> presignJournalFile(
             @Parameter(description = "프로젝트 ID", example = "1")
             Long projectId,
             @Valid AdminItemPresignPutBatchRequestDto request
@@ -437,7 +438,7 @@ public interface AdminItemControllerDocs {
             ),
             @ApiResponse(responseCode = "404", description = "요청한 리소스를 찾을 수 없음")
     })
-    ApiResult<?> deleteItem(
+    ResponseEntity<ApiResult<Void>> deleteItem(
             @Parameter(description = "물품 ID", example = "1")
             Long itemId
     );
@@ -467,7 +468,7 @@ public interface AdminItemControllerDocs {
             ),
             @ApiResponse(responseCode = "404", description = "요청한 리소스를 찾을 수 없음")
     })
-    ApiResult<?> deleteThumbnail(
+    ResponseEntity<ApiResult<Void>> deleteThumbnail(
             @Parameter(description = "물품 ID", example = "1")
             Long itemId
     );
@@ -502,7 +503,7 @@ public interface AdminItemControllerDocs {
             @ApiResponse(responseCode = "422", description = "itemType != DIGITAL_JOURNAL 또는 journalFileKey 없음"),
             @ApiResponse(responseCode = "500", description = "S3 삭제 실패(내부 오류)")
     })
-    ApiResult<?> deleteJournalFile(
+    ResponseEntity<ApiResult<Void>> deleteJournalFile(
             @Parameter(description = "물품 ID", example = "1")
             Long itemId
     );
@@ -559,7 +560,7 @@ public interface AdminItemControllerDocs {
             @ApiResponse(responseCode = "409", description = "요청이 현재 상태와 충돌합니다."),
             @ApiResponse(responseCode = "422", description = "요청 값 검증 실패")
     })
-    ApiResult<List<ProjectItemImageResponseDto>> addImages(
+    ResponseEntity<ApiResult<List<ProjectItemImageResponseDto>>> addImages(
             @Parameter(description = "물품 ID", example = "1")
             Long itemId,
             @Valid AdminItemImageCreateRequestDto request
@@ -594,7 +595,7 @@ public interface AdminItemControllerDocs {
             @ApiResponse(responseCode = "409", description = "요청이 현재 상태와 충돌합니다."),
             @ApiResponse(responseCode = "422", description = "요청 값 검증 실패")
     })
-    ApiResult<AdminItemImageOrderPatchResponseDto> patchImageOrder(
+    ResponseEntity<ApiResult<AdminItemImageOrderPatchResponseDto>> patchImageOrder(
             @Parameter(description = "물품 ID", example = "1")
             Long itemId,
             @Valid AdminItemImageOrderPatchRequestDto request
@@ -626,7 +627,7 @@ public interface AdminItemControllerDocs {
             @ApiResponse(responseCode = "404", description = "요청한 리소스를 찾을 수 없음"),
             @ApiResponse(responseCode = "409", description = "요청이 현재 상태와 충돌합니다.")
     })
-    ApiResult<?> deleteImage(
+    ResponseEntity<ApiResult<Void>> deleteImage(
             @Parameter(description = "물품 ID", example = "1")
             Long itemId,
             @Parameter(description = "이미지 ID", example = "1")
@@ -664,7 +665,7 @@ public interface AdminItemControllerDocs {
             @ApiResponse(responseCode = "404", description = "요청한 리소스를 찾을 수 없음"),
             @ApiResponse(responseCode = "422", description = "요청 값 검증 실패")
     })
-    ApiResult<ProjectItemJournalPresignGetResponseDto> presignJournalDownloadForAdmin(
+    ResponseEntity<ApiResult<ProjectItemJournalPresignGetResponseDto>> presignJournalDownloadForAdmin(
             @Parameter(description = "물품 ID", example = "1")
             Long itemId
     );

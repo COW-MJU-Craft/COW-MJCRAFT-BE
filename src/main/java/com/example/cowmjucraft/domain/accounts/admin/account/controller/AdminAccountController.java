@@ -3,8 +3,10 @@ package com.example.cowmjucraft.domain.accounts.admin.account.controller;
 import com.example.cowmjucraft.domain.accounts.admin.account.dto.request.AdminAccountUpdateRequestDto;
 import com.example.cowmjucraft.domain.accounts.admin.account.dto.response.AdminAccountResponseDto;
 import com.example.cowmjucraft.domain.accounts.admin.account.service.AdminAccountService;
+import com.example.cowmjucraft.global.response.ApiResponse;
 import com.example.cowmjucraft.global.response.ApiResult;
 import com.example.cowmjucraft.global.response.type.SuccessType;
+import org.springframework.http.ResponseEntity;
 import lombok.RequiredArgsConstructor;
 import jakarta.validation.Valid;
 import org.springframework.validation.annotation.Validated;
@@ -23,7 +25,7 @@ public class AdminAccountController implements AdminAccountControllerDocs {
 
     @Override
     @PatchMapping("/account")
-    public ApiResult<AdminAccountResponseDto> updateAdminAccount(@Valid @RequestBody AdminAccountUpdateRequestDto request) {
-        return ApiResult.success(SuccessType.SUCCESS, adminAccountService.updateAdminAccount(request));
+    public ResponseEntity<ApiResult<AdminAccountResponseDto>> updateAdminAccount(@Valid @RequestBody AdminAccountUpdateRequestDto request) {
+        return ApiResponse.of(SuccessType.SUCCESS, adminAccountService.updateAdminAccount(request));
     }
 }

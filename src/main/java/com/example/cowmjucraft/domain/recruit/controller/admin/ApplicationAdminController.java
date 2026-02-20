@@ -4,8 +4,10 @@ import com.example.cowmjucraft.domain.recruit.dto.admin.request.ApplicationResul
 import com.example.cowmjucraft.domain.recruit.dto.admin.response.ApplicationDetailAdminResponse;
 import com.example.cowmjucraft.domain.recruit.dto.admin.response.ApplicationListAdminResponse;
 import com.example.cowmjucraft.domain.recruit.service.admin.ApplicationAdminService;
+import com.example.cowmjucraft.global.response.ApiResponse;
 import com.example.cowmjucraft.global.response.ApiResult;
 import com.example.cowmjucraft.global.response.type.SuccessType;
+import org.springframework.http.ResponseEntity;
 import java.util.List;
 
 import lombok.RequiredArgsConstructor;
@@ -20,33 +22,33 @@ public class ApplicationAdminController implements ApplicationAdminControllerDoc
 
     @Override
     @GetMapping("/forms/{formId}/applications")
-    public ApiResult<List<ApplicationListAdminResponse>> getApplicationsByFormId(@PathVariable Long formId) {
-        return ApiResult.success(SuccessType.SUCCESS, applicationAdminService.getApplicationsByFormId(formId));
+    public ResponseEntity<ApiResult<List<ApplicationListAdminResponse>>> getApplicationsByFormId(@PathVariable Long formId) {
+        return ApiResponse.of(SuccessType.SUCCESS, applicationAdminService.getApplicationsByFormId(formId));
     }
 
     @Override
     @GetMapping("/forms/{formId}/applications/{applicationId}")
-    public ApiResult<ApplicationDetailAdminResponse> getApplicationByFormId(
+    public ResponseEntity<ApiResult<ApplicationDetailAdminResponse>> getApplicationByFormId(
             @PathVariable Long formId,
             @PathVariable Long applicationId
     ) {
-        return ApiResult.success(SuccessType.SUCCESS, applicationAdminService.getApplication(formId, applicationId));
+        return ApiResponse.of(SuccessType.SUCCESS, applicationAdminService.getApplication(formId, applicationId));
     }
 
     @Override
     @DeleteMapping("/applications/{applicationId}")
-    public ApiResult<?> deleteApplication(@PathVariable Long applicationId) {
+    public ResponseEntity<ApiResult<Void>> deleteApplication(@PathVariable Long applicationId) {
         applicationAdminService.deleteApplication(applicationId);
-        return ApiResult.success(SuccessType.SUCCESS);
+        return ApiResponse.of(SuccessType.SUCCESS);
     }
 
     @Override
     @PutMapping("/applications/{applicationId}/result")
-    public ApiResult<?> updateResult(
+    public ResponseEntity<ApiResult<Void>> updateResult(
             @PathVariable Long applicationId,
             @RequestBody ApplicationResultUpdateAdminRequest request
     ) {
         applicationAdminService.updateResult(applicationId, request);
-        return ApiResult.success(SuccessType.SUCCESS);
+        return ApiResponse.of(SuccessType.SUCCESS);
     }
 }

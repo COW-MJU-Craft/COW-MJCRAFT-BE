@@ -3,6 +3,7 @@ package com.example.cowmjucraft.domain.accounts.admin.auth.controller;
 import com.example.cowmjucraft.domain.accounts.admin.auth.dto.request.AdminLoginRequestDto;
 import com.example.cowmjucraft.domain.accounts.admin.auth.dto.response.AdminLoginTokenResponseDto;
 import com.example.cowmjucraft.global.response.ApiResult;
+import org.springframework.http.ResponseEntity;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -24,7 +25,7 @@ public interface AdminAuthControllerDocs {
             @ApiResponse(responseCode = "401", description = "유효하지 않은 자격 증명"),
             @ApiResponse(responseCode = "403", description = "ADMIN 권한 아님")
     })
-    ApiResult<AdminLoginTokenResponseDto> login(@Valid @RequestBody AdminLoginRequestDto request);
+    ResponseEntity<ApiResult<AdminLoginTokenResponseDto>> login(@Valid @RequestBody AdminLoginRequestDto request);
 
     @Operation(
             summary = "관리자 로그아웃",
@@ -36,5 +37,5 @@ public interface AdminAuthControllerDocs {
             @ApiResponse(responseCode = "401", description = "인증 실패"),
             @ApiResponse(responseCode = "403", description = "ADMIN 권한 아님")
     })
-    ApiResult<?> logout();
+    ResponseEntity<ApiResult<Void>> logout();
 }

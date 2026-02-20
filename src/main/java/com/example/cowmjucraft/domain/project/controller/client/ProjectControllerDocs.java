@@ -3,6 +3,7 @@ package com.example.cowmjucraft.domain.project.controller.client;
 import com.example.cowmjucraft.domain.project.dto.response.ProjectDetailResponseDto;
 import com.example.cowmjucraft.domain.project.dto.response.ProjectListItemResponseDto;
 import com.example.cowmjucraft.global.response.ApiResult;
+import org.springframework.http.ResponseEntity;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -27,7 +28,7 @@ public interface ProjectControllerDocs {
                     content = @Content(schema = @Schema(implementation = ApiResult.class))
             )
     })
-    ApiResult<List<ProjectListItemResponseDto>> getProjects();
+    ResponseEntity<ApiResult<List<ProjectListItemResponseDto>>> getProjects();
 
     @Operation(
             summary = "프로젝트 상세 조회",
@@ -74,7 +75,7 @@ public interface ProjectControllerDocs {
             ),
             @ApiResponse(responseCode = "404", description = "요청한 리소스를 찾을 수 없음")
     })
-    ApiResult<ProjectDetailResponseDto> getProject(
+    ResponseEntity<ApiResult<ProjectDetailResponseDto>> getProject(
             @Parameter(description = "프로젝트 ID", example = "1")
             Long projectId
     );

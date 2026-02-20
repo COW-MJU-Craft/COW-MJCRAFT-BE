@@ -7,8 +7,10 @@ import com.example.cowmjucraft.domain.notice.dto.response.AdminNoticePresignPutR
 import com.example.cowmjucraft.domain.notice.dto.response.NoticeDetailResponseDto;
 import com.example.cowmjucraft.domain.notice.dto.response.NoticeSummaryResponseDto;
 import com.example.cowmjucraft.domain.notice.service.AdminNoticeService;
+import com.example.cowmjucraft.global.response.ApiResponse;
 import com.example.cowmjucraft.global.response.ApiResult;
 import com.example.cowmjucraft.global.response.type.SuccessType;
+import org.springframework.http.ResponseEntity;
 import jakarta.validation.Valid;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -30,49 +32,49 @@ public class AdminNoticeController implements AdminNoticeControllerDocs {
 
     @PostMapping
     @Override
-    public ApiResult<NoticeDetailResponseDto> createNotice(
+    public ResponseEntity<ApiResult<NoticeDetailResponseDto>> createNotice(
             @Valid @RequestBody AdminNoticeCreateRequestDto request
     ) {
-        return ApiResult.success(SuccessType.CREATED, adminNoticeService.create(request));
+        return ApiResponse.of(SuccessType.CREATED, adminNoticeService.create(request));
     }
 
     @PostMapping("/presign-put/images")
     @Override
-    public ApiResult<AdminNoticePresignPutResponseDto> presignImage(
+    public ResponseEntity<ApiResult<AdminNoticePresignPutResponseDto>> presignImage(
             @Valid @RequestBody AdminNoticePresignPutRequestDto request
     ) {
-        return ApiResult.success(SuccessType.SUCCESS, adminNoticeService.createImagePresignPut(request));
+        return ApiResponse.of(SuccessType.SUCCESS, adminNoticeService.createImagePresignPut(request));
     }
 
     @PutMapping("/{noticeId}")
     @Override
-    public ApiResult<NoticeDetailResponseDto> updateNotice(
+    public ResponseEntity<ApiResult<NoticeDetailResponseDto>> updateNotice(
             @PathVariable Long noticeId,
             @Valid @RequestBody AdminNoticeUpdateRequestDto request
     ) {
-        return ApiResult.success(SuccessType.SUCCESS, adminNoticeService.update(noticeId, request));
+        return ApiResponse.of(SuccessType.SUCCESS, adminNoticeService.update(noticeId, request));
     }
 
     @DeleteMapping("/{noticeId}")
     @Override
-    public ApiResult<?> deleteNotice(
+    public ResponseEntity<ApiResult<Void>> deleteNotice(
             @PathVariable Long noticeId
     ) {
         adminNoticeService.delete(noticeId);
-        return ApiResult.success(SuccessType.SUCCESS);
+        return ApiResponse.of(SuccessType.SUCCESS);
     }
 
     @GetMapping
     @Override
-    public ApiResult<List<NoticeSummaryResponseDto>> getNotices() {
-        return ApiResult.success(SuccessType.SUCCESS, adminNoticeService.getNotices());
+    public ResponseEntity<ApiResult<List<NoticeSummaryResponseDto>>> getNotices() {
+        return ApiResponse.of(SuccessType.SUCCESS, adminNoticeService.getNotices());
     }
 
     @GetMapping("/{noticeId}")
     @Override
-    public ApiResult<NoticeDetailResponseDto> getNotice(
+    public ResponseEntity<ApiResult<NoticeDetailResponseDto>> getNotice(
             @PathVariable Long noticeId
     ) {
-        return ApiResult.success(SuccessType.SUCCESS, adminNoticeService.getNotice(noticeId));
+        return ApiResponse.of(SuccessType.SUCCESS, adminNoticeService.getNotice(noticeId));
     }
 }

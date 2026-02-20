@@ -4,6 +4,7 @@ import com.example.cowmjucraft.domain.recruit.dto.admin.request.ApplicationResul
 import com.example.cowmjucraft.domain.recruit.dto.admin.response.ApplicationDetailAdminResponse;
 import com.example.cowmjucraft.domain.recruit.dto.admin.response.ApplicationListAdminResponse;
 import com.example.cowmjucraft.global.response.ApiResult;
+import org.springframework.http.ResponseEntity;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -20,7 +21,7 @@ public interface ApplicationAdminControllerDocs {
             @ApiResponse(responseCode = "200", description = "성공"),
             @ApiResponse(responseCode = "404", description = "Form 없음")
     })
-    ApiResult<List<ApplicationListAdminResponse>> getApplicationsByFormId(@PathVariable Long formId);
+    ResponseEntity<ApiResult<List<ApplicationListAdminResponse>>> getApplicationsByFormId(@PathVariable Long formId);
 
     @Operation(summary = "지원서 상세 조회")
     @ApiResponses({
@@ -28,7 +29,7 @@ public interface ApplicationAdminControllerDocs {
             @ApiResponse(description = "Form 또는 Application 없음", responseCode = "404"),
             @ApiResponse(description = "해당 Form의 Application이 아님", responseCode = "400")
     })
-    ApiResult<ApplicationDetailAdminResponse> getApplicationByFormId(
+    ResponseEntity<ApiResult<ApplicationDetailAdminResponse>> getApplicationByFormId(
             @PathVariable Long formId,
             @PathVariable Long applicationId
     );
@@ -38,14 +39,14 @@ public interface ApplicationAdminControllerDocs {
             @ApiResponse(responseCode = "200", description = "성공"),
             @ApiResponse(responseCode = "404", description = "Application 없음")
     })
-    ApiResult<?> deleteApplication(@PathVariable Long applicationId);
+    ResponseEntity<ApiResult<Void>> deleteApplication(@PathVariable Long applicationId);
 
     @Operation(summary = "지원 결과 입력")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "성공"),
             @ApiResponse(responseCode = "404", description = "Application 없음")
     })
-    ApiResult<?> updateResult(
+    ResponseEntity<ApiResult<Void>> updateResult(
             @PathVariable Long applicationId,
             @RequestBody ApplicationResultUpdateAdminRequest request
     );

@@ -4,6 +4,7 @@ import com.example.cowmjucraft.domain.mypage.dto.request.MyPageAddressRequestDto
 import com.example.cowmjucraft.domain.mypage.dto.response.MyPageAddressResponseDto;
 import com.example.cowmjucraft.domain.mypage.dto.response.MyPageResponseDto;
 import com.example.cowmjucraft.global.response.ApiResult;
+import org.springframework.http.ResponseEntity;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -26,7 +27,7 @@ public interface MyPageControllerDocs {
             ),
             @ApiResponse(responseCode = "401", description = "인증 실패")
     })
-    ApiResult<MyPageResponseDto> getMyPage(
+    ResponseEntity<ApiResult<MyPageResponseDto>> getMyPage(
             @Parameter(hidden = true)
             String memberId
     );
@@ -40,7 +41,7 @@ public interface MyPageControllerDocs {
             ),
             @ApiResponse(responseCode = "409", description = "이미 배송지 존재")
     })
-    ApiResult<MyPageAddressResponseDto> createAddress(
+    ResponseEntity<ApiResult<MyPageAddressResponseDto>> createAddress(
             @Parameter(hidden = true)
             String memberId,
             @Valid @RequestBody MyPageAddressRequestDto request
@@ -55,7 +56,7 @@ public interface MyPageControllerDocs {
             ),
             @ApiResponse(responseCode = "404", description = "배송지 없음")
     })
-    ApiResult<MyPageAddressResponseDto> updateAddress(
+    ResponseEntity<ApiResult<MyPageAddressResponseDto>> updateAddress(
             @Parameter(hidden = true)
             String memberId,
             @Valid @RequestBody MyPageAddressRequestDto request
@@ -70,7 +71,7 @@ public interface MyPageControllerDocs {
             ),
             @ApiResponse(responseCode = "404", description = "배송지 없음")
     })
-    ApiResult<?> deleteAddress(
+    ResponseEntity<ApiResult<Void>> deleteAddress(
             @Parameter(hidden = true)
             String memberId
     );

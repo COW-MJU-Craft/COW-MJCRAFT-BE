@@ -2,6 +2,7 @@ package com.example.cowmjucraft.domain.feedback.controller.client;
 
 import com.example.cowmjucraft.domain.feedback.dto.request.FeedbackRequestDto;
 import com.example.cowmjucraft.global.response.ApiResult;
+import org.springframework.http.ResponseEntity;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -23,7 +24,7 @@ public interface FeedbackControllerDocs {
             @ApiResponse(responseCode = "201", description = "성공"),
             @ApiResponse(responseCode = "400", description = "요청 값 검증 실패")
     })
-    ApiResult<?> createFeedback(
+    ResponseEntity<ApiResult<Void>> createFeedback(
             @RequestBody(
                     required = true,
                     description = "건의사항 등록 정보",

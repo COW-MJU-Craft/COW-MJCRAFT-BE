@@ -3,6 +3,7 @@ package com.example.cowmjucraft.domain.feedback.controller.admin;
 import com.example.cowmjucraft.domain.feedback.dto.request.FeedbackAdminUpdateRequestDto;
 import com.example.cowmjucraft.domain.feedback.dto.response.FeedbackAdminResponseDto;
 import com.example.cowmjucraft.global.response.ApiResult;
+import org.springframework.http.ResponseEntity;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -32,7 +33,7 @@ public interface FeedbackAdminControllerDocs {
             @ApiResponse(responseCode = "401", description = "인증 실패"),
             @ApiResponse(responseCode = "403", description = "권한 없음")
     })
-    ApiResult<List<FeedbackAdminResponseDto>> getFeedbacks();
+    ResponseEntity<ApiResult<List<FeedbackAdminResponseDto>>> getFeedbacks();
 
     @Operation(
             summary = "건의사항 답변 및 상태 변경",
@@ -45,7 +46,7 @@ public interface FeedbackAdminControllerDocs {
             @ApiResponse(responseCode = "403", description = "권한 없음"),
             @ApiResponse(responseCode = "404", description = "대상 없음")
     })
-    ApiResult<?> updateFeedback(
+    ResponseEntity<ApiResult<Void>> updateFeedback(
             @Parameter(
                     description = "피드백 ID",
                     example = "1"

@@ -2,6 +2,7 @@ package com.example.cowmjucraft.domain.sns.controller.admin;
 
 import com.example.cowmjucraft.domain.sns.dto.request.SnsAdminRequestDto;
 import com.example.cowmjucraft.global.response.ApiResult;
+import org.springframework.http.ResponseEntity;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -44,7 +45,7 @@ public interface SnsAdminControllerDocs {
             @ApiResponse(responseCode = "401", description = "인증 실패"),
             @ApiResponse(responseCode = "403", description = "권한 없음")
     })
-    ApiResult<?> upsertKakao(
+    ResponseEntity<ApiResult<Void>> upsertKakao(
             @RequestBody(
                     required = true,
                     description = "카카오 오픈채팅 링크 정보",
@@ -88,7 +89,7 @@ public interface SnsAdminControllerDocs {
             @ApiResponse(responseCode = "401", description = "인증 실패"),
             @ApiResponse(responseCode = "403", description = "권한 없음")
     })
-    ApiResult<?> upsertInstagram(
+    ResponseEntity<ApiResult<Void>> upsertInstagram(
             @RequestBody(
                     required = true,
                     description = "인스타그램 링크 정보",

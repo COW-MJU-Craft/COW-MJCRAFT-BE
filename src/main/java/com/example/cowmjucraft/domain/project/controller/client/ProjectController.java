@@ -3,8 +3,10 @@ package com.example.cowmjucraft.domain.project.controller.client;
 import com.example.cowmjucraft.domain.project.dto.response.ProjectDetailResponseDto;
 import com.example.cowmjucraft.domain.project.dto.response.ProjectListItemResponseDto;
 import com.example.cowmjucraft.domain.project.service.ProjectService;
+import com.example.cowmjucraft.global.response.ApiResponse;
 import com.example.cowmjucraft.global.response.ApiResult;
 import com.example.cowmjucraft.global.response.type.SuccessType;
+import org.springframework.http.ResponseEntity;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -21,15 +23,15 @@ public class ProjectController implements ProjectControllerDocs {
 
     @GetMapping
     @Override
-    public ApiResult<List<ProjectListItemResponseDto>> getProjects() {
-        return ApiResult.success(SuccessType.SUCCESS, projectService.getProjects());
+    public ResponseEntity<ApiResult<List<ProjectListItemResponseDto>>> getProjects() {
+        return ApiResponse.of(SuccessType.SUCCESS, projectService.getProjects());
     }
 
     @GetMapping("/{projectId}")
     @Override
-    public ApiResult<ProjectDetailResponseDto> getProject(
+    public ResponseEntity<ApiResult<ProjectDetailResponseDto>> getProject(
             @PathVariable Long projectId
     ) {
-        return ApiResult.success(SuccessType.SUCCESS, projectService.getProject(projectId));
+        return ApiResponse.of(SuccessType.SUCCESS, projectService.getProject(projectId));
     }
 }
