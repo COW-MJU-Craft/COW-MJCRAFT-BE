@@ -1,20 +1,14 @@
 package com.example.cowmjucraft.domain.recruit.exception;
 
-import com.example.cowmjucraft.global.response.type.ErrorType;
-import lombok.Getter;
+import com.example.cowmjucraft.global.exception.DomainException;
 
-@Getter
-public class RecruitException extends RuntimeException {
+public class RecruitException extends DomainException {
 
-    private final ErrorType errorType;
-
-    public RecruitException(ErrorType errorType) {
-        super(errorType.getMessage());
-        this.errorType = errorType;
+    public RecruitException(RecruitErrorType errorType) {
+        super(errorType);
     }
 
-    public RecruitException(ErrorType errorType, String message) {
-        super(message);
-        this.errorType = errorType;
+    public RecruitException(RecruitErrorType errorType, String message) {
+        super(errorType, message);
     }
 }

@@ -9,7 +9,7 @@ import com.example.cowmjucraft.domain.recruit.exception.RecruitException;
 import com.example.cowmjucraft.domain.recruit.repository.AnswerRepository;
 import com.example.cowmjucraft.domain.recruit.repository.ApplicationRepository;
 import com.example.cowmjucraft.domain.recruit.repository.FormRepository;
-import com.example.cowmjucraft.global.response.type.ErrorType;
+import com.example.cowmjucraft.domain.recruit.exception.RecruitErrorType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,7 +28,7 @@ public class ApplicationAdminService {
     @Transactional(readOnly = true)
     public List<ApplicationListAdminResponse> getApplicationsByFormId(Long formId) {
         Form form = formRepository.findById(formId)
-                .orElseThrow(() -> new RecruitException(ErrorType.FORM_NOT_FOUND));
+                .orElseThrow(() -> new RecruitException(RecruitErrorType.FORM_NOT_FOUND));
 
         List<Application> apps = applicationRepository.findAllByForm(form);
         List<ApplicationListAdminResponse> result = new ArrayList<>();
@@ -51,13 +51,13 @@ public class ApplicationAdminService {
     public ApplicationDetailAdminResponse getApplication(Long formId, Long applicationId) {
 
         Form form = formRepository.findById(formId)
-                .orElseThrow(() -> new RecruitException(ErrorType.FORM_NOT_FOUND));
+                .orElseThrow(() -> new RecruitException(RecruitErrorType.FORM_NOT_FOUND));
 
         Application application = applicationRepository.findById(applicationId)
-                .orElseThrow(() -> new RecruitException(ErrorType.APPLICATION_NOT_FOUND));
+                .orElseThrow(() -> new RecruitException(RecruitErrorType.APPLICATION_NOT_FOUND));
 
         if (!application.getForm().getId().equals(form.getId())) {
-            throw new RecruitException(ErrorType.APPLICATION_NOT_IN_THIS_FORM);
+            throw new RecruitException(RecruitErrorType.APPLICATION_NOT_IN_THIS_FORM);
         }
 
         List<Answer> answers = answerRepository.findAllByApplication(application);
@@ -81,7 +81,7 @@ public class ApplicationAdminService {
     @Transactional
     public void deleteApplication(Long applicationId) {
         Application application = applicationRepository.findById(applicationId)
-                .orElseThrow(() -> new RecruitException(ErrorType.APPLICATION_NOT_FOUND));
+                .orElseThrow(() -> new RecruitException(RecruitErrorType.APPLICATION_NOT_FOUND));
 
         answerRepository.deleteAllByApplication(application);
         applicationRepository.delete(application);
@@ -91,7 +91,7 @@ public class ApplicationAdminService {
     public void updateResult(Long applicationId, ApplicationResultUpdateAdminRequest request) {
 
         Application application = applicationRepository.findById(applicationId)
-                .orElseThrow(() -> new RecruitException(ErrorType.APPLICATION_NOT_FOUND));
+                .orElseThrow(() -> new RecruitException(RecruitErrorType.APPLICATION_NOT_FOUND));
 
         application.setResultStatus(request.getResultStatus());
     }

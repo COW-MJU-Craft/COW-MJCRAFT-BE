@@ -1,7 +1,8 @@
 package com.example.cowmjucraft.global.exception;
 
 import com.example.cowmjucraft.global.response.ApiResult;
-import com.example.cowmjucraft.global.response.type.ErrorType;
+import com.example.cowmjucraft.global.response.type.CommonErrorType;
+import com.example.cowmjucraft.global.response.type.ErrorCode;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import java.util.ArrayList;
@@ -23,7 +24,6 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
-import com.example.cowmjucraft.domain.recruit.exception.RecruitException;
 
 
 @Slf4j
@@ -42,7 +42,7 @@ public class GlobalExceptionHandler {
         String message = buildValidationMessage(detail);
         log.debug("Validation error: {}", detail);
 
-        return json(errorType(ErrorType.VALIDATION_FAILED), message);
+        return json(CommonErrorType.VALIDATION_FAILED, message);
     }
 
     @ExceptionHandler(ConstraintViolationException.class)
@@ -56,39 +56,39 @@ public class GlobalExceptionHandler {
         String message = buildValidationMessage(detail);
         log.debug("Constraint violation: {}", detail);
 
-        return json(errorType(ErrorType.VALIDATION_FAILED), message);
+        return json(CommonErrorType.VALIDATION_FAILED, message);
     }
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<ApiResult<?>> handleNotReadable(HttpMessageNotReadableException exception) {
         log.debug("Unreadable request body", exception);
-        return json(errorType(ErrorType.INVALID_REQUEST),
+        return json(CommonErrorType.INVALID_REQUEST,
                 "요청 값 검증에 실패했습니다. (요청 본문 형식이 올바르지 않습니다)");
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ApiResult<?>> handleIllegalArgument(IllegalArgumentException exception) {
         log.debug("IllegalArgumentException: {}", exception.getMessage(), exception);
-        String message = defaultIfBlank(exception.getMessage(), ErrorType.INVALID_REQUEST.getMessage());
-        return json(errorType(ErrorType.INVALID_REQUEST), message);
+        String message = defaultIfBlank(exception.getMessage(), CommonErrorType.INVALID_REQUEST.getMessage());
+        return json(CommonErrorType.INVALID_REQUEST, message);
     }
 
     @ExceptionHandler(ResponseStatusException.class)
     public ResponseEntity<ApiResult<?>> handleResponseStatus(ResponseStatusException exception) {
-        ErrorType errorType = mapStatusToErrorType(exception.getStatusCode());
+        CommonErrorType errorType = mapStatusToErrorType(exception.getStatusCode());
         String message = defaultIfBlank(exception.getReason(), errorType.getMessage());
         log.debug("ResponseStatusException: status={}, reason={}", exception.getStatusCode(), exception.getReason(), exception);
 
-        return json(errorType(errorType), message);
+        return json(errorType, message);
     }
 
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<ApiResult<?>> handleDataIntegrityViolation(DataIntegrityViolationException exception) {
         log.debug("DataIntegrityViolationException: {}", exception.getMessage(), exception);
         if (isLookupIdUniqueViolation(exception)) {
-            return json(errorType(ErrorType.CONFLICT), "이미 사용 중인 조회 아이디입니다.");
+            return json(CommonErrorType.CONFLICT, "이미 사용 중인 조회 아이디입니다.");
         }
-        return json(errorType(ErrorType.CONFLICT), ErrorType.CONFLICT.getMessage());
+        return json(CommonErrorType.CONFLICT, CommonErrorType.CONFLICT.getMessage());
     }
 
     @ExceptionHandler(HttpMediaTypeNotAcceptableException.class)
@@ -97,7 +97,7 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity.status(406)
                 .contentType(MediaType.APPLICATION_JSON)
-                .body(ApiResult.error(ErrorType.INVALID_REQUEST, "Accept 헤더가 지원되지 않습니다."));
+                .body(ApiResult.error(CommonErrorType.INVALID_REQUEST, "Accept 헤더가 지원되지 않습니다."));
     }
 
     @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
@@ -106,37 +106,31 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity.status(405)
                 .contentType(MediaType.APPLICATION_JSON)
-                .body(ApiResult.error(ErrorType.BAD_REQUEST, "지원하지 않는 HTTP Method 입니다."));
+                .body(ApiResult.error(CommonErrorType.BAD_REQUEST, "지원하지 않는 HTTP Method 입니다."));
     }
 
     @ExceptionHandler(NoResourceFoundException.class)
     public ResponseEntity<ApiResult<?>> handleNoResourceFound(NoResourceFoundException exception) {
         log.debug("No resource found: {}", exception.getMessage());
-        return json(errorType(ErrorType.NOT_FOUND), ErrorType.NOT_FOUND.getMessage());
+        return json(CommonErrorType.NOT_FOUND, CommonErrorType.NOT_FOUND.getMessage());
+    }
+
+    @ExceptionHandler(DomainException.class)
+    public ResponseEntity<ApiResult<?>> handleDomainException(DomainException exception) {
+        return json(exception.getErrorCode(), exception.getMessage());
     }
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResult<?>> handleException(Exception exception) {
         log.error("Unhandled exception", exception);
-        return json(errorType(ErrorType.INTERNAL_ERROR), ErrorType.INTERNAL_ERROR.getMessage());
-    }
-
-    @ExceptionHandler(RecruitException.class)
-    public ResponseEntity<ApiResult<?>> handleRecruitException(RecruitException exception) {
-        ErrorType errorType = exception.getErrorType();
-        String message = exception.getMessage();
-        return json(errorType, message);
+        return json(CommonErrorType.INTERNAL_ERROR, CommonErrorType.INTERNAL_ERROR.getMessage());
     }
 
 
-    private ResponseEntity<ApiResult<?>> json(ErrorType errorType, String message) {
-        return ResponseEntity.status(errorType.getHttpStatusCode())
+    private ResponseEntity<ApiResult<?>> json(ErrorCode errorCode, String message) {
+        return ResponseEntity.status(errorCode.getHttpStatusCode())
                 .contentType(MediaType.APPLICATION_JSON)
-                .body(ApiResult.error(errorType, message));
-    }
-
-    private ErrorType errorType(ErrorType t) {
-        return t;
+                .body(ApiResult.error(errorCode, message));
     }
 
     private String buildFieldErrorDetail(BindingResult bindingResult) {
@@ -199,17 +193,17 @@ public class GlobalExceptionHandler {
         return false;
     }
 
-    private ErrorType mapStatusToErrorType(HttpStatusCode statusCode) {
-        if (statusCode == null) return ErrorType.INTERNAL_ERROR;
+    private CommonErrorType mapStatusToErrorType(HttpStatusCode statusCode) {
+        if (statusCode == null) return CommonErrorType.INTERNAL_ERROR;
         int value = statusCode.value();
         return switch (value) {
-            case 400 -> ErrorType.INVALID_REQUEST;
-            case 401 -> ErrorType.UNAUTHORIZED;
-            case 403 -> ErrorType.FORBIDDEN;
-            case 404 -> ErrorType.NOT_FOUND;
-            case 410 -> ErrorType.GONE;
-            case 409 -> ErrorType.CONFLICT;
-            default -> ErrorType.INTERNAL_ERROR;
+            case 400 -> CommonErrorType.INVALID_REQUEST;
+            case 401 -> CommonErrorType.UNAUTHORIZED;
+            case 403 -> CommonErrorType.FORBIDDEN;
+            case 404 -> CommonErrorType.NOT_FOUND;
+            case 410 -> CommonErrorType.GONE;
+            case 409 -> CommonErrorType.CONFLICT;
+            default -> CommonErrorType.INTERNAL_ERROR;
         };
     }
 }
