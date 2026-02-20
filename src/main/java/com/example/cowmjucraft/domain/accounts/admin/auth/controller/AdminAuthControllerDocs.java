@@ -2,6 +2,7 @@ package com.example.cowmjucraft.domain.accounts.admin.auth.controller;
 
 import com.example.cowmjucraft.domain.accounts.admin.auth.dto.request.AdminLoginRequestDto;
 import com.example.cowmjucraft.domain.accounts.admin.auth.dto.response.AdminLoginTokenResponseDto;
+import com.example.cowmjucraft.global.response.ApiResult;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -9,7 +10,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestBody;
 
 @Tag(name = "Auth - Admin", description = "관리자 인증 API")
@@ -24,7 +24,7 @@ public interface AdminAuthControllerDocs {
             @ApiResponse(responseCode = "401", description = "유효하지 않은 자격 증명"),
             @ApiResponse(responseCode = "403", description = "ADMIN 권한 아님")
     })
-    ResponseEntity<AdminLoginTokenResponseDto> login(@Valid @RequestBody AdminLoginRequestDto request);
+    ApiResult<AdminLoginTokenResponseDto> login(@Valid @RequestBody AdminLoginRequestDto request);
 
     @Operation(
             summary = "관리자 로그아웃",
@@ -32,9 +32,9 @@ public interface AdminAuthControllerDocs {
                     "본 API는 로그아웃 플로우 통일 및 향후 확장을 위해 제공됩니다."
     )
     @ApiResponses({
-            @ApiResponse(responseCode = "204", description = "로그아웃 처리 완료"),
+            @ApiResponse(responseCode = "200", description = "로그아웃 처리 완료"),
             @ApiResponse(responseCode = "401", description = "인증 실패"),
             @ApiResponse(responseCode = "403", description = "ADMIN 권한 아님")
     })
-    ResponseEntity<Void> logout();
+    ApiResult<?> logout();
 }

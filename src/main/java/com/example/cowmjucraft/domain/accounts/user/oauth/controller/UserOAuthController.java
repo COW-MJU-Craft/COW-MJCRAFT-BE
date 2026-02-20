@@ -4,9 +4,10 @@ import com.example.cowmjucraft.domain.accounts.user.oauth.dto.request.KakaoLogin
 import com.example.cowmjucraft.domain.accounts.user.oauth.dto.request.NaverLoginRequestDto;
 import com.example.cowmjucraft.domain.accounts.user.oauth.dto.response.UserSocialLoginResponseDto;
 import com.example.cowmjucraft.domain.accounts.user.oauth.service.UserOAuthService;
+import com.example.cowmjucraft.global.response.ApiResult;
+import com.example.cowmjucraft.global.response.type.SuccessType;
 import lombok.RequiredArgsConstructor;
 import jakarta.validation.Valid;
-import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -23,13 +24,13 @@ public class UserOAuthController implements UserOAuthControllerDocs {
 
     @Override
     @PostMapping("/naver/login")
-    public ResponseEntity<UserSocialLoginResponseDto> loginWithNaver(@Valid @RequestBody NaverLoginRequestDto request) {
-        return ResponseEntity.ok(userOAuthService.loginWithNaver(request));
+    public ApiResult<UserSocialLoginResponseDto> loginWithNaver(@Valid @RequestBody NaverLoginRequestDto request) {
+        return ApiResult.success(SuccessType.SUCCESS, userOAuthService.loginWithNaver(request));
     }
 
     @Override
     @PostMapping("/kakao/login")
-    public ResponseEntity<UserSocialLoginResponseDto> loginWithKakao(@Valid @RequestBody KakaoLoginRequestDto request) {
-        return ResponseEntity.ok(userOAuthService.loginWithKakao(request));
+    public ApiResult<UserSocialLoginResponseDto> loginWithKakao(@Valid @RequestBody KakaoLoginRequestDto request) {
+        return ApiResult.success(SuccessType.SUCCESS, userOAuthService.loginWithKakao(request));
     }
 }

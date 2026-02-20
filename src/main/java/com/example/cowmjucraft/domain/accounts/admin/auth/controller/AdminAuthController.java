@@ -3,8 +3,9 @@ package com.example.cowmjucraft.domain.accounts.admin.auth.controller;
 import com.example.cowmjucraft.domain.accounts.admin.auth.dto.request.AdminLoginRequestDto;
 import com.example.cowmjucraft.domain.accounts.admin.auth.dto.response.AdminLoginTokenResponseDto;
 import com.example.cowmjucraft.domain.accounts.admin.auth.service.AdminAuthService;
+import com.example.cowmjucraft.global.response.ApiResult;
+import com.example.cowmjucraft.global.response.type.SuccessType;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -21,16 +22,16 @@ public class AdminAuthController implements AdminAuthControllerDocs {
 
     @Override
     @PostMapping("/login")
-    public ResponseEntity<AdminLoginTokenResponseDto> login(@RequestBody AdminLoginRequestDto request) {
+    public ApiResult<AdminLoginTokenResponseDto> login(@RequestBody AdminLoginRequestDto request) {
         AdminAuthService.LoginResult loginResult = adminAuthService.login(request);
         AdminLoginTokenResponseDto response = AdminLoginTokenResponseDto.from(loginResult.admin(), loginResult.token());
-        return ResponseEntity.ok(response);
+        return ApiResult.success(SuccessType.SUCCESS, response);
     }
 
     @Override
     @PostMapping("/logout")
-    public ResponseEntity<Void> logout() {
+    public ApiResult<?> logout() {
         adminAuthService.logout();
-        return ResponseEntity.noContent().build();
+        return ApiResult.success(SuccessType.SUCCESS);
     }
 }
