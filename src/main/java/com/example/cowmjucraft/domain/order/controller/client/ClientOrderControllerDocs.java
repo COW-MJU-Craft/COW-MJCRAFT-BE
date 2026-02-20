@@ -6,6 +6,7 @@ import com.example.cowmjucraft.domain.order.dto.response.OrderCreateResponseDto;
 import com.example.cowmjucraft.domain.order.dto.response.OrderDetailResponseDto;
 import com.example.cowmjucraft.domain.order.dto.response.OrderLookupIdAvailabilityResponseDto;
 import com.example.cowmjucraft.global.response.ApiResult;
+import org.springframework.http.ResponseEntity;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -110,7 +111,7 @@ public interface ClientOrderControllerDocs {
             @ApiResponse(responseCode = "404", description = "주문 상품을 찾을 수 없음"),
             @ApiResponse(responseCode = "409", description = "재고 부족 또는 상태 충돌")
     })
-    ApiResult<OrderCreateResponseDto> createOrder(OrderCreateRequestDto request);
+    ResponseEntity<ApiResult<OrderCreateResponseDto>> createOrder(OrderCreateRequestDto request);
 
     @Operation(
             summary = "조회 아이디 사용 가능 여부 확인",
@@ -140,7 +141,7 @@ public interface ClientOrderControllerDocs {
             ),
             @ApiResponse(responseCode = "400", description = "lookupId 누락 또는 공백")
     })
-    ApiResult<OrderLookupIdAvailabilityResponseDto> checkLookupIdAvailability(String lookupId);
+    ResponseEntity<ApiResult<OrderLookupIdAvailabilityResponseDto>> checkLookupIdAvailability(String lookupId);
 
     @Operation(
             summary = "조회 아이디/비밀번호로 주문 상세 조회",
@@ -153,7 +154,7 @@ public interface ClientOrderControllerDocs {
             @ApiResponse(responseCode = "200", description = "조회 성공"),
             @ApiResponse(responseCode = "401", description = "조회 아이디 또는 비밀번호 불일치")
     })
-    ApiResult<OrderDetailResponseDto> lookupOrder(OrderLookupRequestDto request);
+    ResponseEntity<ApiResult<OrderDetailResponseDto>> lookupOrder(OrderLookupRequestDto request);
 
     @Operation(
             summary = "이메일 토큰으로 주문 상세 조회",
@@ -227,7 +228,7 @@ public interface ClientOrderControllerDocs {
             @ApiResponse(responseCode = "404", description = "토큰 없음 또는 불일치"),
             @ApiResponse(responseCode = "410", description = "토큰 만료")
     })
-    ApiResult<OrderDetailResponseDto> viewOrderByToken(
+    ResponseEntity<ApiResult<OrderDetailResponseDto>> viewOrderByToken(
             @Parameter(description = "이메일 링크 조회 토큰", required = true, example = "raw-view-token-string")
             String token
     );

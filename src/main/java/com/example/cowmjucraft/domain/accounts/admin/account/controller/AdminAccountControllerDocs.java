@@ -3,6 +3,7 @@ package com.example.cowmjucraft.domain.accounts.admin.account.controller;
 import com.example.cowmjucraft.domain.accounts.admin.account.dto.request.AdminAccountUpdateRequestDto;
 import com.example.cowmjucraft.domain.accounts.admin.account.dto.response.AdminAccountResponseDto;
 import com.example.cowmjucraft.global.response.ApiResult;
+import org.springframework.http.ResponseEntity;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -25,5 +26,5 @@ public interface AdminAccountControllerDocs {
             @ApiResponse(responseCode = "403", description = "ADMIN 권한 아님"),
             @ApiResponse(responseCode = "409", description = "userId 중복")
     })
-    ApiResult<AdminAccountResponseDto> updateAdminAccount(@Valid @RequestBody AdminAccountUpdateRequestDto request);
+    ResponseEntity<ApiResult<AdminAccountResponseDto>> updateAdminAccount(@Valid @RequestBody AdminAccountUpdateRequestDto request);
 }

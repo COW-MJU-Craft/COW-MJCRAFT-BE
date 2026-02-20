@@ -4,6 +4,7 @@ import com.example.cowmjucraft.domain.item.dto.response.ProjectItemDetailRespons
 import com.example.cowmjucraft.domain.item.dto.response.ProjectItemJournalPresignGetResponseDto;
 import com.example.cowmjucraft.domain.item.dto.response.ProjectItemListResponseDto;
 import com.example.cowmjucraft.global.response.ApiResult;
+import org.springframework.http.ResponseEntity;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -57,7 +58,7 @@ public interface ItemControllerDocs {
             ),
             @ApiResponse(responseCode = "404", description = "요청한 리소스를 찾을 수 없음")
     })
-    ApiResult<List<ProjectItemListResponseDto>> getProjectItems(
+    ResponseEntity<ApiResult<List<ProjectItemListResponseDto>>> getProjectItems(
             @Parameter(description = "프로젝트 ID", example = "1")
             Long projectId
     );
@@ -110,7 +111,7 @@ public interface ItemControllerDocs {
             ),
             @ApiResponse(responseCode = "404", description = "요청한 리소스를 찾을 수 없음")
     })
-    ApiResult<ProjectItemDetailResponseDto> getItem(
+    ResponseEntity<ApiResult<ProjectItemDetailResponseDto>> getItem(
             @Parameter(description = "물품 ID", example = "1")
             Long itemId
     );
@@ -146,7 +147,7 @@ public interface ItemControllerDocs {
             @ApiResponse(responseCode = "404", description = "요청한 리소스를 찾을 수 없음"),
             @ApiResponse(responseCode = "422", description = "요청 값 검증 실패")
     })
-    ApiResult<ProjectItemJournalPresignGetResponseDto> presignJournalDownload(
+    ResponseEntity<ApiResult<ProjectItemJournalPresignGetResponseDto>> presignJournalDownload(
             @Parameter(description = "물품 ID", example = "1")
             Long itemId
     );

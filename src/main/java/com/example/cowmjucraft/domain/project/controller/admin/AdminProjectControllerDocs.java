@@ -8,6 +8,7 @@ import com.example.cowmjucraft.domain.project.dto.response.AdminProjectOrderPatc
 import com.example.cowmjucraft.domain.project.dto.response.AdminProjectPresignPutBatchResponseDto;
 import com.example.cowmjucraft.domain.project.dto.response.AdminProjectResponseDto;
 import com.example.cowmjucraft.global.response.ApiResult;
+import org.springframework.http.ResponseEntity;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -34,7 +35,7 @@ public interface AdminProjectControllerDocs {
                     content = @Content(schema = @Schema(implementation = ApiResult.class))
             )
     })
-    ApiResult<List<AdminProjectResponseDto>> getProjects();
+    ResponseEntity<ApiResult<List<AdminProjectResponseDto>>> getProjects();
 
     @Operation(
             summary = "프로젝트 상세 조회",
@@ -48,7 +49,7 @@ public interface AdminProjectControllerDocs {
             ),
             @ApiResponse(responseCode = "404", description = "요청한 리소스를 찾을 수 없음")
     })
-    ApiResult<AdminProjectResponseDto> getProject(
+    ResponseEntity<ApiResult<AdminProjectResponseDto>> getProject(
             @Parameter(description = "프로젝트 ID", example = "1")
             Long projectId
     );
@@ -124,7 +125,7 @@ public interface AdminProjectControllerDocs {
             ),
             @ApiResponse(responseCode = "422", description = "요청 값 검증 실패")
     })
-    ApiResult<AdminProjectResponseDto> createProject(
+    ResponseEntity<ApiResult<AdminProjectResponseDto>> createProject(
             @Valid AdminProjectCreateRequestDto request
     );
 
@@ -186,7 +187,7 @@ public interface AdminProjectControllerDocs {
             ),
             @ApiResponse(responseCode = "400", description = "요청 값 오류")
     })
-    ApiResult<AdminProjectPresignPutBatchResponseDto> presignThumbnail(
+    ResponseEntity<ApiResult<AdminProjectPresignPutBatchResponseDto>> presignThumbnail(
             @Valid AdminProjectPresignPutBatchRequestDto request
     );
 
@@ -248,7 +249,7 @@ public interface AdminProjectControllerDocs {
             ),
             @ApiResponse(responseCode = "400", description = "요청 값 오류")
     })
-    ApiResult<AdminProjectPresignPutBatchResponseDto> presignImages(
+    ResponseEntity<ApiResult<AdminProjectPresignPutBatchResponseDto>> presignImages(
             @Valid AdminProjectPresignPutBatchRequestDto request
     );
 
@@ -324,7 +325,7 @@ public interface AdminProjectControllerDocs {
             @ApiResponse(responseCode = "404", description = "요청한 리소스를 찾을 수 없음"),
             @ApiResponse(responseCode = "422", description = "요청 값 검증 실패")
     })
-    ApiResult<AdminProjectResponseDto> updateProject(
+    ResponseEntity<ApiResult<AdminProjectResponseDto>> updateProject(
             @Parameter(description = "프로젝트 ID", example = "1")
             Long projectId,
             @Valid AdminProjectUpdateRequestDto request
@@ -355,7 +356,7 @@ public interface AdminProjectControllerDocs {
             ),
             @ApiResponse(responseCode = "404", description = "요청한 리소스를 찾을 수 없음")
     })
-    ApiResult<?> deleteProject(
+    ResponseEntity<ApiResult<Void>> deleteProject(
             @Parameter(description = "프로젝트 ID", example = "1")
             Long projectId
     );
@@ -419,7 +420,7 @@ public interface AdminProjectControllerDocs {
             @ApiResponse(responseCode = "404", description = "요청한 리소스를 찾을 수 없음"),
             @ApiResponse(responseCode = "422", description = "요청 값 검증 실패")
     })
-    ApiResult<AdminProjectOrderPatchResponseDto> patchOrder(
+    ResponseEntity<ApiResult<AdminProjectOrderPatchResponseDto>> patchOrder(
             @Valid AdminProjectOrderPatchRequestDto request
     );
 }

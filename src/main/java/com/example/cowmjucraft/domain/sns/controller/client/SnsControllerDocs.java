@@ -2,6 +2,7 @@ package com.example.cowmjucraft.domain.sns.controller.client;
 
 import com.example.cowmjucraft.domain.sns.dto.response.SnsResponseDto;
 import com.example.cowmjucraft.global.response.ApiResult;
+import org.springframework.http.ResponseEntity;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -40,7 +41,7 @@ public interface SnsControllerDocs {
             ),
             @ApiResponse(responseCode = "404", description = "리소스 없음")
     })
-    ApiResult<SnsResponseDto> getKakaoLink();
+    ResponseEntity<ApiResult<SnsResponseDto>> getKakaoLink();
 
     @Operation(
             summary = "인스타그램 링크 조회",
@@ -69,5 +70,5 @@ public interface SnsControllerDocs {
             ),
             @ApiResponse(responseCode = "404", description = "리소스 없음")
     })
-    ApiResult<SnsResponseDto> getInstagramLink();
+    ResponseEntity<ApiResult<SnsResponseDto>> getInstagramLink();
 }

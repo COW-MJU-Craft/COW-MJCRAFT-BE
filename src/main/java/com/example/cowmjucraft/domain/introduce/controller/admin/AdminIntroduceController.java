@@ -7,8 +7,10 @@ import com.example.cowmjucraft.domain.introduce.dto.response.AdminIntroducePresi
 import com.example.cowmjucraft.domain.introduce.dto.response.AdminIntroduceDetailResponseDto;
 import com.example.cowmjucraft.domain.introduce.dto.response.AdminIntroduceMainResponseDto;
 import com.example.cowmjucraft.domain.introduce.service.IntroduceService;
+import com.example.cowmjucraft.global.response.ApiResponse;
 import com.example.cowmjucraft.global.response.ApiResult;
 import com.example.cowmjucraft.global.response.type.SuccessType;
+import org.springframework.http.ResponseEntity;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -27,45 +29,45 @@ public class AdminIntroduceController implements AdminIntroduceControllerDocs {
 
     @GetMapping("/main")
     @Override
-    public ApiResult<AdminIntroduceMainResponseDto> getMain() {
-        return ApiResult.success(SuccessType.SUCCESS, introduceService.adminGetMain());
+    public ResponseEntity<ApiResult<AdminIntroduceMainResponseDto>> getMain() {
+        return ApiResponse.of(SuccessType.SUCCESS, introduceService.adminGetMain());
     }
 
     @PutMapping("/main")
     @Override
-    public ApiResult<AdminIntroduceMainResponseDto> upsertMain(
+    public ResponseEntity<ApiResult<AdminIntroduceMainResponseDto>> upsertMain(
             @Valid @RequestBody AdminIntroduceMainUpsertRequestDto request
     ) {
-        return ApiResult.success(SuccessType.SUCCESS, introduceService.adminUpsertMain(request));
+        return ApiResponse.of(SuccessType.SUCCESS, introduceService.adminUpsertMain(request));
     }
 
     @GetMapping
     @Override
-    public ApiResult<AdminIntroduceDetailResponseDto> getDetail() {
-        return ApiResult.success(SuccessType.SUCCESS, introduceService.adminGetDetail());
+    public ResponseEntity<ApiResult<AdminIntroduceDetailResponseDto>> getDetail() {
+        return ApiResponse.of(SuccessType.SUCCESS, introduceService.adminGetDetail());
     }
 
     @PutMapping
     @Override
-    public ApiResult<AdminIntroduceDetailResponseDto> upsertDetail(
+    public ResponseEntity<ApiResult<AdminIntroduceDetailResponseDto>> upsertDetail(
             @Valid @RequestBody AdminIntroduceDetailUpsertRequestDto request
     ) {
-        return ApiResult.success(SuccessType.SUCCESS, introduceService.adminUpsertDetail(request));
+        return ApiResponse.of(SuccessType.SUCCESS, introduceService.adminUpsertDetail(request));
     }
 
     @PostMapping("/presign-put/hero-logos")
     @Override
-    public ApiResult<AdminIntroducePresignPutResponseDto> presignHeroLogo(
+    public ResponseEntity<ApiResult<AdminIntroducePresignPutResponseDto>> presignHeroLogo(
             @Valid @RequestBody AdminIntroducePresignPutRequestDto request
     ) {
-        return ApiResult.success(SuccessType.SUCCESS, introduceService.createHeroLogoPresignPut(request));
+        return ApiResponse.of(SuccessType.SUCCESS, introduceService.createHeroLogoPresignPut(request));
     }
 
     @PostMapping("/presign-put/sections")
     @Override
-    public ApiResult<AdminIntroducePresignPutResponseDto> presignSection(
+    public ResponseEntity<ApiResult<AdminIntroducePresignPutResponseDto>> presignSection(
             @Valid @RequestBody AdminIntroducePresignPutRequestDto request
     ) {
-        return ApiResult.success(SuccessType.SUCCESS, introduceService.createSectionPresignPut(request));
+        return ApiResponse.of(SuccessType.SUCCESS, introduceService.createSectionPresignPut(request));
     }
 }

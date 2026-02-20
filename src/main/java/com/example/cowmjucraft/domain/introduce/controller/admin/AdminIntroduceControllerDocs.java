@@ -7,6 +7,7 @@ import com.example.cowmjucraft.domain.introduce.dto.response.AdminIntroducePresi
 import com.example.cowmjucraft.domain.introduce.dto.response.AdminIntroduceDetailResponseDto;
 import com.example.cowmjucraft.domain.introduce.dto.response.AdminIntroduceMainResponseDto;
 import com.example.cowmjucraft.global.response.ApiResult;
+import org.springframework.http.ResponseEntity;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
@@ -32,7 +33,7 @@ public interface AdminIntroduceControllerDocs {
             ),
             @ApiResponse(responseCode = "404", description = "리소스 없음")
     })
-    ApiResult<AdminIntroduceMainResponseDto> getMain();
+    ResponseEntity<ApiResult<AdminIntroduceMainResponseDto>> getMain();
 
     @Operation(
             summary = "소개 메인 원본 저장",
@@ -72,7 +73,7 @@ public interface AdminIntroduceControllerDocs {
             @ApiResponse(responseCode = "400", description = "요청 값 오류"),
             @ApiResponse(responseCode = "401", description = "인증 실패")
     })
-    ApiResult<AdminIntroduceMainResponseDto> upsertMain(
+    ResponseEntity<ApiResult<AdminIntroduceMainResponseDto>> upsertMain(
             @Valid AdminIntroduceMainUpsertRequestDto request
     );
 
@@ -88,7 +89,7 @@ public interface AdminIntroduceControllerDocs {
             ),
             @ApiResponse(responseCode = "404", description = "리소스 없음")
     })
-    ApiResult<AdminIntroduceDetailResponseDto> getDetail();
+    ResponseEntity<ApiResult<AdminIntroduceDetailResponseDto>> getDetail();
 
     @Operation(
             summary = "소개 상세 원본 저장",
@@ -149,7 +150,7 @@ public interface AdminIntroduceControllerDocs {
             @ApiResponse(responseCode = "400", description = "요청 값 오류"),
             @ApiResponse(responseCode = "401", description = "인증 실패")
     })
-    ApiResult<AdminIntroduceDetailResponseDto> upsertDetail(
+    ResponseEntity<ApiResult<AdminIntroduceDetailResponseDto>> upsertDetail(
             @Valid AdminIntroduceDetailUpsertRequestDto request
     );
 
@@ -204,7 +205,7 @@ public interface AdminIntroduceControllerDocs {
             ),
             @ApiResponse(responseCode = "400", description = "요청 값 오류")
     })
-    ApiResult<AdminIntroducePresignPutResponseDto> presignHeroLogo(
+    ResponseEntity<ApiResult<AdminIntroducePresignPutResponseDto>> presignHeroLogo(
             @Valid AdminIntroducePresignPutRequestDto request
     );
 
@@ -259,7 +260,7 @@ public interface AdminIntroduceControllerDocs {
             ),
             @ApiResponse(responseCode = "400", description = "요청 값 오류")
     })
-    ApiResult<AdminIntroducePresignPutResponseDto> presignSection(
+    ResponseEntity<ApiResult<AdminIntroducePresignPutResponseDto>> presignSection(
             @Valid AdminIntroducePresignPutRequestDto request
     );
 }

@@ -2,8 +2,10 @@ package com.example.cowmjucraft.domain.feedback.controller.client;
 
 import com.example.cowmjucraft.domain.feedback.dto.request.FeedbackRequestDto;
 import com.example.cowmjucraft.domain.feedback.service.FeedbackService;
+import com.example.cowmjucraft.global.response.ApiResponse;
 import com.example.cowmjucraft.global.response.ApiResult;
 import com.example.cowmjucraft.global.response.type.SuccessType;
+import org.springframework.http.ResponseEntity;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -20,8 +22,8 @@ public class FeedbackController implements FeedbackControllerDocs {
 
     @PostMapping("/feedback")
     @Override
-    public ApiResult<?> createFeedback(@Valid @RequestBody FeedbackRequestDto request) {
+    public ResponseEntity<ApiResult<Void>> createFeedback(@Valid @RequestBody FeedbackRequestDto request) {
         feedbackService.createFeedback(request);
-        return ApiResult.success(SuccessType.CREATED);
+        return ApiResponse.of(SuccessType.CREATED);
     }
 }

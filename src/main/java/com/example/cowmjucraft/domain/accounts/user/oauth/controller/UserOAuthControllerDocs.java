@@ -4,6 +4,7 @@ import com.example.cowmjucraft.domain.accounts.user.oauth.dto.request.KakaoLogin
 import com.example.cowmjucraft.domain.accounts.user.oauth.dto.request.NaverLoginRequestDto;
 import com.example.cowmjucraft.domain.accounts.user.oauth.dto.response.UserSocialLoginResponseDto;
 import com.example.cowmjucraft.global.response.ApiResult;
+import org.springframework.http.ResponseEntity;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
@@ -42,7 +43,7 @@ public interface UserOAuthControllerDocs {
             ),
             @ApiResponse(responseCode = "401", description = "유효하지 않은 인가 코드")
     })
-    ApiResult<UserSocialLoginResponseDto> loginWithNaver(@Valid @RequestBody NaverLoginRequestDto request);
+    ResponseEntity<ApiResult<UserSocialLoginResponseDto>> loginWithNaver(@Valid @RequestBody NaverLoginRequestDto request);
 
     @Operation(
             summary = "카카오 간편 로그인",
@@ -69,5 +70,5 @@ public interface UserOAuthControllerDocs {
             ),
             @ApiResponse(responseCode = "401", description = "유효하지 않은 인가 코드")
     })
-    ApiResult<UserSocialLoginResponseDto> loginWithKakao(@Valid @RequestBody KakaoLoginRequestDto request);
+    ResponseEntity<ApiResult<UserSocialLoginResponseDto>> loginWithKakao(@Valid @RequestBody KakaoLoginRequestDto request);
 }

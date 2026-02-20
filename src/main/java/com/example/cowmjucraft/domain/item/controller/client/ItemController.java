@@ -4,8 +4,10 @@ import com.example.cowmjucraft.domain.item.dto.response.ProjectItemDetailRespons
 import com.example.cowmjucraft.domain.item.dto.response.ProjectItemJournalPresignGetResponseDto;
 import com.example.cowmjucraft.domain.item.dto.response.ProjectItemListResponseDto;
 import com.example.cowmjucraft.domain.item.service.ItemService;
+import com.example.cowmjucraft.global.response.ApiResponse;
 import com.example.cowmjucraft.global.response.ApiResult;
 import com.example.cowmjucraft.global.response.type.SuccessType;
+import org.springframework.http.ResponseEntity;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -23,25 +25,25 @@ public class ItemController implements ItemControllerDocs {
 
     @GetMapping("/projects/{projectId}/items")
     @Override
-    public ApiResult<List<ProjectItemListResponseDto>> getProjectItems(
+    public ResponseEntity<ApiResult<List<ProjectItemListResponseDto>>> getProjectItems(
             @PathVariable Long projectId
     ) {
-        return ApiResult.success(SuccessType.SUCCESS, itemService.getItems(projectId));
+        return ApiResponse.of(SuccessType.SUCCESS, itemService.getItems(projectId));
     }
 
     @GetMapping("/items/{itemId}")
     @Override
-    public ApiResult<ProjectItemDetailResponseDto> getItem(
+    public ResponseEntity<ApiResult<ProjectItemDetailResponseDto>> getItem(
             @PathVariable Long itemId
     ) {
-        return ApiResult.success(SuccessType.SUCCESS, itemService.getItem(itemId));
+        return ApiResponse.of(SuccessType.SUCCESS, itemService.getItem(itemId));
     }
 
     @PostMapping("/items/{itemId}/journal/presign-get")
     @Override
-    public ApiResult<ProjectItemJournalPresignGetResponseDto> presignJournalDownload(
+    public ResponseEntity<ApiResult<ProjectItemJournalPresignGetResponseDto>> presignJournalDownload(
             @PathVariable Long itemId
     ) {
-        return ApiResult.success(SuccessType.MEDIA_PRESIGN_CREATED, itemService.createJournalPresignGet(itemId));
+        return ApiResponse.of(SuccessType.MEDIA_PRESIGN_CREATED, itemService.createJournalPresignGet(itemId));
     }
 }

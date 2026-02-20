@@ -3,8 +3,10 @@ package com.example.cowmjucraft.domain.sns.controller.client;
 import com.example.cowmjucraft.domain.sns.dto.response.SnsResponseDto;
 import com.example.cowmjucraft.domain.sns.entity.SnsType;
 import com.example.cowmjucraft.domain.sns.service.SnsService;
+import com.example.cowmjucraft.global.response.ApiResponse;
 import com.example.cowmjucraft.global.response.ApiResult;
 import com.example.cowmjucraft.global.response.type.SuccessType;
+import org.springframework.http.ResponseEntity;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -19,13 +21,13 @@ public class SnsController implements SnsControllerDocs {
 
     @GetMapping("/kakao")
     @Override
-    public ApiResult<SnsResponseDto> getKakaoLink() {
-        return ApiResult.success(SuccessType.SUCCESS, snsService.getLink(SnsType.KAKAO));
+    public ResponseEntity<ApiResult<SnsResponseDto>> getKakaoLink() {
+        return ApiResponse.of(SuccessType.SUCCESS, snsService.getLink(SnsType.KAKAO));
     }
 
     @GetMapping("/instagram")
     @Override
-    public ApiResult<SnsResponseDto> getInstagramLink() {
-        return ApiResult.success(SuccessType.SUCCESS, snsService.getLink(SnsType.INSTAGRAM));
+    public ResponseEntity<ApiResult<SnsResponseDto>> getInstagramLink() {
+        return ApiResponse.of(SuccessType.SUCCESS, snsService.getLink(SnsType.INSTAGRAM));
     }
 }

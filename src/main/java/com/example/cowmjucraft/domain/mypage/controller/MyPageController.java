@@ -4,8 +4,10 @@ import com.example.cowmjucraft.domain.mypage.dto.request.MyPageAddressRequestDto
 import com.example.cowmjucraft.domain.mypage.dto.response.MyPageAddressResponseDto;
 import com.example.cowmjucraft.domain.mypage.dto.response.MyPageResponseDto;
 import com.example.cowmjucraft.domain.mypage.service.MyPageService;
+import com.example.cowmjucraft.global.response.ApiResponse;
 import com.example.cowmjucraft.global.response.ApiResult;
 import com.example.cowmjucraft.global.response.type.SuccessType;
+import org.springframework.http.ResponseEntity;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -26,37 +28,37 @@ public class MyPageController implements MyPageControllerDocs {
 
     @GetMapping
     @Override
-    public ApiResult<MyPageResponseDto> getMyPage(
+    public ResponseEntity<ApiResult<MyPageResponseDto>> getMyPage(
             @AuthenticationPrincipal String memberId
     ) {
-        return ApiResult.success(SuccessType.SUCCESS, myPageService.getMyPage(parseMemberId(memberId)));
+        return ApiResponse.of(SuccessType.SUCCESS, myPageService.getMyPage(parseMemberId(memberId)));
     }
 
     @PostMapping("/address")
     @Override
-    public ApiResult<MyPageAddressResponseDto> createAddress(
+    public ResponseEntity<ApiResult<MyPageAddressResponseDto>> createAddress(
             @AuthenticationPrincipal String memberId,
             @Valid @RequestBody MyPageAddressRequestDto request
     ) {
-        return ApiResult.success(SuccessType.CREATED, myPageService.createAddress(parseMemberId(memberId), request));
+        return ApiResponse.of(SuccessType.CREATED, myPageService.createAddress(parseMemberId(memberId), request));
     }
 
     @PutMapping("/address")
     @Override
-    public ApiResult<MyPageAddressResponseDto> updateAddress(
+    public ResponseEntity<ApiResult<MyPageAddressResponseDto>> updateAddress(
             @AuthenticationPrincipal String memberId,
             @Valid @RequestBody MyPageAddressRequestDto request
     ) {
-        return ApiResult.success(SuccessType.SUCCESS, myPageService.updateAddress(parseMemberId(memberId), request));
+        return ApiResponse.of(SuccessType.SUCCESS, myPageService.updateAddress(parseMemberId(memberId), request));
     }
 
     @DeleteMapping("/address")
     @Override
-    public ApiResult<?> deleteAddress(
+    public ResponseEntity<ApiResult<Void>> deleteAddress(
             @AuthenticationPrincipal String memberId
     ) {
         myPageService.deleteAddress(parseMemberId(memberId));
-        return ApiResult.success(SuccessType.SUCCESS);
+        return ApiResponse.of(SuccessType.SUCCESS);
     }
 
     private Long parseMemberId(String principal) {

@@ -12,8 +12,10 @@ import com.example.cowmjucraft.domain.item.dto.response.AdminProjectItemResponse
 import com.example.cowmjucraft.domain.item.dto.response.ProjectItemImageResponseDto;
 import com.example.cowmjucraft.domain.item.dto.response.ProjectItemJournalPresignGetResponseDto;
 import com.example.cowmjucraft.domain.item.service.AdminItemService;
+import com.example.cowmjucraft.global.response.ApiResponse;
 import com.example.cowmjucraft.global.response.ApiResult;
 import com.example.cowmjucraft.global.response.type.SuccessType;
+import org.springframework.http.ResponseEntity;
 import jakarta.validation.Valid;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -36,45 +38,45 @@ public class AdminItemController implements AdminItemControllerDocs {
 
     @PostMapping("/projects/{projectId}/items")
     @Override
-    public ApiResult<AdminProjectItemResponseDto> createItem(
+    public ResponseEntity<ApiResult<AdminProjectItemResponseDto>> createItem(
             @PathVariable Long projectId,
             @Valid @RequestBody AdminProjectItemCreateRequestDto request
     ) {
-        return ApiResult.success(SuccessType.CREATED, adminItemService.create(projectId, request));
+        return ApiResponse.of(SuccessType.CREATED, adminItemService.create(projectId, request));
     }
 
     @GetMapping("/projects/{projectId}/items")
     @Override
-    public ApiResult<List<AdminProjectItemResponseDto>> getItems(
+    public ResponseEntity<ApiResult<List<AdminProjectItemResponseDto>>> getItems(
             @PathVariable Long projectId
     ) {
-        return ApiResult.success(SuccessType.SUCCESS, adminItemService.getItems(projectId));
+        return ApiResponse.of(SuccessType.SUCCESS, adminItemService.getItems(projectId));
     }
 
     @GetMapping("/items/{itemId}")
     @Override
-    public ApiResult<AdminProjectItemDetailResponseDto> getItem(
+    public ResponseEntity<ApiResult<AdminProjectItemDetailResponseDto>> getItem(
             @PathVariable Long itemId
     ) {
-        return ApiResult.success(SuccessType.SUCCESS, adminItemService.getItem(itemId));
+        return ApiResponse.of(SuccessType.SUCCESS, adminItemService.getItem(itemId));
     }
 
     @PutMapping("/items/{itemId}")
     @Override
-    public ApiResult<AdminProjectItemResponseDto> updateItem(
+    public ResponseEntity<ApiResult<AdminProjectItemResponseDto>> updateItem(
             @PathVariable Long itemId,
             @Valid @RequestBody AdminProjectItemUpdateRequestDto request
     ) {
-        return ApiResult.success(SuccessType.SUCCESS, adminItemService.update(itemId, request));
+        return ApiResponse.of(SuccessType.SUCCESS, adminItemService.update(itemId, request));
     }
 
     @PostMapping("/items/{itemId}/thumbnail/presign-put")
     @Override
-    public ApiResult<AdminItemPresignPutBatchResponseDto> presignThumbnail(
+    public ResponseEntity<ApiResult<AdminItemPresignPutBatchResponseDto>> presignThumbnail(
             @PathVariable Long itemId,
             @Valid @RequestBody AdminItemPresignPutBatchRequestDto request
     ) {
-        return ApiResult.success(
+        return ApiResponse.of(
                 SuccessType.SUCCESS,
                 adminItemService.createThumbnailPresignPutBatch(itemId, request)
         );
@@ -82,11 +84,11 @@ public class AdminItemController implements AdminItemControllerDocs {
 
     @PostMapping("/items/{itemId}/images/presign-put")
     @Override
-    public ApiResult<AdminItemPresignPutBatchResponseDto> presignImage(
+    public ResponseEntity<ApiResult<AdminItemPresignPutBatchResponseDto>> presignImage(
             @PathVariable Long itemId,
             @Valid @RequestBody AdminItemPresignPutBatchRequestDto request
     ) {
-        return ApiResult.success(
+        return ApiResponse.of(
                 SuccessType.SUCCESS,
                 adminItemService.createImagePresignPutBatch(itemId, request)
         );
@@ -94,11 +96,11 @@ public class AdminItemController implements AdminItemControllerDocs {
 
     @PostMapping("/projects/{projectId}/journals/presign-put")
     @Override
-    public ApiResult<AdminItemPresignPutBatchResponseDto> presignJournalFile(
+    public ResponseEntity<ApiResult<AdminItemPresignPutBatchResponseDto>> presignJournalFile(
             @PathVariable Long projectId,
             @Valid @RequestBody AdminItemPresignPutBatchRequestDto request
     ) {
-        return ApiResult.success(
+        return ApiResponse.of(
                 SuccessType.MEDIA_PRESIGN_CREATED,
                 adminItemService.createJournalFilePresignPutBatch(projectId, request)
         );
@@ -106,65 +108,65 @@ public class AdminItemController implements AdminItemControllerDocs {
 
     @DeleteMapping("/items/{itemId}")
     @Override
-    public ApiResult<?> deleteItem(
+    public ResponseEntity<ApiResult<Void>> deleteItem(
             @PathVariable Long itemId
     ) {
         adminItemService.delete(itemId);
-        return ApiResult.success(SuccessType.MEDIA_DELETED);
+        return ApiResponse.of(SuccessType.MEDIA_DELETED);
     }
 
     @DeleteMapping("/items/{itemId}/thumbnail")
     @Override
-    public ApiResult<?> deleteThumbnail(
+    public ResponseEntity<ApiResult<Void>> deleteThumbnail(
             @PathVariable Long itemId
     ) {
         adminItemService.deleteThumbnail(itemId);
-        return ApiResult.success(SuccessType.MEDIA_DELETED);
+        return ApiResponse.of(SuccessType.MEDIA_DELETED);
     }
 
     @DeleteMapping("/items/{itemId}/journal")
     @Override
-    public ApiResult<?> deleteJournalFile(
+    public ResponseEntity<ApiResult<Void>> deleteJournalFile(
             @PathVariable Long itemId
     ) {
         adminItemService.deleteJournalFile(itemId);
-        return ApiResult.success(SuccessType.MEDIA_DELETED);
+        return ApiResponse.of(SuccessType.MEDIA_DELETED);
     }
 
     @PostMapping("/items/{itemId}/images")
     @Override
-    public ApiResult<List<ProjectItemImageResponseDto>> addImages(
+    public ResponseEntity<ApiResult<List<ProjectItemImageResponseDto>>> addImages(
             @PathVariable Long itemId,
             @Valid @RequestBody AdminItemImageCreateRequestDto request
     ) {
-        return ApiResult.success(SuccessType.SUCCESS, adminItemService.addImages(itemId, request));
+        return ApiResponse.of(SuccessType.SUCCESS, adminItemService.addImages(itemId, request));
     }
 
     @PatchMapping("/items/{itemId}/images/order")
     @Override
-    public ApiResult<AdminItemImageOrderPatchResponseDto> patchImageOrder(
+    public ResponseEntity<ApiResult<AdminItemImageOrderPatchResponseDto>> patchImageOrder(
             @PathVariable Long itemId,
             @Valid @RequestBody AdminItemImageOrderPatchRequestDto request
     ) {
-        return ApiResult.success(SuccessType.SUCCESS, adminItemService.patchImageOrder(itemId, request));
+        return ApiResponse.of(SuccessType.SUCCESS, adminItemService.patchImageOrder(itemId, request));
     }
 
     @DeleteMapping("/items/{itemId}/images/{imageId}")
     @Override
-    public ApiResult<?> deleteImage(
+    public ResponseEntity<ApiResult<Void>> deleteImage(
             @PathVariable Long itemId,
             @PathVariable Long imageId
     ) {
         adminItemService.deleteImage(itemId, imageId);
-        return ApiResult.success(SuccessType.MEDIA_DELETED);
+        return ApiResponse.of(SuccessType.MEDIA_DELETED);
     }
 
     @GetMapping("/items/{itemId}/journal/presign-get")
     @Override
-    public ApiResult<ProjectItemJournalPresignGetResponseDto> presignJournalDownloadForAdmin(
+    public ResponseEntity<ApiResult<ProjectItemJournalPresignGetResponseDto>> presignJournalDownloadForAdmin(
             @PathVariable Long itemId
     ) {
-        return ApiResult.success(
+        return ApiResponse.of(
                 SuccessType.MEDIA_PRESIGN_CREATED,
                 adminItemService.createJournalPresignGet(itemId)
         );

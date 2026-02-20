@@ -7,8 +7,10 @@ import com.example.cowmjucraft.domain.recruit.dto.client.request.ResultReadReque
 import com.example.cowmjucraft.domain.recruit.dto.client.response.*;
 import com.example.cowmjucraft.domain.recruit.service.client.ApplicationService;
 import com.example.cowmjucraft.global.cloud.S3PresignFacade;
+import com.example.cowmjucraft.global.response.ApiResponse;
 import com.example.cowmjucraft.global.response.ApiResult;
 import com.example.cowmjucraft.global.response.type.SuccessType;
+import org.springframework.http.ResponseEntity;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -23,10 +25,10 @@ public class ApplicationController implements ApplicationControllerDocs {
 
     @Override
     @PostMapping("/application")
-    public ApiResult<ApplicationCreateResponse> createApplication(
+    public ResponseEntity<ApiResult<ApplicationCreateResponse>> createApplication(
             @RequestBody ApplicationCreateRequest request
     ) {
-        return ApiResult.success(
+        return ApiResponse.of(
                 SuccessType.CREATED,
                 applicationService.create(request)
         );
@@ -34,10 +36,10 @@ public class ApplicationController implements ApplicationControllerDocs {
 
     @Override
     @PostMapping("/application/read")
-    public ApiResult<ApplicationReadResponse> readApplication(
+    public ResponseEntity<ApiResult<ApplicationReadResponse>> readApplication(
             @RequestBody ApplicationReadRequest request
     ) {
-        return ApiResult.success(
+        return ApiResponse.of(
                 SuccessType.SUCCESS,
                 applicationService.read(request)
         );
@@ -45,10 +47,10 @@ public class ApplicationController implements ApplicationControllerDocs {
 
     @Override
     @PutMapping("/application")
-    public ApiResult<ApplicationUpdateResponse> updateApplication(
+    public ResponseEntity<ApiResult<ApplicationUpdateResponse>> updateApplication(
             @RequestBody ApplicationUpdateRequest request
     ) {
-        return ApiResult.success(
+        return ApiResponse.of(
                 SuccessType.SUCCESS,
                 applicationService.update(request)
         );
@@ -56,10 +58,10 @@ public class ApplicationController implements ApplicationControllerDocs {
 
     @Override
     @PostMapping("/result")
-    public ApiResult<ResultReadResponse> readResult(
+    public ResponseEntity<ApiResult<ResultReadResponse>> readResult(
             @RequestBody ResultReadRequest request
     ) {
-        return ApiResult.success(
+        return ApiResponse.of(
                 SuccessType.SUCCESS,
                 applicationService.readResult(request)
         );
@@ -67,10 +69,10 @@ public class ApplicationController implements ApplicationControllerDocs {
 
     @Override
     @PostMapping("/forms/files")
-    public ApiResult<S3PresignFacade.PresignPutBatchResult> presignFile(
+    public ResponseEntity<ApiResult<S3PresignFacade.PresignPutBatchResult>> presignFile(
             @RequestBody List<S3PresignFacade.PresignPutFile> request
     ) {
-        return ApiResult.success(
+        return ApiResponse.of(
                 SuccessType.SUCCESS,
                 applicationService.createAnswerFilePresignPut(request)
         );
@@ -78,8 +80,8 @@ public class ApplicationController implements ApplicationControllerDocs {
 
     @Override
     @GetMapping("/application/form")
-    public ApiResult<ApplicationFormInfoResponse> getOpenForm() {
-        return ApiResult.success(
+    public ResponseEntity<ApiResult<ApplicationFormInfoResponse>> getOpenForm() {
+        return ApiResponse.of(
                 SuccessType.SUCCESS,
                 applicationService.getOpenFormInfo()
         );

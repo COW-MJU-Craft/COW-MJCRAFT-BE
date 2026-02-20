@@ -3,6 +3,7 @@ package com.example.cowmjucraft.domain.recruit.controller.admin;
 import com.example.cowmjucraft.domain.recruit.dto.admin.request.*; // NoticeRequest 등 포함되도록 와일드카드 사용 추천
 import com.example.cowmjucraft.domain.recruit.dto.admin.response.*;
 import com.example.cowmjucraft.global.response.ApiResult;
+import org.springframework.http.ResponseEntity;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -30,7 +31,7 @@ public interface FormAdminControllerDocs {
             ),
             @ApiResponse(responseCode = "400", description = "잘못된 요청")
     })
-    ApiResult<FormCreateAdminResponse> createForm(
+    ResponseEntity<ApiResult<FormCreateAdminResponse>> createForm(
             @Parameter(description = "Form 생성 요청")
             FormCreateAdminRequest request
     );
@@ -42,14 +43,14 @@ public interface FormAdminControllerDocs {
             @ApiResponse(responseCode = "200", description = "성공"),
             @ApiResponse(responseCode = "404", description = "Form 없음")
     })
-    ApiResult<?> openForm(@Parameter(description = "Form ID", example = "1") Long formId);
+    ResponseEntity<ApiResult<Void>> openForm(@Parameter(description = "Form ID", example = "1") Long formId);
 
     @Operation(summary = "Form CLOSE", description = "지정한 Form을 CLOSE 상태로 변경합니다.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "성공"),
             @ApiResponse(responseCode = "404", description = "Form 없음")
     })
-    ApiResult<?> closeForm(@Parameter(description = "Form ID", example = "1") Long formId);
+    ResponseEntity<ApiResult<Void>> closeForm(@Parameter(description = "Form ID", example = "1") Long formId);
 
     // ------------------------------------------------------------
 
@@ -66,7 +67,7 @@ public interface FormAdminControllerDocs {
             @ApiResponse(responseCode = "400", description = "규칙 위반/잘못된 요청"),
             @ApiResponse(responseCode = "404", description = "Form 없음")
     })
-    ApiResult<AddQuestionAdminResponse> addQuestion(
+    ResponseEntity<ApiResult<AddQuestionAdminResponse>> addQuestion(
             @Parameter(description = "Form ID", example = "1") Long formId,
             @Parameter(description = "문항 추가 요청") AddQuestionAdminRequest request
     );
@@ -77,14 +78,14 @@ public interface FormAdminControllerDocs {
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "성공")
     })
-    ApiResult<List<FormListAdminResponse>> getForms();
+    ResponseEntity<ApiResult<List<FormListAdminResponse>>> getForms();
 
     @Operation(summary = "Form 단건 조회")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "성공"),
             @ApiResponse(responseCode = "404", description = "Form 없음")
     })
-    ApiResult<FormDetailAdminResponse> getForm(
+    ResponseEntity<ApiResult<FormDetailAdminResponse>> getForm(
             @Parameter(description = "Form ID", example = "1") Long formId
     );
 
@@ -95,7 +96,7 @@ public interface FormAdminControllerDocs {
             @ApiResponse(responseCode = "200", description = "성공"),
             @ApiResponse(responseCode = "404", description = "Form 없음")
     })
-    ApiResult<List<FormQuestionListAdminResponse>> getFormQuestions(
+    ResponseEntity<ApiResult<List<FormQuestionListAdminResponse>>> getFormQuestions(
             @Parameter(description = "Form ID", example = "1") Long formId
     );
 
@@ -107,7 +108,7 @@ public interface FormAdminControllerDocs {
             @ApiResponse(responseCode = "400", description = "Form 불일치"),
             @ApiResponse(responseCode = "404", description = "FormQuestion 없음")
     })
-    ApiResult<?> deleteFormQuestion(
+    ResponseEntity<ApiResult<Void>> deleteFormQuestion(
             @Parameter(description = "Form ID", example = "1") Long formId,
             @Parameter(description = "FormQuestion ID", example = "10") Long formQuestionId
     );
@@ -118,7 +119,7 @@ public interface FormAdminControllerDocs {
             @ApiResponse(responseCode = "400", description = "규칙 위반/Form 불일치"),
             @ApiResponse(responseCode = "404", description = "FormQuestion 없음")
     })
-    ApiResult<?> updateFormQuestion(
+    ResponseEntity<ApiResult<Void>> updateFormQuestion(
             @Parameter(description = "Form ID", example = "1") Long formId,
             @Parameter(description = "FormQuestion ID", example = "10") Long formQuestionId,
             @Parameter(description = "문항 수정 요청") FormQuestionUpdateAdminRequest request
@@ -132,7 +133,7 @@ public interface FormAdminControllerDocs {
             @ApiResponse(responseCode = "400", description = "요청 규칙 위반(같은 form 복사 등)"),
             @ApiResponse(responseCode = "404", description = "source/target Form 없음")
     })
-    ApiResult<FormCopyAdminResponse> copyFormQuestionsOverwrite(
+    ResponseEntity<ApiResult<FormCopyAdminResponse>> copyFormQuestionsOverwrite(
             @Parameter(description = "대상 Form ID", example = "2") Long targetFormId,
             @Parameter(description = "복사 요청") FormCopyAdminRequest request
     );
@@ -153,7 +154,7 @@ public interface FormAdminControllerDocs {
             @ApiResponse(responseCode = "400", description = "규칙 위반/잘못된 요청"),
             @ApiResponse(responseCode = "404", description = "Form 없음")
     })
-    ApiResult<AddFormNoticeAdminResponse> addFormNotice(
+    ResponseEntity<ApiResult<AddFormNoticeAdminResponse>> addFormNotice(
             @Parameter(description = "Form ID", example = "1") Long formId,
             @Parameter(description = "안내문 추가 요청") FormNoticeRequest request
     );
@@ -164,7 +165,7 @@ public interface FormAdminControllerDocs {
             @ApiResponse(responseCode = "400", description = "규칙 위반/Form 불일치"),
             @ApiResponse(responseCode = "404", description = "FormNotice 없음")
     })
-    ApiResult<?> updateFormNotice(
+    ResponseEntity<ApiResult<Void>> updateFormNotice(
             @Parameter(description = "Form ID", example = "1") Long formId,
             @Parameter(description = "Notice ID", example = "5") Long noticeId,
             @Parameter(description = "안내문 수정 요청") FormNoticeRequest request
@@ -176,7 +177,7 @@ public interface FormAdminControllerDocs {
             @ApiResponse(responseCode = "400", description = "Form 불일치"),
             @ApiResponse(responseCode = "404", description = "FormNotice 없음")
     })
-    ApiResult<?> deleteFormNotice(
+    ResponseEntity<ApiResult<Void>> deleteFormNotice(
             @Parameter(description = "Form ID", example = "1") Long formId,
             @Parameter(description = "Notice ID", example = "5") Long noticeId
     );

@@ -9,8 +9,10 @@ import com.example.cowmjucraft.domain.order.service.OrderCreateService;
 import com.example.cowmjucraft.domain.order.service.OrderDetailQueryService;
 import com.example.cowmjucraft.domain.order.service.OrderLookupIdService;
 import com.example.cowmjucraft.domain.order.service.OrderQueryByTokenService;
+import com.example.cowmjucraft.global.response.ApiResponse;
 import com.example.cowmjucraft.global.response.ApiResult;
 import com.example.cowmjucraft.global.response.type.SuccessType;
+import org.springframework.http.ResponseEntity;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -32,26 +34,26 @@ public class ClientOrderController implements ClientOrderControllerDocs {
 
     @PostMapping("/orders")
     @Override
-    public ApiResult<OrderCreateResponseDto> createOrder(
+    public ResponseEntity<ApiResult<OrderCreateResponseDto>> createOrder(
             @Valid @RequestBody OrderCreateRequestDto request
     ) {
-        return ApiResult.success(SuccessType.CREATED, orderCreateService.createOrder(request));
+        return ApiResponse.of(SuccessType.CREATED, orderCreateService.createOrder(request));
     }
 
     @GetMapping("/orders/lookup-id/availability")
     @Override
-    public ApiResult<OrderLookupIdAvailabilityResponseDto> checkLookupIdAvailability(
+    public ResponseEntity<ApiResult<OrderLookupIdAvailabilityResponseDto>> checkLookupIdAvailability(
             @RequestParam("lookupId") String lookupId
     ) {
-        return ApiResult.success(SuccessType.SUCCESS, orderLookupIdService.checkAvailability(lookupId));
+        return ApiResponse.of(SuccessType.SUCCESS, orderLookupIdService.checkAvailability(lookupId));
     }
 
     @PostMapping("/orders/lookup")
     @Override
-    public ApiResult<OrderDetailResponseDto> lookupOrder(
+    public ResponseEntity<ApiResult<OrderDetailResponseDto>> lookupOrder(
             @Valid @RequestBody OrderLookupRequestDto request
     ) {
-        return ApiResult.success(
+        return ApiResponse.of(
                 SuccessType.SUCCESS,
                 orderDetailQueryService.getByLookupIdAndPassword(request.lookupId(), request.password())
         );
@@ -59,7 +61,7 @@ public class ClientOrderController implements ClientOrderControllerDocs {
 
     @GetMapping("/orders/view")
     @Override
-    public ApiResult<OrderDetailResponseDto> viewOrderByToken(@RequestParam("token") String token) {
-        return ApiResult.success(SuccessType.SUCCESS, orderQueryByTokenService.getOrderDetailByToken(token));
+    public ResponseEntity<ApiResult<OrderDetailResponseDto>> viewOrderByToken(@RequestParam("token") String token) {
+        return ApiResponse.of(SuccessType.SUCCESS, orderQueryByTokenService.getOrderDetailByToken(token));
     }
 }

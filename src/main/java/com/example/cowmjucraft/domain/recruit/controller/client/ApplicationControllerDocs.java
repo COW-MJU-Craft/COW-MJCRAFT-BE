@@ -7,6 +7,7 @@ import com.example.cowmjucraft.domain.recruit.dto.client.request.ResultReadReque
 import com.example.cowmjucraft.domain.recruit.dto.client.response.*;
 import com.example.cowmjucraft.global.cloud.S3PresignFacade;
 import com.example.cowmjucraft.global.response.ApiResult;
+import org.springframework.http.ResponseEntity;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -42,7 +43,7 @@ public interface ApplicationControllerDocs {
             @ApiResponse(responseCode = "404", description = "리소스 없음"),
             @ApiResponse(responseCode = "409", description = "모집 마감 또는 중복 지원")
     })
-    ApiResult<ApplicationCreateResponse> createApplication(
+    ResponseEntity<ApiResult<ApplicationCreateResponse>> createApplication(
             @Parameter(description = "지원서 생성 요청")
             ApplicationCreateRequest request
     );
@@ -55,7 +56,7 @@ public interface ApplicationControllerDocs {
                     @ApiResponse(responseCode = "400", description = "잘못된 요청 파라미터", content = @Content)
             }
     )
-    ApiResult<S3PresignFacade.PresignPutBatchResult> presignFile(
+    ResponseEntity<ApiResult<S3PresignFacade.PresignPutBatchResult>> presignFile(
             @RequestBody List<S3PresignFacade.PresignPutFile> request
     );
 
@@ -78,7 +79,7 @@ public interface ApplicationControllerDocs {
             @ApiResponse(responseCode = "401", description = "비밀번호 불일치"),
             @ApiResponse(responseCode = "404", description = "지원서 또는 Form을 찾을 수 없음")
     })
-    ApiResult<ApplicationReadResponse> readApplication(
+    ResponseEntity<ApiResult<ApplicationReadResponse>> readApplication(
             @Parameter(description = "지원서 조회 요청")
             ApplicationReadRequest request
     );
@@ -114,7 +115,7 @@ public interface ApplicationControllerDocs {
             @ApiResponse(responseCode = "404", description = "리소스 없음(Application/FormQuestion 등)"),
             @ApiResponse(responseCode = "409", description = "모집 마감")
     })
-    ApiResult<ApplicationUpdateResponse> updateApplication(
+    ResponseEntity<ApiResult<ApplicationUpdateResponse>> updateApplication(
             @Parameter(description = "지원서 수정 요청")
             ApplicationUpdateRequest request
     );
@@ -136,7 +137,7 @@ public interface ApplicationControllerDocs {
             @ApiResponse(responseCode = "401", description = "비밀번호 불일치"),
             @ApiResponse(responseCode = "404", description = "지원서 또는 Form을 찾을 수 없음")
     })
-    ApiResult<ResultReadResponse> readResult(
+    ResponseEntity<ApiResult<ResultReadResponse>> readResult(
             @Parameter(description = "지원 결과 조회 요청")
             ResultReadRequest request
     );
@@ -156,5 +157,5 @@ public interface ApplicationControllerDocs {
             ),
             @ApiResponse(responseCode = "404", description = "현재 모집 중인 폼이 없음")
     })
-    ApiResult<ApplicationFormInfoResponse> getOpenForm();
+    ResponseEntity<ApiResult<ApplicationFormInfoResponse>> getOpenForm();
 }

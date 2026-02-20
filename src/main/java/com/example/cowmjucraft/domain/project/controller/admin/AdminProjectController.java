@@ -8,8 +8,10 @@ import com.example.cowmjucraft.domain.project.dto.response.AdminProjectOrderPatc
 import com.example.cowmjucraft.domain.project.dto.response.AdminProjectPresignPutBatchResponseDto;
 import com.example.cowmjucraft.domain.project.dto.response.AdminProjectResponseDto;
 import com.example.cowmjucraft.domain.project.service.AdminProjectService;
+import com.example.cowmjucraft.global.response.ApiResponse;
 import com.example.cowmjucraft.global.response.ApiResult;
 import com.example.cowmjucraft.global.response.type.SuccessType;
+import org.springframework.http.ResponseEntity;
 import jakarta.validation.Valid;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -32,65 +34,65 @@ public class AdminProjectController implements AdminProjectControllerDocs {
 
     @PostMapping
     @Override
-    public ApiResult<AdminProjectResponseDto> createProject(
+    public ResponseEntity<ApiResult<AdminProjectResponseDto>> createProject(
             @Valid @RequestBody AdminProjectCreateRequestDto request
     ) {
-        return ApiResult.success(SuccessType.CREATED, adminProjectService.create(request));
+        return ApiResponse.of(SuccessType.CREATED, adminProjectService.create(request));
     }
 
     @GetMapping
     @Override
-    public ApiResult<List<AdminProjectResponseDto>> getProjects() {
-        return ApiResult.success(SuccessType.SUCCESS, adminProjectService.getProjects());
+    public ResponseEntity<ApiResult<List<AdminProjectResponseDto>>> getProjects() {
+        return ApiResponse.of(SuccessType.SUCCESS, adminProjectService.getProjects());
     }
 
     @GetMapping("/{projectId}")
     @Override
-    public ApiResult<AdminProjectResponseDto> getProject(
+    public ResponseEntity<ApiResult<AdminProjectResponseDto>> getProject(
             @PathVariable Long projectId
     ) {
-        return ApiResult.success(SuccessType.SUCCESS, adminProjectService.getProject(projectId));
+        return ApiResponse.of(SuccessType.SUCCESS, adminProjectService.getProject(projectId));
     }
 
     @PostMapping("/thumbnail/presign-put")
     @Override
-    public ApiResult<AdminProjectPresignPutBatchResponseDto> presignThumbnail(
+    public ResponseEntity<ApiResult<AdminProjectPresignPutBatchResponseDto>> presignThumbnail(
             @Valid @RequestBody AdminProjectPresignPutBatchRequestDto request
     ) {
-        return ApiResult.success(SuccessType.SUCCESS, adminProjectService.createThumbnailPresignPutBatch(request));
+        return ApiResponse.of(SuccessType.SUCCESS, adminProjectService.createThumbnailPresignPutBatch(request));
     }
 
     @PostMapping("/images/presign-put")
     @Override
-    public ApiResult<AdminProjectPresignPutBatchResponseDto> presignImages(
+    public ResponseEntity<ApiResult<AdminProjectPresignPutBatchResponseDto>> presignImages(
             @Valid @RequestBody AdminProjectPresignPutBatchRequestDto request
     ) {
-        return ApiResult.success(SuccessType.SUCCESS, adminProjectService.createImagePresignPutBatch(request));
+        return ApiResponse.of(SuccessType.SUCCESS, adminProjectService.createImagePresignPutBatch(request));
     }
 
     @PutMapping("/{projectId}")
     @Override
-    public ApiResult<AdminProjectResponseDto> updateProject(
+    public ResponseEntity<ApiResult<AdminProjectResponseDto>> updateProject(
             @PathVariable Long projectId,
             @Valid @RequestBody AdminProjectUpdateRequestDto request
     ) {
-        return ApiResult.success(SuccessType.SUCCESS, adminProjectService.update(projectId, request));
+        return ApiResponse.of(SuccessType.SUCCESS, adminProjectService.update(projectId, request));
     }
 
     @DeleteMapping("/{projectId}")
     @Override
-    public ApiResult<?> deleteProject(
+    public ResponseEntity<ApiResult<Void>> deleteProject(
             @PathVariable Long projectId
     ) {
         adminProjectService.delete(projectId);
-        return ApiResult.success(SuccessType.SUCCESS);
+        return ApiResponse.of(SuccessType.SUCCESS);
     }
 
     @PatchMapping("/order")
     @Override
-    public ApiResult<AdminProjectOrderPatchResponseDto> patchOrder(
+    public ResponseEntity<ApiResult<AdminProjectOrderPatchResponseDto>> patchOrder(
             @Valid @RequestBody AdminProjectOrderPatchRequestDto request
     ) {
-        return ApiResult.success(SuccessType.SUCCESS, adminProjectService.patchOrder(request));
+        return ApiResponse.of(SuccessType.SUCCESS, adminProjectService.patchOrder(request));
     }
 }

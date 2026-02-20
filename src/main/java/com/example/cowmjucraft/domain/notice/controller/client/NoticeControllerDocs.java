@@ -3,6 +3,7 @@ package com.example.cowmjucraft.domain.notice.controller.client;
 import com.example.cowmjucraft.domain.notice.dto.response.NoticeDetailResponseDto;
 import com.example.cowmjucraft.domain.notice.dto.response.NoticeSummaryResponseDto;
 import com.example.cowmjucraft.global.response.ApiResult;
+import org.springframework.http.ResponseEntity;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -23,7 +24,7 @@ public interface NoticeControllerDocs {
                     content = @Content(schema = @Schema(implementation = ApiResult.class))
             )
     })
-    ApiResult<List<NoticeSummaryResponseDto>> getNotices();
+    ResponseEntity<ApiResult<List<NoticeSummaryResponseDto>>> getNotices();
 
     @Operation(summary = "공지사항 상세 조회", description = "공지사항 상세를 조회합니다.")
     @ApiResponses({
@@ -34,7 +35,7 @@ public interface NoticeControllerDocs {
             ),
             @ApiResponse(responseCode = "404", description = "요청한 리소스를 찾을 수 없음")
     })
-    ApiResult<NoticeDetailResponseDto> getNotice(
+    ResponseEntity<ApiResult<NoticeDetailResponseDto>> getNotice(
             @Parameter(description = "공지 ID", example = "1")
             Long noticeId
     );

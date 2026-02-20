@@ -6,6 +6,7 @@ import com.example.cowmjucraft.domain.order.dto.response.AdminOrderStatusRespons
 import com.example.cowmjucraft.domain.order.dto.response.OrderDetailResponseDto;
 import com.example.cowmjucraft.domain.order.entity.OrderStatus;
 import com.example.cowmjucraft.global.response.ApiResult;
+import org.springframework.http.ResponseEntity;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -25,7 +26,7 @@ public interface AdminOrderControllerDocs {
             @ApiResponse(responseCode = "200", description = "조회 성공", content = @Content(schema = @Schema(implementation = ApiResult.class))),
             @ApiResponse(responseCode = "400", description = "status 값이 유효하지 않음")
     })
-    ApiResult<List<AdminOrderListItemResponseDto>> getOrders(
+    ResponseEntity<ApiResult<List<AdminOrderListItemResponseDto>>> getOrders(
             @Parameter(description = "주문 상태 필터 (PENDING_DEPOSIT | PAID | CANCELED | REFUND_REQUESTED | REFUNDED)", example = "PENDING_DEPOSIT")
             OrderStatus status
     );
@@ -35,7 +36,7 @@ public interface AdminOrderControllerDocs {
             @ApiResponse(responseCode = "200", description = "조회 성공", content = @Content(schema = @Schema(implementation = ApiResult.class))),
             @ApiResponse(responseCode = "404", description = "주문을 찾을 수 없음")
     })
-    ApiResult<OrderDetailResponseDto> getOrderDetail(
+    ResponseEntity<ApiResult<OrderDetailResponseDto>> getOrderDetail(
             @Parameter(description = "주문 ID", example = "1")
             Long orderId
     );
@@ -46,7 +47,7 @@ public interface AdminOrderControllerDocs {
             @ApiResponse(responseCode = "404", description = "주문을 찾을 수 없음"),
             @ApiResponse(responseCode = "409", description = "상태 충돌 또는 재고 문제")
     })
-    ApiResult<AdminOrderStatusResponseDto> confirmPaid(
+    ResponseEntity<ApiResult<AdminOrderStatusResponseDto>> confirmPaid(
             @Parameter(description = "주문 ID", example = "1")
             Long orderId
     );
@@ -57,7 +58,7 @@ public interface AdminOrderControllerDocs {
             @ApiResponse(responseCode = "404", description = "주문을 찾을 수 없음"),
             @ApiResponse(responseCode = "409", description = "취소/환불요청 전이가 불가능한 주문 상태")
     })
-    ApiResult<AdminOrderStatusResponseDto> cancelOrder(
+    ResponseEntity<ApiResult<AdminOrderStatusResponseDto>> cancelOrder(
             @Parameter(description = "주문 ID", example = "1")
             Long orderId,
             @RequestBody(
@@ -84,7 +85,7 @@ public interface AdminOrderControllerDocs {
             @ApiResponse(responseCode = "404", description = "주문을 찾을 수 없음"),
             @ApiResponse(responseCode = "409", description = "환불 요청 상태가 아닌 주문")
     })
-    ApiResult<AdminOrderStatusResponseDto> confirmRefund(
+    ResponseEntity<ApiResult<AdminOrderStatusResponseDto>> confirmRefund(
             @Parameter(description = "주문 ID", example = "1")
             Long orderId
     );

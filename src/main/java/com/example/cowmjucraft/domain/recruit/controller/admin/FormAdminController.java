@@ -4,8 +4,10 @@ import com.example.cowmjucraft.domain.recruit.dto.admin.request.*;
 import com.example.cowmjucraft.domain.recruit.dto.admin.response.*;
 import com.example.cowmjucraft.domain.recruit.service.admin.FormAdminService;
 import com.example.cowmjucraft.global.cloud.S3PresignFacade;
+import com.example.cowmjucraft.global.response.ApiResponse;
 import com.example.cowmjucraft.global.response.ApiResult;
 import com.example.cowmjucraft.global.response.type.SuccessType;
+import org.springframework.http.ResponseEntity;
 import java.util.List;
 
 import lombok.RequiredArgsConstructor;
@@ -20,10 +22,10 @@ public class FormAdminController implements FormAdminControllerDocs {
 
     @Override
     @PostMapping("/forms")
-    public ApiResult<FormCreateAdminResponse> createForm(
+    public ResponseEntity<ApiResult<FormCreateAdminResponse>> createForm(
             @RequestBody FormCreateAdminRequest request
     ) {
-        return ApiResult.success(
+        return ApiResponse.of(
                 SuccessType.CREATED,
                 formAdminService.createForm(request)
         );
@@ -31,25 +33,25 @@ public class FormAdminController implements FormAdminControllerDocs {
 
     @Override
     @PutMapping("/forms/{formId}/open")
-    public ApiResult<?> openForm(@PathVariable Long formId) {
+    public ResponseEntity<ApiResult<Void>> openForm(@PathVariable Long formId) {
         formAdminService.openForm(formId);
-        return ApiResult.success(SuccessType.SUCCESS);
+        return ApiResponse.of(SuccessType.SUCCESS);
     }
 
     @Override
     @PutMapping("/forms/{formId}/close")
-    public ApiResult<?> closeForm(@PathVariable Long formId) {
+    public ResponseEntity<ApiResult<Void>> closeForm(@PathVariable Long formId) {
         formAdminService.closeForm(formId);
-        return ApiResult.success(SuccessType.SUCCESS);
+        return ApiResponse.of(SuccessType.SUCCESS);
     }
 
     @Override
     @PostMapping("/forms/{formId}/questions")
-    public ApiResult<AddQuestionAdminResponse> addQuestion(
+    public ResponseEntity<ApiResult<AddQuestionAdminResponse>> addQuestion(
             @PathVariable Long formId,
             @RequestBody AddQuestionAdminRequest request
     ) {
-        return ApiResult.success(
+        return ApiResponse.of(
                 SuccessType.CREATED,
                 formAdminService.addQuestion(formId, request)
         );
@@ -57,8 +59,8 @@ public class FormAdminController implements FormAdminControllerDocs {
 
     @Override
     @GetMapping("/forms")
-    public ApiResult<List<FormListAdminResponse>> getForms() {
-        return ApiResult.success(
+    public ResponseEntity<ApiResult<List<FormListAdminResponse>>> getForms() {
+        return ApiResponse.of(
                 SuccessType.SUCCESS,
                 formAdminService.getForms()
         );
@@ -66,8 +68,8 @@ public class FormAdminController implements FormAdminControllerDocs {
 
     @Override
     @GetMapping("/forms/{formId}")
-    public ApiResult<FormDetailAdminResponse> getForm(@PathVariable Long formId) {
-        return ApiResult.success(
+    public ResponseEntity<ApiResult<FormDetailAdminResponse>> getForm(@PathVariable Long formId) {
+        return ApiResponse.of(
                 SuccessType.SUCCESS,
                 formAdminService.getForm(formId)
         );
@@ -75,10 +77,10 @@ public class FormAdminController implements FormAdminControllerDocs {
 
     @Override
     @GetMapping("/forms/{formId}/questions")
-    public ApiResult<List<FormQuestionListAdminResponse>> getFormQuestions(
+    public ResponseEntity<ApiResult<List<FormQuestionListAdminResponse>>> getFormQuestions(
             @PathVariable Long formId
     ) {
-        return ApiResult.success(
+        return ApiResponse.of(
                 SuccessType.SUCCESS,
                 formAdminService.getFormQuestions(formId)
         );
@@ -86,32 +88,32 @@ public class FormAdminController implements FormAdminControllerDocs {
 
     @Override
     @DeleteMapping("/forms/{formId}/questions/{formQuestionId}")
-    public ApiResult<?> deleteFormQuestion(
+    public ResponseEntity<ApiResult<Void>> deleteFormQuestion(
             @PathVariable Long formId,
             @PathVariable Long formQuestionId
     ) {
         formAdminService.deleteFormQuestion(formId, formQuestionId);
-        return ApiResult.success(SuccessType.SUCCESS);
+        return ApiResponse.of(SuccessType.SUCCESS);
     }
 
     @Override
     @PutMapping("/forms/{formId}/questions/{formQuestionId}")
-    public ApiResult<?> updateFormQuestion(
+    public ResponseEntity<ApiResult<Void>> updateFormQuestion(
             @PathVariable Long formId,
             @PathVariable Long formQuestionId,
             @RequestBody FormQuestionUpdateAdminRequest request
     ) {
         formAdminService.updateFormQuestion(formId, formQuestionId, request);
-        return ApiResult.success(SuccessType.SUCCESS);
+        return ApiResponse.of(SuccessType.SUCCESS);
     }
 
     @Override
     @PostMapping("/forms/{targetFormId}/copy")
-    public ApiResult<FormCopyAdminResponse> copyFormQuestionsOverwrite(
+    public ResponseEntity<ApiResult<FormCopyAdminResponse>> copyFormQuestionsOverwrite(
             @PathVariable Long targetFormId,
             @RequestBody FormCopyAdminRequest request
     ) {
-        return ApiResult.success(
+        return ApiResponse.of(
                 SuccessType.CREATED,
                 formAdminService.copyFormQuestionsOverwrite(targetFormId, request)
         );
@@ -119,11 +121,11 @@ public class FormAdminController implements FormAdminControllerDocs {
 
     @Override
     @PostMapping("/forms/{formId}/notices")
-    public ApiResult<AddFormNoticeAdminResponse> addFormNotice(
+    public ResponseEntity<ApiResult<AddFormNoticeAdminResponse>> addFormNotice(
             @PathVariable Long formId,
             @RequestBody FormNoticeRequest request
     ) {
-        return ApiResult.success(
+        return ApiResponse.of(
                 SuccessType.CREATED,
                 formAdminService.addFormNotice(formId, request)
         );
@@ -131,22 +133,22 @@ public class FormAdminController implements FormAdminControllerDocs {
 
     @Override
     @PutMapping("/forms/{formId}/notices/{noticeId}")
-    public ApiResult<?> updateFormNotice(
+    public ResponseEntity<ApiResult<Void>> updateFormNotice(
             @PathVariable Long formId,
             @PathVariable Long noticeId,
             @RequestBody FormNoticeRequest request
     ) {
         formAdminService.updateFormNotice(formId, noticeId, request);
-        return ApiResult.success(SuccessType.SUCCESS);
+        return ApiResponse.of(SuccessType.SUCCESS);
     }
 
     @Override
     @DeleteMapping("/forms/{formId}/notices/{noticeId}")
-    public ApiResult<?> deleteFormNotice(
+    public ResponseEntity<ApiResult<Void>> deleteFormNotice(
             @PathVariable Long formId,
             @PathVariable Long noticeId
     ) {
         formAdminService.deleteFormNotice(formId, noticeId);
-        return ApiResult.success(SuccessType.SUCCESS);
+        return ApiResponse.of(SuccessType.SUCCESS);
     }
 }

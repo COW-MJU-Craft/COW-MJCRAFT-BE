@@ -3,6 +3,7 @@ package com.example.cowmjucraft.domain.introduce.controller.client;
 import com.example.cowmjucraft.domain.introduce.dto.response.IntroduceDetailResponseDto;
 import com.example.cowmjucraft.domain.introduce.dto.response.IntroduceMainSummaryResponseDto;
 import com.example.cowmjucraft.global.response.ApiResult;
+import org.springframework.http.ResponseEntity;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -25,7 +26,7 @@ public interface IntroduceControllerDocs {
             ),
             @ApiResponse(responseCode = "404", description = "리소스 없음")
     })
-    ApiResult<IntroduceMainSummaryResponseDto> getMainSummary();
+    ResponseEntity<ApiResult<IntroduceMainSummaryResponseDto>> getMainSummary();
 
     @Operation(
             summary = "소개 상세 조회",
@@ -39,5 +40,5 @@ public interface IntroduceControllerDocs {
             ),
             @ApiResponse(responseCode = "404", description = "리소스 없음")
     })
-    ApiResult<IntroduceDetailResponseDto> getDetail();
+    ResponseEntity<ApiResult<IntroduceDetailResponseDto>> getDetail();
 }

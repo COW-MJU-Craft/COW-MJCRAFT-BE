@@ -8,8 +8,10 @@ import com.example.cowmjucraft.domain.order.entity.OrderStatus;
 import com.example.cowmjucraft.domain.order.service.AdminOrderPaymentService;
 import com.example.cowmjucraft.domain.order.service.AdminOrderQueryService;
 import com.example.cowmjucraft.domain.order.service.AdminOrderRefundService;
+import com.example.cowmjucraft.global.response.ApiResponse;
 import com.example.cowmjucraft.global.response.ApiResult;
 import com.example.cowmjucraft.global.response.type.SuccessType;
+import org.springframework.http.ResponseEntity;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -31,37 +33,37 @@ public class AdminOrderController implements AdminOrderControllerDocs {
 
     @GetMapping("/orders")
     @Override
-    public ApiResult<List<AdminOrderListItemResponseDto>> getOrders(
+    public ResponseEntity<ApiResult<List<AdminOrderListItemResponseDto>>> getOrders(
             @RequestParam(value = "status", required = false) OrderStatus status
     ) {
-        return ApiResult.success(SuccessType.SUCCESS, adminOrderQueryService.getOrders(status));
+        return ApiResponse.of(SuccessType.SUCCESS, adminOrderQueryService.getOrders(status));
     }
 
     @GetMapping("/orders/{orderId}")
     @Override
-    public ApiResult<OrderDetailResponseDto> getOrderDetail(@PathVariable Long orderId) {
-        return ApiResult.success(SuccessType.SUCCESS, adminOrderQueryService.getOrderDetail(orderId));
+    public ResponseEntity<ApiResult<OrderDetailResponseDto>> getOrderDetail(@PathVariable Long orderId) {
+        return ApiResponse.of(SuccessType.SUCCESS, adminOrderQueryService.getOrderDetail(orderId));
     }
 
     @PostMapping("/orders/{orderId}/confirm-paid")
     @Override
-    public ApiResult<AdminOrderStatusResponseDto> confirmPaid(@PathVariable Long orderId) {
-        return ApiResult.success(SuccessType.SUCCESS, adminOrderPaymentService.confirmPaid(orderId));
+    public ResponseEntity<ApiResult<AdminOrderStatusResponseDto>> confirmPaid(@PathVariable Long orderId) {
+        return ApiResponse.of(SuccessType.SUCCESS, adminOrderPaymentService.confirmPaid(orderId));
     }
 
     @PostMapping("/orders/{orderId}/cancel")
     @Override
-    public ApiResult<AdminOrderStatusResponseDto> cancelOrder(
+    public ResponseEntity<ApiResult<AdminOrderStatusResponseDto>> cancelOrder(
             @PathVariable Long orderId,
             @RequestBody(required = false) AdminOrderCancelRequestDto request
     ) {
         String reason = request == null ? null : request.reason();
-        return ApiResult.success(SuccessType.SUCCESS, adminOrderQueryService.cancelOrder(orderId, reason));
+        return ApiResponse.of(SuccessType.SUCCESS, adminOrderQueryService.cancelOrder(orderId, reason));
     }
 
     @PostMapping("/orders/{orderId}/confirm-refund")
     @Override
-    public ApiResult<AdminOrderStatusResponseDto> confirmRefund(@PathVariable Long orderId) {
-        return ApiResult.success(SuccessType.SUCCESS, adminOrderRefundService.confirmRefund(orderId));
+    public ResponseEntity<ApiResult<AdminOrderStatusResponseDto>> confirmRefund(@PathVariable Long orderId) {
+        return ApiResponse.of(SuccessType.SUCCESS, adminOrderRefundService.confirmRefund(orderId));
     }
 }
