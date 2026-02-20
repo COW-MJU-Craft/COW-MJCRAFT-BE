@@ -9,7 +9,7 @@ import com.example.cowmjucraft.domain.recruit.entity.*;
 import com.example.cowmjucraft.domain.recruit.exception.RecruitException;
 import com.example.cowmjucraft.domain.recruit.repository.*;
 import com.example.cowmjucraft.global.cloud.S3PresignFacade;
-import com.example.cowmjucraft.global.response.type.ErrorType;
+import com.example.cowmjucraft.domain.recruit.exception.RecruitErrorType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -36,15 +36,15 @@ public class ApplicationService {
 
         Form form = formRepository.findFirstByOpenTrue();
         if (form == null || !form.isOpen()) {
-            throw new RecruitException(ErrorType.RECRUITMENT_CLOSED);
+            throw new RecruitException(RecruitErrorType.RECRUITMENT_CLOSED);
         }
 
         if (applicationRepository.existsByFormAndStudentId(form, request.getStudentId())) {
-            throw new RecruitException(ErrorType.DUPLICATE_STUDENT_ID);
+            throw new RecruitException(RecruitErrorType.DUPLICATE_STUDENT_ID);
         }
 
         if (request.getFirstDepartment() == request.getSecondDepartment()) {
-            throw new RecruitException(ErrorType.FIRST_SECOND_DEPARTMENT_MUST_BE_DIFFERENT);
+            throw new RecruitException(RecruitErrorType.FIRST_SECOND_DEPARTMENT_MUST_BE_DIFFERENT);
         }
 
         DepartmentType firstDepartment = request.getFirstDepartment();
@@ -52,7 +52,7 @@ public class ApplicationService {
 
         List<FormQuestion> formQuestions = formQuestionRepository.findAllByForm(form);
         if (formQuestions == null || formQuestions.isEmpty()) {
-            throw new RecruitException(ErrorType.FORM_QUESTION_NOT_FOUND);
+            throw new RecruitException(RecruitErrorType.FORM_QUESTION_NOT_FOUND);
         }
 
         Map<Long, FormQuestion> formQuestionMap = new HashMap<>();
@@ -80,15 +80,15 @@ public class ApplicationService {
         for (ApplicationCreateRequest.AnswerItemRequest answer : requestAnswers) {
             Long formQuestionId = answer.getFormQuestionId();
             if (formQuestionId == null) {
-                throw new RecruitException(ErrorType.FORM_QUESTION_ID_REQUIRED);
+                throw new RecruitException(RecruitErrorType.FORM_QUESTION_ID_REQUIRED);
             }
 
             if (!formQuestionMap.containsKey(formQuestionId)) {
-                throw new RecruitException(ErrorType.FORM_QUESTION_NOT_FOUND);
+                throw new RecruitException(RecruitErrorType.FORM_QUESTION_NOT_FOUND);
             }
 
             if (answerValueMap.containsKey(formQuestionId)) {
-                throw new RecruitException(ErrorType.DUPLICATE_ANSWER);
+                throw new RecruitException(RecruitErrorType.DUPLICATE_ANSWER);
             }
 
             String value = answer.getValue();
@@ -102,14 +102,14 @@ public class ApplicationService {
         for (Long requiredId : requiredCommonIds) {
             String value = answerValueMap.get(requiredId);
             if (value == null) {
-                throw new RecruitException(ErrorType.REQUIRED_ANSWER_MISSING);
+                throw new RecruitException(RecruitErrorType.REQUIRED_ANSWER_MISSING);
             }
         }
 
         for (Long requiredId : requiredDeptIds) {
             String value = answerValueMap.get(requiredId);
             if (value == null) {
-                throw new RecruitException(ErrorType.REQUIRED_ANSWER_MISSING);
+                throw new RecruitException(RecruitErrorType.REQUIRED_ANSWER_MISSING);
             }
         }
 
@@ -120,12 +120,12 @@ public class ApplicationService {
             if (formQuestion.getSectionType() == SectionType.DEPARTMENT) {
                 DepartmentType departmentType = formQuestion.getDepartmentType();
                 if (departmentType != firstDepartment && departmentType != secondDepartment) {
-                    throw new RecruitException(ErrorType.ANSWER_FOR_UNSELECTED_DEPARTMENT);
+                    throw new RecruitException(RecruitErrorType.ANSWER_FOR_UNSELECTED_DEPARTMENT);
                 }
             }
 
             if (formQuestion.isRequired() && e.getValue() == null) {
-                throw new RecruitException(ErrorType.REQUIRED_ANSWER_MISSING);
+                throw new RecruitException(RecruitErrorType.REQUIRED_ANSWER_MISSING);
             }
         }
 
@@ -161,14 +161,14 @@ public class ApplicationService {
             form = formRepository.findTopByOrderByIdDesc();
         }
         if (form == null) {
-            throw new RecruitException(ErrorType.FORM_NOT_FOUND);
+            throw new RecruitException(RecruitErrorType.FORM_NOT_FOUND);
         }
 
         Application application = applicationRepository.findByFormAndStudentId(form, request.getStudentId())
-                .orElseThrow(() -> new RecruitException(ErrorType.APPLICATION_NOT_FOUND));
+                .orElseThrow(() -> new RecruitException(RecruitErrorType.APPLICATION_NOT_FOUND));
 
         if (!passwordEncoder.matches(request.getPassword(), application.getPasswordHash())) {
-            throw new RecruitException(ErrorType.INVALID_CREDENTIALS);
+            throw new RecruitException(RecruitErrorType.INVALID_CREDENTIALS);
         }
 
         boolean editable = form.isOpen();
@@ -208,7 +208,7 @@ public class ApplicationService {
                 } else if (departmentType == application.getSecondDepartment()) {
                     secondDepartment.add(new ApplicationReadResponse.AnswerItem(formQuestion.getId(), answer.getValue()));
                 } else {
-                    throw new RecruitException(ErrorType.INVALID_SECTION_OR_DEPARTMENT_TYPE);
+                    throw new RecruitException(RecruitErrorType.INVALID_SECTION_OR_DEPARTMENT_TYPE);
                 }
             }
         }
@@ -256,14 +256,14 @@ public class ApplicationService {
 
         Form form = formRepository.findFirstByOpenTrue();
         if (form == null || !form.isOpen()) {
-            throw new RecruitException(ErrorType.RECRUITMENT_CLOSED);
+            throw new RecruitException(RecruitErrorType.RECRUITMENT_CLOSED);
         }
 
         Application application = applicationRepository.findByFormAndStudentId(form, request.getStudentId())
-                .orElseThrow(() -> new RecruitException(ErrorType.APPLICATION_NOT_FOUND));
+                .orElseThrow(() -> new RecruitException(RecruitErrorType.APPLICATION_NOT_FOUND));
 
         if (!passwordEncoder.matches(request.getPassword(), application.getPasswordHash())) {
-            throw new RecruitException(ErrorType.INVALID_CREDENTIALS);
+            throw new RecruitException(RecruitErrorType.INVALID_CREDENTIALS);
         }
 
         DepartmentType firstDepartment = request.getFirstDepartment();
@@ -271,10 +271,10 @@ public class ApplicationService {
 
         if (firstDepartment != null || secondDepartment != null) {
             if (firstDepartment == null || secondDepartment == null) {
-                throw new RecruitException(ErrorType.BOTH_DEPARTMENTS_REQUIRED);
+                throw new RecruitException(RecruitErrorType.BOTH_DEPARTMENTS_REQUIRED);
             }
             if (firstDepartment == secondDepartment) {
-                throw new RecruitException(ErrorType.FIRST_SECOND_DEPARTMENT_MUST_BE_DIFFERENT);
+                throw new RecruitException(RecruitErrorType.FIRST_SECOND_DEPARTMENT_MUST_BE_DIFFERENT);
             }
             application.changeDepartments(firstDepartment, secondDepartment);
         }
@@ -289,17 +289,17 @@ public class ApplicationService {
             for (ApplicationUpdateRequest.AnswerItemRequest answer : requestAnswers) {
                 Long id = answer.getFormQuestionId();
                 if (id == null) {
-                    throw new RecruitException(ErrorType.FORM_QUESTION_ID_REQUIRED);
+                    throw new RecruitException(RecruitErrorType.FORM_QUESTION_ID_REQUIRED);
                 }
                 if (!seen.add(id)) {
-                    throw new RecruitException(ErrorType.DUPLICATE_ANSWER);
+                    throw new RecruitException(RecruitErrorType.DUPLICATE_ANSWER);
                 }
                 formIds.add(id);
             }
 
             List<FormQuestion> fetched = formQuestionRepository.findAllByIdInAndForm_Id(formIds, form.getId());
             if (fetched.size() != formIds.size()) {
-                throw new RecruitException(ErrorType.FORM_QUESTION_NOT_IN_THIS_FORM);
+                throw new RecruitException(RecruitErrorType.FORM_QUESTION_NOT_IN_THIS_FORM);
             }
 
             Map<Long, FormQuestion> formQuestionMap = new HashMap<>();
@@ -320,13 +320,13 @@ public class ApplicationService {
 
                 FormQuestion formQuestion = formQuestionMap.get(a.getFormQuestionId());
                 if (formQuestion == null) {
-                    throw new RecruitException(ErrorType.FORM_QUESTION_NOT_FOUND);
+                    throw new RecruitException(RecruitErrorType.FORM_QUESTION_NOT_FOUND);
                 }
 
                 if (formQuestion.getSectionType() == SectionType.DEPARTMENT) {
                     DepartmentType dt = formQuestion.getDepartmentType();
                     if (dt != currentFirst && dt != currentSecond) {
-                        throw new RecruitException(ErrorType.ANSWER_FOR_UNSELECTED_DEPARTMENT);
+                        throw new RecruitException(RecruitErrorType.ANSWER_FOR_UNSELECTED_DEPARTMENT);
                     }
                 }
 
@@ -339,7 +339,7 @@ public class ApplicationService {
 
                 if (value == null) {
                     if (formQuestion.isRequired()) {
-                        throw new RecruitException(ErrorType.REQUIRED_ANSWER_CANNOT_BE_DELETED);
+                        throw new RecruitException(RecruitErrorType.REQUIRED_ANSWER_CANNOT_BE_DELETED);
                     }
                     if (existing != null) {
                         if (formQuestion.getAnswerType() == AnswerType.FILE) {
@@ -372,14 +372,14 @@ public class ApplicationService {
             form = formRepository.findTopByOrderByIdDesc();
         }
         if (form == null) {
-            throw new RecruitException(ErrorType.FORM_NOT_FOUND);
+            throw new RecruitException(RecruitErrorType.FORM_NOT_FOUND);
         }
 
         Application application = applicationRepository.findByFormAndStudentId(form, request.getStudentId())
-                .orElseThrow(() -> new RecruitException(ErrorType.APPLICATION_NOT_FOUND));
+                .orElseThrow(() -> new RecruitException(RecruitErrorType.APPLICATION_NOT_FOUND));
 
         if (!passwordEncoder.matches(request.getPassword(), application.getPasswordHash())) {
-            throw new RecruitException(ErrorType.INVALID_CREDENTIALS);
+            throw new RecruitException(RecruitErrorType.INVALID_CREDENTIALS);
         }
 
         return new ResultReadResponse(application.getResultStatus());
@@ -390,7 +390,7 @@ public class ApplicationService {
         Form form = formRepository.findFirstByOpenTrue();
 
         if (form == null) {
-            throw new RecruitException(ErrorType.FORM_NOT_FOUND);
+            throw new RecruitException(RecruitErrorType.FORM_NOT_FOUND);
         }
 
         List<FormNotice> notices = formNoticeRepository.findAllByForm(form);
