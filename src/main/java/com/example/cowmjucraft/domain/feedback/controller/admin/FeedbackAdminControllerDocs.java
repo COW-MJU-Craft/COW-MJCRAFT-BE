@@ -2,6 +2,7 @@ package com.example.cowmjucraft.domain.feedback.controller.admin;
 
 import com.example.cowmjucraft.domain.feedback.dto.request.FeedbackAdminUpdateRequestDto;
 import com.example.cowmjucraft.domain.feedback.dto.response.FeedbackAdminResponseDto;
+import com.example.cowmjucraft.global.response.ApiResult;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -31,20 +32,20 @@ public interface FeedbackAdminControllerDocs {
             @ApiResponse(responseCode = "401", description = "인증 실패"),
             @ApiResponse(responseCode = "403", description = "권한 없음")
     })
-    List<FeedbackAdminResponseDto> getFeedbacks();
+    ApiResult<List<FeedbackAdminResponseDto>> getFeedbacks();
 
     @Operation(
             summary = "건의사항 답변 및 상태 변경",
             description = "관리자가 답변과 처리 상태를 업데이트합니다."
     )
     @ApiResponses({
-            @ApiResponse(responseCode = "204", description = "성공"),
+            @ApiResponse(responseCode = "200", description = "성공"),
             @ApiResponse(responseCode = "400", description = "요청 값 검증 실패"),
             @ApiResponse(responseCode = "401", description = "인증 실패"),
             @ApiResponse(responseCode = "403", description = "권한 없음"),
             @ApiResponse(responseCode = "404", description = "대상 없음")
     })
-    void updateFeedback(
+    ApiResult<?> updateFeedback(
             @Parameter(
                     description = "피드백 ID",
                     example = "1"

@@ -3,15 +3,15 @@ package com.example.cowmjucraft.domain.feedback.controller.admin;
 import com.example.cowmjucraft.domain.feedback.dto.request.FeedbackAdminUpdateRequestDto;
 import com.example.cowmjucraft.domain.feedback.dto.response.FeedbackAdminResponseDto;
 import com.example.cowmjucraft.domain.feedback.service.FeedbackService;
+import com.example.cowmjucraft.global.response.ApiResult;
+import com.example.cowmjucraft.global.response.type.SuccessType;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -25,17 +25,17 @@ public class FeedbackAdminController implements FeedbackAdminControllerDocs {
 
     @GetMapping("/feedback")
     @Override
-    public List<FeedbackAdminResponseDto> getFeedbacks() {
-        return feedbackService.getFeedbacks();
+    public ApiResult<List<FeedbackAdminResponseDto>> getFeedbacks() {
+        return ApiResult.success(SuccessType.SUCCESS, feedbackService.getFeedbacks());
     }
 
     @PutMapping("/feedback/{id}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
     @Override
-    public void updateFeedback(
+    public ApiResult<?> updateFeedback(
             @PathVariable Long id,
             @Valid @RequestBody FeedbackAdminUpdateRequestDto request
     ) {
         feedbackService.updateFeedback(id, request);
+        return ApiResult.success(SuccessType.SUCCESS);
     }
 }
