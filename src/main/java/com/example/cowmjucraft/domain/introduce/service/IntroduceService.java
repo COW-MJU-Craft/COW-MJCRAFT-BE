@@ -20,9 +20,9 @@ import com.example.cowmjucraft.domain.introduce.dto.response.IntroduceMainSummar
 import com.example.cowmjucraft.domain.introduce.entity.Introduce;
 import com.example.cowmjucraft.domain.introduce.repository.IntroduceRepository;
 import com.example.cowmjucraft.global.cloud.S3PresignFacade;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -386,7 +386,7 @@ public class IntroduceService {
             if (json == null) return null;
             try {
                 return objectMapper.readValue(json, HERO_LOGO_KEYS_TYPE);
-            } catch (JsonProcessingException e) {
+            } catch (JacksonException e) {
                 throw new IllegalStateException("Failed to parse heroLogoKeysJson", e);
             }
         }
@@ -397,7 +397,7 @@ public class IntroduceService {
                 IntroduceDetailContentDto content =
                         objectMapper.readValue(json, DETAIL_CONTENT_TYPE);
                 return content == null ? IntroduceDetailContentDto.empty() : content;
-            } catch (JsonProcessingException e) {
+            } catch (JacksonException e) {
                 log.warn("Failed to parse sectionsJson. Fallback to empty content.", e);
                 return IntroduceDetailContentDto.empty();
             }
@@ -407,7 +407,7 @@ public class IntroduceService {
             if (value == null) return null;
             try {
                 return objectMapper.writeValueAsString(value);
-            } catch (JsonProcessingException e) {
+            } catch (JacksonException e) {
                 throw new IllegalStateException("Failed to serialize introduce payload", e);
             }
         }
