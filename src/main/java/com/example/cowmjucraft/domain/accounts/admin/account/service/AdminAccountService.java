@@ -4,13 +4,13 @@ import com.example.cowmjucraft.domain.accounts.admin.entity.Admin;
 import com.example.cowmjucraft.domain.accounts.admin.repository.AdminRepository;
 import com.example.cowmjucraft.domain.accounts.admin.account.dto.request.AdminAccountUpdateRequestDto;
 import com.example.cowmjucraft.domain.accounts.admin.account.dto.response.AdminAccountResponseDto;
+import com.example.cowmjucraft.domain.accounts.exception.AccountErrorType;
+import com.example.cowmjucraft.domain.accounts.exception.AccountException;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
-import org.springframework.web.server.ResponseStatusException;
 
 @RequiredArgsConstructor
 @Transactional
@@ -22,15 +22,15 @@ public class AdminAccountService {
 
     public AdminAccountResponseDto updateAdminAccount(AdminAccountUpdateRequestDto request) {
         Admin admin = adminRepository.findByLoginId(request.currentUserId())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid credentials"));
+                .orElseThrow(() -> new AccountException(AccountErrorType.INVALID_CREDENTIALS));
 
         if (!passwordEncoder.matches(request.currentPassword(), admin.getPassword())) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid credentials");
+            throw new AccountException(AccountErrorType.INVALID_CREDENTIALS);
         }
 
         if (!request.currentUserId().equals(request.newUserId())
                 && adminRepository.existsByLoginId(request.newUserId())) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Duplicated userId");
+            throw new AccountException(AccountErrorType.DUPLICATED_USER_ID);
         }
 
         if (!request.currentUserId().equals(request.newUserId())) {

@@ -19,16 +19,16 @@ import com.example.cowmjucraft.domain.introduce.dto.response.IntroduceLogoHistor
 import com.example.cowmjucraft.domain.introduce.dto.response.IntroduceMainSummaryResponseDto;
 import com.example.cowmjucraft.domain.introduce.entity.Introduce;
 import com.example.cowmjucraft.domain.introduce.repository.IntroduceRepository;
+import com.example.cowmjucraft.domain.introduce.exception.IntroduceErrorType;
+import com.example.cowmjucraft.domain.introduce.exception.IntroduceException;
 import com.example.cowmjucraft.global.cloud.S3PresignFacade;
 import tools.jackson.core.JacksonException;
 import tools.jackson.core.type.TypeReference;
 import tools.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
@@ -274,8 +274,7 @@ public class IntroduceService {
 
     private Introduce getIntroduceOrThrow() {
         return introduceRepository.findById(INTRODUCE_ID)
-                .orElseThrow(() ->
-                        new ResponseStatusException(HttpStatus.NOT_FOUND, "introduce not found"));
+                .orElseThrow(() -> new IntroduceException(IntroduceErrorType.INTRODUCE_NOT_FOUND));
     }
 
     private List<IntroduceLogoHistoryDto> normalizeLogoHistories(
@@ -421,7 +420,7 @@ public class IntroduceService {
             S3PresignFacade.PresignPutBatchResult response
     ) {
         if (response.items() == null || response.items().isEmpty()) {
-            throw new IllegalArgumentException("presign items is empty");
+            throw new IntroduceException(IntroduceErrorType.PRESIGN_FAILED);
         }
         S3PresignFacade.PresignPutItem item = response.items().get(0);
         return new AdminIntroducePresignPutResponseDto(

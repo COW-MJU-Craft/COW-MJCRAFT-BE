@@ -8,16 +8,16 @@ import com.example.cowmjucraft.domain.notice.dto.response.NoticeDetailResponseDt
 import com.example.cowmjucraft.domain.notice.dto.response.NoticeSummaryResponseDto;
 import com.example.cowmjucraft.domain.notice.entity.Notice;
 import com.example.cowmjucraft.domain.notice.repository.NoticeRepository;
+import com.example.cowmjucraft.domain.notice.exception.NoticeErrorType;
+import com.example.cowmjucraft.domain.notice.exception.NoticeException;
 import com.example.cowmjucraft.global.cloud.S3PresignFacade;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
 
 @Service
 public class AdminNoticeService {
@@ -46,7 +46,7 @@ public class AdminNoticeService {
     @Transactional
     public NoticeDetailResponseDto update(Long noticeId, AdminNoticeUpdateRequestDto request) {
         Notice notice = noticeRepository.findById(noticeId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "notice not found"));
+                .orElseThrow(() -> new NoticeException(NoticeErrorType.NOTICE_NOT_FOUND));
         notice.update(request.title(), request.content(), request.imageKeys());
         Set<String> keySet = new LinkedHashSet<>();
         addIfValidKey(keySet, notice.getImageKeys());
@@ -57,7 +57,7 @@ public class AdminNoticeService {
     @Transactional
     public void delete(Long noticeId) {
         Notice notice = noticeRepository.findById(noticeId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "notice not found"));
+                .orElseThrow(() -> new NoticeException(NoticeErrorType.NOTICE_NOT_FOUND));
         noticeRepository.delete(notice);
     }
 
@@ -79,7 +79,7 @@ public class AdminNoticeService {
     @Transactional(readOnly = true)
     public NoticeDetailResponseDto getNotice(Long noticeId) {
         Notice notice = noticeRepository.findById(noticeId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "notice not found"));
+                .orElseThrow(() -> new NoticeException(NoticeErrorType.NOTICE_NOT_FOUND));
         Set<String> keySet = new LinkedHashSet<>();
         addIfValidKey(keySet, notice.getImageKeys());
         Map<String, String> urls = presignGetSafely(keySet);
@@ -118,7 +118,7 @@ public class AdminNoticeService {
 
     private AdminNoticePresignPutResponseDto toSinglePresignResponse(S3PresignFacade.PresignPutBatchResult response) {
         if (response.items() == null || response.items().isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "presign items is empty");
+            throw new NoticeException(NoticeErrorType.PRESIGN_FAILED);
         }
         S3PresignFacade.PresignPutItem item = response.items().get(0);
         return new AdminNoticePresignPutResponseDto(

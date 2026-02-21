@@ -4,12 +4,12 @@ import com.example.cowmjucraft.domain.accounts.admin.auth.dto.request.AdminLogin
 import com.example.cowmjucraft.domain.accounts.admin.entity.Admin;
 import com.example.cowmjucraft.domain.accounts.admin.repository.AdminRepository;
 import com.example.cowmjucraft.global.config.jwt.JwtTokenProvider;
+import com.example.cowmjucraft.domain.accounts.exception.AccountErrorType;
+import com.example.cowmjucraft.domain.accounts.exception.AccountException;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
 
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -22,10 +22,10 @@ public class AdminAuthService {
 
     public LoginResult login(AdminLoginRequestDto request) {
         Admin admin = adminRepository.findByLoginId(request.userId())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid credentials"));
+                .orElseThrow(() -> new AccountException(AccountErrorType.INVALID_CREDENTIALS));
 
         if (!passwordEncoder.matches(request.password(), admin.getPassword())) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid credentials");
+            throw new AccountException(AccountErrorType.INVALID_CREDENTIALS);
         }
 
         String token = jwtTokenProvider.generateAdminToken(admin.getLoginId());

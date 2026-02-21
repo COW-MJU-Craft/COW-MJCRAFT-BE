@@ -2,6 +2,8 @@ package com.example.cowmjucraft.domain.order.service;
 
 import com.example.cowmjucraft.domain.order.entity.Order;
 import com.example.cowmjucraft.domain.order.entity.OrderViewToken;
+import com.example.cowmjucraft.domain.order.exception.OrderErrorType;
+import com.example.cowmjucraft.domain.order.exception.OrderException;
 import com.example.cowmjucraft.domain.order.repository.OrderViewTokenRepository;
 import com.example.cowmjucraft.global.config.AppProperties;
 import java.nio.charset.StandardCharsets;
@@ -11,10 +13,8 @@ import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.util.Base64;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
 
 @Service
 @RequiredArgsConstructor
@@ -50,7 +50,7 @@ public class OrderViewTokenService {
             byte[] hashed = digest.digest(raw.getBytes(StandardCharsets.UTF_8));
             return java.util.HexFormat.of().formatHex(hashed);
         } catch (NoSuchAlgorithmException exception) {
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "토큰 처리 중 오류가 발생했습니다.");
+            throw new OrderException(OrderErrorType.TOKEN_HASH_FAILED);
         }
     }
 

@@ -1,12 +1,12 @@
 package com.example.cowmjucraft.domain.order.service;
 
 import com.example.cowmjucraft.domain.order.dto.response.OrderLookupIdAvailabilityResponseDto;
+import com.example.cowmjucraft.domain.order.exception.OrderErrorType;
+import com.example.cowmjucraft.domain.order.exception.OrderException;
 import com.example.cowmjucraft.domain.order.repository.OrderAuthRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
 
 @Service
 @RequiredArgsConstructor
@@ -24,7 +24,7 @@ public class OrderLookupIdService {
     private String normalizeRequiredText(String value, String fieldName) {
         String normalized = trimToNull(value);
         if (normalized == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, fieldName + "은(는) 필수입니다.");
+            throw new OrderException(OrderErrorType.LOOKUP_FIELD_REQUIRED, fieldName + "은(는) 필수입니다.");
         }
         return normalized;
     }

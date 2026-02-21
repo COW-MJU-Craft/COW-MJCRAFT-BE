@@ -1,8 +1,8 @@
 package com.example.cowmjucraft.domain.order.service;
 
 import com.example.cowmjucraft.domain.order.entity.OrderStatus;
-import org.springframework.http.HttpStatus;
-import org.springframework.web.server.ResponseStatusException;
+import com.example.cowmjucraft.domain.order.exception.OrderErrorType;
+import com.example.cowmjucraft.domain.order.exception.OrderException;
 
 public final class OrderStatusTransitionPolicy {
 
@@ -16,9 +16,9 @@ public final class OrderStatusTransitionPolicy {
                 || (current == OrderStatus.REFUND_REQUESTED && requested == OrderStatus.REFUNDED);
 
         if (!allowed) {
-            throw new ResponseStatusException(
-                    HttpStatus.CONFLICT,
-                    "주문 상태 전이가 허용되지 않습니다. current=" + current + ", requested=" + requested
+            throw new OrderException(
+                    OrderErrorType.INVALID_STATUS_TRANSITION,
+                    "current=" + current + ", requested=" + requested
             );
         }
     }

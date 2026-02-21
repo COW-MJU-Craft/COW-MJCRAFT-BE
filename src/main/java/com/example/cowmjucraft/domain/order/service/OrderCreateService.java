@@ -16,6 +16,8 @@ import com.example.cowmjucraft.domain.order.entity.OrderFulfillment;
 import com.example.cowmjucraft.domain.order.entity.OrderFulfillmentMethod;
 import com.example.cowmjucraft.domain.order.entity.OrderItem;
 import com.example.cowmjucraft.domain.order.entity.OrderStatus;
+import com.example.cowmjucraft.domain.order.exception.OrderErrorType;
+import com.example.cowmjucraft.domain.order.exception.OrderException;
 import com.example.cowmjucraft.domain.order.repository.OrderAuthRepository;
 import com.example.cowmjucraft.domain.order.repository.OrderBuyerRepository;
 import com.example.cowmjucraft.domain.order.repository.OrderFulfillmentRepository;
@@ -30,11 +32,9 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
 
 @Service
 @RequiredArgsConstructor
@@ -62,7 +62,7 @@ public class OrderCreateService {
         String password = normalizeRequiredText(request.password(), "조회 비밀번호");
 
         if (orderAuthRepository.existsByLookupId(lookupId)) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "이미 사용 중인 조회 아이디입니다.");
+            throw new OrderException(OrderErrorType.DUPLICATED_LOOKUP_ID);
         }
 
         Map<Long, Integer> quantityByItemId = aggregateItemQuantities(request.items());
@@ -75,31 +75,22 @@ public class OrderCreateService {
             int quantity = entry.getValue();
 
             ProjectItem projectItem = projectItemRepository.findById(projectItemId)
-                    .orElseThrow(() -> new ResponseStatusException(
-                            HttpStatus.NOT_FOUND,
-                            "상품을 찾을 수 없습니다. (projectItemId=" + projectItemId + ")"
+                    .orElseThrow(() -> new OrderException(
+                            OrderErrorType.ITEM_NOT_FOUND,
+                            "projectItemId=" + projectItemId
                     ));
 
             if (projectItem.getStatus() != ItemStatus.OPEN) {
-                throw new ResponseStatusException(
-                        HttpStatus.CONFLICT,
-                        "판매 중인 상품만 주문할 수 있습니다. (projectItemId=" + projectItemId + ")"
-                );
+                throw new OrderException(OrderErrorType.ITEM_NOT_AVAILABLE, "projectItemId=" + projectItemId);
             }
 
             if (projectItem.getSaleType() != ItemSaleType.NORMAL) {
-                throw new ResponseStatusException(
-                        HttpStatus.BAD_REQUEST,
-                        "현재는 NORMAL 판매 상품만 주문할 수 있습니다. (projectItemId=" + projectItemId + ")"
-                );
+                throw new OrderException(OrderErrorType.NORMAL_SALE_ONLY, "projectItemId=" + projectItemId);
             }
 
             Integer stockQty = projectItem.getStockQty();
             if (stockQty == null || stockQty < quantity) {
-                throw new ResponseStatusException(
-                        HttpStatus.CONFLICT,
-                        "재고가 부족하여 주문할 수 없습니다. (projectItemId=" + projectItemId + ")"
-                );
+                throw new OrderException(OrderErrorType.INSUFFICIENT_STOCK, "projectItemId=" + projectItemId);
             }
 
             int unitPrice = projectItem.getPrice();
@@ -108,7 +99,7 @@ public class OrderCreateService {
                 lineAmount = Math.multiplyExact(unitPrice, quantity);
                 totalAmount = Math.addExact(totalAmount, lineAmount);
             } catch (ArithmeticException exception) {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "주문 금액 계산 중 오류가 발생했습니다.");
+                throw new OrderException(OrderErrorType.ORDER_AMOUNT_OVERFLOW);
             }
 
             lines.add(new ResolvedOrderLine(projectItem, quantity, unitPrice, lineAmount));
@@ -119,7 +110,7 @@ public class OrderCreateService {
         try {
             finalAmount = Math.addExact(totalAmount, shippingFee);
         } catch (ArithmeticException exception) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "최종 결제 금액 계산 중 오류가 발생했습니다.");
+            throw new OrderException(OrderErrorType.ORDER_AMOUNT_OVERFLOW);
         }
 
         LocalDateTime now = LocalDateTime.now();
@@ -178,7 +169,7 @@ public class OrderCreateService {
         String addressLine2 = trimToNull(fulfillment.addressLine2());
         if (fulfillment.method() == OrderFulfillmentMethod.DELIVERY
                 && (postalCode == null || addressLine1 == null)) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "배송 주문은 우편번호와 기본 주소가 필수입니다.");
+            throw new OrderException(OrderErrorType.DELIVERY_ADDRESS_REQUIRED);
         }
         orderFulfillmentRepository.save(new OrderFulfillment(
                 savedOrder,
@@ -225,28 +216,28 @@ public class OrderCreateService {
 
     private void validateAgreements(OrderCreateRequestDto request) {
         if (!Boolean.TRUE.equals(request.privacyAgreed())) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "개인정보 수집 및 이용 동의가 필요합니다.");
+            throw new OrderException(OrderErrorType.PRIVACY_AGREEMENT_REQUIRED);
         }
         if (!Boolean.TRUE.equals(request.refundAgreed())) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "환불 정책 동의가 필요합니다.");
+            throw new OrderException(OrderErrorType.REFUND_AGREEMENT_REQUIRED);
         }
         if (!Boolean.TRUE.equals(request.cancelRiskAgreed())) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "주문 취소 리스크 동의가 필요합니다.");
+            throw new OrderException(OrderErrorType.CANCEL_RISK_AGREEMENT_REQUIRED);
         }
     }
 
     private Map<Long, Integer> aggregateItemQuantities(List<OrderCreateItemRequestDto> items) {
         if (items == null || items.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "주문 상품은 1개 이상이어야 합니다.");
+            throw new OrderException(OrderErrorType.ORDER_ITEMS_REQUIRED);
         }
 
         Map<Long, Integer> quantityByItemId = new LinkedHashMap<>();
         for (OrderCreateItemRequestDto item : items) {
             if (item == null || item.projectItemId() == null) {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "상품 정보가 올바르지 않습니다.");
+                throw new OrderException(OrderErrorType.INVALID_ORDER_ITEM);
             }
             if (item.quantity() <= 0) {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "주문 수량은 1개 이상이어야 합니다.");
+                throw new OrderException(OrderErrorType.QUANTITY_MUST_BE_POSITIVE);
             }
             quantityByItemId.merge(item.projectItemId(), item.quantity(), Math::addExact);
         }
@@ -261,13 +252,13 @@ public class OrderCreateService {
                 return candidate;
             }
         }
-        throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "주문 번호 생성에 실패했습니다.");
+        throw new OrderException(OrderErrorType.ORDER_NO_GENERATION_FAILED);
     }
 
     private String normalizeRequiredText(String value, String fieldName) {
         String normalized = trimToNull(value);
         if (normalized == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, fieldName + "은(는) 필수입니다.");
+            throw new OrderException(OrderErrorType.REQUIRED_FIELD_MISSING, fieldName + "은(는) 필수입니다.");
         }
         return normalized;
     }
