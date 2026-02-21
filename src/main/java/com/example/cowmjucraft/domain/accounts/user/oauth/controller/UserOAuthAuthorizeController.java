@@ -1,5 +1,7 @@
 package com.example.cowmjucraft.domain.accounts.user.oauth.controller;
 
+import com.example.cowmjucraft.domain.accounts.exception.AccountErrorType;
+import com.example.cowmjucraft.domain.accounts.exception.AccountException;
 import com.example.cowmjucraft.domain.accounts.user.oauth.config.KakaoOAuthProperties;
 import com.example.cowmjucraft.domain.accounts.user.oauth.config.NaverOAuthProperties;
 import java.net.URI;
@@ -11,7 +13,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.util.UriComponentsBuilder;
 
 @RequiredArgsConstructor
@@ -80,16 +81,10 @@ public class UserOAuthAuthorizeController implements UserOAuthAuthorizeControlle
 
     private void assertConfigured(String clientId, String redirectUri, String provider) {
         if (clientId == null || clientId.isBlank()) {
-            throw new ResponseStatusException(
-                    HttpStatus.INTERNAL_SERVER_ERROR,
-                    provider + " clientId is not configured"
-            );
+            throw new AccountException(AccountErrorType.OAUTH_CLIENT_NOT_CONFIGURED, provider + " clientId is not configured");
         }
         if (redirectUri == null || redirectUri.isBlank()) {
-            throw new ResponseStatusException(
-                    HttpStatus.INTERNAL_SERVER_ERROR,
-                    provider + " redirectUri is not configured"
-            );
+            throw new AccountException(AccountErrorType.OAUTH_CLIENT_NOT_CONFIGURED, provider + " redirectUri is not configured");
         }
     }
 

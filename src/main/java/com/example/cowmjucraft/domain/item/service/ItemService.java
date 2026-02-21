@@ -7,6 +7,8 @@ import com.example.cowmjucraft.domain.item.dto.response.ProjectItemListResponseD
 import com.example.cowmjucraft.domain.item.entity.ItemSaleType;
 import com.example.cowmjucraft.domain.item.entity.ProjectItem;
 import com.example.cowmjucraft.domain.item.entity.ItemType;
+import com.example.cowmjucraft.domain.item.exception.ItemErrorType;
+import com.example.cowmjucraft.domain.item.exception.ItemException;
 import com.example.cowmjucraft.domain.item.repository.ItemImageRepository;
 import com.example.cowmjucraft.domain.item.repository.ProjectItemRepository;
 import com.example.cowmjucraft.domain.project.entity.Project;
@@ -18,10 +20,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
 
 @RequiredArgsConstructor
 @Service
@@ -35,7 +35,7 @@ public class ItemService {
     @Transactional(readOnly = true)
     public List<ProjectItemListResponseDto> getItems(Long projectId) {
         Project project = projectRepository.findById(projectId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "project not found"));
+                .orElseThrow(() -> new ItemException(ItemErrorType.PROJECT_NOT_FOUND));
 
         List<ProjectItem> items = projectItemRepository.findByProjectIdOrderByCreatedAtDescIdDesc(project.getId());
         Set<String> keySet = new LinkedHashSet<>();
@@ -51,7 +51,7 @@ public class ItemService {
     @Transactional(readOnly = true)
     public ProjectItemDetailResponseDto getItem(Long itemId) {
         ProjectItem item = projectItemRepository.findById(itemId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "item not found"));
+                .orElseThrow(() -> new ItemException(ItemErrorType.ITEM_NOT_FOUND));
 
         List<ProjectItemImageResponseDto> images = itemImageRepository.findByItemIdOrderBySortOrderAsc(itemId)
                 .stream()
@@ -79,19 +79,13 @@ public class ItemService {
     @Transactional(readOnly = true)
     public ProjectItemJournalPresignGetResponseDto createJournalPresignGet(Long itemId) {
         ProjectItem item = projectItemRepository.findById(itemId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "item not found"));
+                .orElseThrow(() -> new ItemException(ItemErrorType.ITEM_NOT_FOUND));
         if (item.getItemType() != ItemType.DIGITAL_JOURNAL) {
-            throw new ResponseStatusException(
-                    HttpStatus.UNPROCESSABLE_ENTITY,
-                    "itemType must be DIGITAL_JOURNAL"
-            );
+            throw new ItemException(ItemErrorType.DIGITAL_JOURNAL_VIOLATION, "itemType must be DIGITAL_JOURNAL");
         }
         String key = toNonBlankString(item.getJournalFileKey());
         if (key == null) {
-            throw new ResponseStatusException(
-                    HttpStatus.UNPROCESSABLE_ENTITY,
-                    "journalFileKey is required"
-            );
+            throw new ItemException(ItemErrorType.JOURNAL_FILE_KEY_REQUIRED);
         }
         String downloadFileName = buildJournalDownloadFileName(item, key);
         String contentType = isPdfKey(key) ? "application/pdf" : null;
@@ -104,10 +98,7 @@ public class ItemService {
             );
             return new ProjectItemJournalPresignGetResponseDto(url);
         } catch (Exception e) {
-            throw new ResponseStatusException(
-                    HttpStatus.INTERNAL_SERVER_ERROR,
-                    "presign get failed"
-            );
+            throw new ItemException(ItemErrorType.PRESIGN_FAILED);
         }
     }
 

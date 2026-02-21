@@ -1,16 +1,16 @@
 package com.example.cowmjucraft.domain.accounts.user.oauth.client;
 
+import com.example.cowmjucraft.domain.accounts.exception.AccountErrorType;
+import com.example.cowmjucraft.domain.accounts.exception.AccountException;
 import com.example.cowmjucraft.domain.accounts.user.oauth.config.KakaoOAuthProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestClient;
-import org.springframework.web.server.ResponseStatusException;
 
 @RequiredArgsConstructor
 @Component
@@ -28,7 +28,7 @@ public class KakaoOAuthClient {
                 .body(KakaoUserResponse.class);
 
         if (response == null || response.id() == null) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Failed to fetch Kakao user profile");
+            throw new AccountException(AccountErrorType.OAUTH_PROFILE_FETCH_FAILED);
         }
 
         String email = null;
@@ -45,7 +45,7 @@ public class KakaoOAuthClient {
 
     private String requestAccessToken(String code) {
         if (properties.getClientId() == null || properties.getClientId().isBlank()) {
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Kakao clientId is not configured");
+            throw new AccountException(AccountErrorType.OAUTH_CLIENT_NOT_CONFIGURED);
         }
 
         MultiValueMap<String, String> form = new LinkedMultiValueMap<>();
@@ -67,7 +67,7 @@ public class KakaoOAuthClient {
                 .body(KakaoTokenResponse.class);
 
         if (response == null || response.accessToken() == null || response.accessToken().isBlank()) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Failed to obtain Kakao access token");
+            throw new AccountException(AccountErrorType.OAUTH_TOKEN_FETCH_FAILED);
         }
 
         return response.accessToken();

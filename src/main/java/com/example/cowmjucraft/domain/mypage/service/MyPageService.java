@@ -7,10 +7,10 @@ import com.example.cowmjucraft.domain.accounts.user.repository.MemberRepository;
 import com.example.cowmjucraft.domain.mypage.dto.request.MyPageAddressRequestDto;
 import com.example.cowmjucraft.domain.mypage.dto.response.MyPageAddressResponseDto;
 import com.example.cowmjucraft.domain.mypage.dto.response.MyPageResponseDto;
-import org.springframework.http.HttpStatus;
+import com.example.cowmjucraft.domain.mypage.exception.MyPageErrorType;
+import com.example.cowmjucraft.domain.mypage.exception.MyPageException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
 
 @Service
 public class MyPageService {
@@ -31,7 +31,7 @@ public class MyPageService {
     public MyPageAddressResponseDto createAddress(Long memberId, MyPageAddressRequestDto request) {
         Member member = getMember(memberId);
         if (member.getAddress() != null) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "address already exists");
+            throw new MyPageException(MyPageErrorType.ADDRESS_ALREADY_EXISTS);
         }
         member.upsertAddress(
                 request.recipientName(),
@@ -46,7 +46,7 @@ public class MyPageService {
     public MyPageAddressResponseDto updateAddress(Long memberId, MyPageAddressRequestDto request) {
         Member member = getMember(memberId);
         if (member.getAddress() == null) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "address not found");
+            throw new MyPageException(MyPageErrorType.ADDRESS_NOT_FOUND);
         }
         member.upsertAddress(
                 request.recipientName(),
@@ -61,14 +61,14 @@ public class MyPageService {
     public void deleteAddress(Long memberId) {
         Member member = getMember(memberId);
         if (member.getAddress() == null) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "address not found");
+            throw new MyPageException(MyPageErrorType.ADDRESS_NOT_FOUND);
         }
         member.clearAddress();
     }
 
     private Member getMember(Long memberId) {
         return memberRepository.findById(memberId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "member not found"));
+                .orElseThrow(() -> new MyPageException(MyPageErrorType.MEMBER_NOT_FOUND));
     }
 
     private MyPageResponseDto toMyPageResponse(Member member) {

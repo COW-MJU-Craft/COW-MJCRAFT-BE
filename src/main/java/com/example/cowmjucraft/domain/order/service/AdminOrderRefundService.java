@@ -4,14 +4,14 @@ import com.example.cowmjucraft.domain.order.dto.response.AdminOrderStatusRespons
 import com.example.cowmjucraft.domain.order.entity.Order;
 import com.example.cowmjucraft.domain.order.entity.OrderBuyer;
 import com.example.cowmjucraft.domain.order.entity.OrderStatus;
+import com.example.cowmjucraft.domain.order.exception.OrderErrorType;
+import com.example.cowmjucraft.domain.order.exception.OrderException;
 import com.example.cowmjucraft.domain.order.repository.OrderBuyerRepository;
 import com.example.cowmjucraft.domain.order.repository.OrderRepository;
 import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
 
 @Service
 @RequiredArgsConstructor
@@ -25,7 +25,7 @@ public class AdminOrderRefundService {
     @Transactional
     public AdminOrderStatusResponseDto confirmRefund(Long orderId) {
         Order order = orderRepository.findByIdForUpdate(orderId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "주문을 찾을 수 없습니다. (orderId=" + orderId + ")"));
+                .orElseThrow(() -> new OrderException(OrderErrorType.ORDER_NOT_FOUND, "orderId=" + orderId));
 
         OrderStatusTransitionPolicy.validate(order.getStatus(), OrderStatus.REFUNDED);
 
@@ -33,7 +33,7 @@ public class AdminOrderRefundService {
         order.confirmRefund(now);
 
         OrderBuyer buyer = orderBuyerRepository.findById(orderId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "주문자 정보를 찾을 수 없습니다. (orderId=" + orderId + ")"));
+                .orElseThrow(() -> new OrderException(OrderErrorType.BUYER_NOT_FOUND, "orderId=" + orderId));
 
         String rawToken = orderViewTokenService.rotateToken(order, now);
         emailService.sendRefunded(

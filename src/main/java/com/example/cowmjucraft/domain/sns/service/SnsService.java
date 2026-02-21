@@ -4,12 +4,12 @@ import com.example.cowmjucraft.domain.sns.dto.request.SnsAdminRequestDto;
 import com.example.cowmjucraft.domain.sns.dto.response.SnsResponseDto;
 import com.example.cowmjucraft.domain.sns.entity.SnsLink;
 import com.example.cowmjucraft.domain.sns.entity.SnsType;
+import com.example.cowmjucraft.domain.sns.exception.SnsErrorType;
+import com.example.cowmjucraft.domain.sns.exception.SnsException;
 import com.example.cowmjucraft.domain.sns.repository.SnsLinkRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.util.Objects;
 
@@ -22,10 +22,7 @@ public class SnsService {
     @Transactional(readOnly = true)
     public SnsResponseDto getLink(SnsType type) {
         SnsLink link = snsLinkRepository.findByType(type)
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND,
-                        "sns link not found: " + type
-                ));
+                .orElseThrow(() -> new SnsException(SnsErrorType.SNS_LINK_NOT_FOUND, type.name()));
         return SnsResponseDto.from(link);
     }
 

@@ -3,6 +3,8 @@ package com.example.cowmjucraft.domain.project.service;
 import com.example.cowmjucraft.domain.project.dto.response.ProjectDetailResponseDto;
 import com.example.cowmjucraft.domain.project.dto.response.ProjectListItemResponseDto;
 import com.example.cowmjucraft.domain.project.entity.Project;
+import com.example.cowmjucraft.domain.project.exception.ProjectErrorType;
+import com.example.cowmjucraft.domain.project.exception.ProjectException;
 import com.example.cowmjucraft.domain.project.repository.ProjectRepository;
 import com.example.cowmjucraft.global.cloud.S3PresignFacade;
 import java.time.LocalDate;
@@ -12,10 +14,8 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
 
 @Service
 public class ProjectService {
@@ -56,7 +56,7 @@ public class ProjectService {
     @Transactional(readOnly = true)
     public ProjectDetailResponseDto getProject(Long projectId) {
         Project project = projectRepository.findById(projectId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "project not found"));
+                .orElseThrow(() -> new ProjectException(ProjectErrorType.PROJECT_NOT_FOUND));
 
         Set<String> keySet = new LinkedHashSet<>();
         addIfValidKey(keySet, project.getThumbnailKey());

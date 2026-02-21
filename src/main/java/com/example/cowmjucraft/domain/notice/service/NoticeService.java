@@ -3,6 +3,8 @@ package com.example.cowmjucraft.domain.notice.service;
 import com.example.cowmjucraft.domain.notice.dto.response.NoticeDetailResponseDto;
 import com.example.cowmjucraft.domain.notice.dto.response.NoticeSummaryResponseDto;
 import com.example.cowmjucraft.domain.notice.entity.Notice;
+import com.example.cowmjucraft.domain.notice.exception.NoticeErrorType;
+import com.example.cowmjucraft.domain.notice.exception.NoticeException;
 import com.example.cowmjucraft.domain.notice.repository.NoticeRepository;
 import com.example.cowmjucraft.global.cloud.S3PresignFacade;
 import java.util.ArrayList;
@@ -10,10 +12,8 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
 
 @Service
 public class NoticeService {
@@ -47,7 +47,7 @@ public class NoticeService {
     @Transactional(readOnly = true)
     public NoticeDetailResponseDto getNotice(Long noticeId) {
         Notice notice = noticeRepository.findById(noticeId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "notice not found"));
+                .orElseThrow(() -> new NoticeException(NoticeErrorType.NOTICE_NOT_FOUND));
         Set<String> keySet = new LinkedHashSet<>();
         addIfValidKey(keySet, notice.getImageKeys());
         Map<String, String> urls = presignGetSafely(keySet);

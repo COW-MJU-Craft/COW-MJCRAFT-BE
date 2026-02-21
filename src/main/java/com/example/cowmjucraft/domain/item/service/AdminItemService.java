@@ -15,6 +15,8 @@ import com.example.cowmjucraft.domain.item.entity.ItemImage;
 import com.example.cowmjucraft.domain.item.entity.ItemSaleType;
 import com.example.cowmjucraft.domain.item.entity.ProjectItem;
 import com.example.cowmjucraft.domain.item.entity.ItemType;
+import com.example.cowmjucraft.domain.item.exception.ItemErrorType;
+import com.example.cowmjucraft.domain.item.exception.ItemException;
 import com.example.cowmjucraft.domain.item.repository.ItemImageRepository;
 import com.example.cowmjucraft.domain.item.repository.ProjectItemRepository;
 import com.example.cowmjucraft.global.cloud.S3PresignFacade;
@@ -31,10 +33,8 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
 
 @RequiredArgsConstructor
 @Service
@@ -48,7 +48,7 @@ public class AdminItemService {
     @Transactional
     public AdminProjectItemResponseDto create(Long projectId, AdminProjectItemCreateRequestDto request) {
         Project project = projectRepository.findById(projectId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "project not found"));
+                .orElseThrow(() -> new ItemException(ItemErrorType.PROJECT_NOT_FOUND));
 
         NormalizedItemRequest normalized = normalizeCreate(project, request);
         ProjectItem item = new ProjectItem(
@@ -74,7 +74,7 @@ public class AdminItemService {
     @Transactional
     public AdminProjectItemResponseDto update(Long itemId, AdminProjectItemUpdateRequestDto request) {
         ProjectItem item = projectItemRepository.findById(itemId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "item not found"));
+                .orElseThrow(() -> new ItemException(ItemErrorType.ITEM_NOT_FOUND));
 
         NormalizedItemRequest normalized = normalizeUpdate(item.getProject(), item, request);
         item.update(
@@ -126,13 +126,10 @@ public class AdminItemService {
             AdminItemPresignPutBatchRequestDto request
     ) {
         Project project = projectRepository.findById(projectId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "project not found"));
+                .orElseThrow(() -> new ItemException(ItemErrorType.PROJECT_NOT_FOUND));
         ProjectCategory category = project.getCategory() == null ? ProjectCategory.GOODS : project.getCategory();
         if (category != ProjectCategory.JOURNAL) {
-            throw new ResponseStatusException(
-                    HttpStatus.UNPROCESSABLE_ENTITY,
-                    "project category must be JOURNAL"
-            );
+            throw new ItemException(ItemErrorType.PROJECT_CATEGORY_MISMATCH, "project category must be JOURNAL");
         }
 
         String prefix = "uploads/projects/" + projectId + "/journals";
@@ -146,21 +143,21 @@ public class AdminItemService {
     @Transactional
     public void delete(Long itemId) {
         ProjectItem item = projectItemRepository.findById(itemId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "item not found"));
+                .orElseThrow(() -> new ItemException(ItemErrorType.ITEM_NOT_FOUND));
         projectItemRepository.delete(item);
     }
 
     @Transactional
     public void deleteThumbnail(Long itemId) {
         ProjectItem item = projectItemRepository.findById(itemId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "item not found"));
+                .orElseThrow(() -> new ItemException(ItemErrorType.ITEM_NOT_FOUND));
 
         String key = toNonBlankString(item.getThumbnailKey());
         if (key != null) {
             try {
                 s3PresignFacade.deleteByKeys(List.of(key));
             } catch (Exception e) {
-                throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "S3 삭제 실패");
+                throw new ItemException(ItemErrorType.S3_DELETE_FAILED);
             }
         }
 
@@ -170,26 +167,20 @@ public class AdminItemService {
     @Transactional
     public void deleteJournalFile(Long itemId) {
         ProjectItem item = projectItemRepository.findById(itemId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "item not found"));
+                .orElseThrow(() -> new ItemException(ItemErrorType.ITEM_NOT_FOUND));
         if (item.getItemType() != ItemType.DIGITAL_JOURNAL) {
-            throw new ResponseStatusException(
-                    HttpStatus.UNPROCESSABLE_ENTITY,
-                    "itemType must be DIGITAL_JOURNAL"
-            );
+            throw new ItemException(ItemErrorType.DIGITAL_JOURNAL_VIOLATION, "itemType must be DIGITAL_JOURNAL");
         }
 
         String key = toNonBlankString(item.getJournalFileKey());
         if (key == null) {
-            throw new ResponseStatusException(
-                    HttpStatus.UNPROCESSABLE_ENTITY,
-                    "journalFileKey is required"
-            );
+            throw new ItemException(ItemErrorType.JOURNAL_FILE_KEY_REQUIRED);
         }
 
         try {
             s3PresignFacade.deleteByKeys(List.of(key));
         } catch (Exception e) {
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "S3 삭제 실패");
+            throw new ItemException(ItemErrorType.S3_DELETE_FAILED);
         }
 
         item.clearJournalFileKey();
@@ -212,7 +203,7 @@ public class AdminItemService {
     @Transactional(readOnly = true)
     public AdminProjectItemDetailResponseDto getItem(Long itemId) {
         ProjectItem item = projectItemRepository.findById(itemId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "item not found"));
+                .orElseThrow(() -> new ItemException(ItemErrorType.ITEM_NOT_FOUND));
         List<ItemImage> images = itemImageRepository.findByItemIdOrderBySortOrderAsc(itemId);
 
         Set<String> keySet = new LinkedHashSet<>();
@@ -237,23 +228,20 @@ public class AdminItemService {
     @Transactional
     public List<ProjectItemImageResponseDto> addImages(Long itemId, AdminItemImageCreateRequestDto request) {
         ProjectItem item = projectItemRepository.findById(itemId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "item not found"));
+                .orElseThrow(() -> new ItemException(ItemErrorType.ITEM_NOT_FOUND));
 
         List<AdminItemImageCreateRequestDto.ImageRequestDto> images = request.images();
         if (images == null || images.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "images are required");
+            throw new ItemException(ItemErrorType.IMAGE_REQUIRED);
         }
 
         Set<Integer> sortOrders = new HashSet<>();
         for (AdminItemImageCreateRequestDto.ImageRequestDto image : images) {
             if (!sortOrders.add(image.sortOrder())) {
-                throw new ResponseStatusException(
-                        HttpStatus.UNPROCESSABLE_ENTITY,
-                        "duplicate sortOrder: " + image.sortOrder()
-                );
+                throw new ItemException(ItemErrorType.SORT_ORDER_INVALID, "duplicate sortOrder: " + image.sortOrder());
             }
             if (image.sortOrder() < 0) {
-                throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "sortOrder must be >= 0");
+                throw new ItemException(ItemErrorType.SORT_ORDER_INVALID, "sortOrder must be >= 0");
             }
         }
 
@@ -262,7 +250,7 @@ public class AdminItemService {
                 .collect(Collectors.toSet());
         for (Integer order : sortOrders) {
             if (existingOrders.contains(order)) {
-                throw new ResponseStatusException(HttpStatus.CONFLICT, "sortOrder already exists: " + order);
+                throw new ItemException(ItemErrorType.SORT_ORDER_CONFLICT, "sortOrder already exists: " + order);
             }
         }
 
@@ -294,31 +282,28 @@ public class AdminItemService {
             AdminItemImageOrderPatchRequestDto request
     ) {
         ProjectItem item = projectItemRepository.findById(itemId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "item not found"));
+                .orElseThrow(() -> new ItemException(ItemErrorType.ITEM_NOT_FOUND));
 
         List<Long> imageIds = request.imageIds();
         if (imageIds == null || imageIds.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "imageIds are required");
+            throw new ItemException(ItemErrorType.IMAGE_REQUIRED, "imageIds are required");
         }
 
         Set<Long> uniqueIds = new HashSet<>();
         for (Long id : imageIds) {
             if (!uniqueIds.add(id)) {
-                throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "duplicate imageId: " + id);
+                throw new ItemException(ItemErrorType.SORT_ORDER_INVALID, "duplicate imageId: " + id);
             }
         }
 
         long totalCount = itemImageRepository.countByItemId(itemId);
         if (totalCount != imageIds.size()) {
-            throw new ResponseStatusException(
-                    HttpStatus.UNPROCESSABLE_ENTITY,
-                    "imageIds size must match item images"
-            );
+            throw new ItemException(ItemErrorType.IMAGE_SIZE_MISMATCH);
         }
 
         List<ItemImage> images = itemImageRepository.findAllById(imageIds);
         if (images.size() != imageIds.size()) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "some imageIds not found");
+            throw new ItemException(ItemErrorType.IMAGE_NOT_FOUND);
         }
 
         Map<Long, ItemImage> imageMap = images.stream()
@@ -328,10 +313,7 @@ public class AdminItemService {
         for (Long imageId : imageIds) {
             ItemImage image = imageMap.get(imageId);
             if (!image.getItem().getId().equals(item.getId())) {
-                throw new ResponseStatusException(
-                        HttpStatus.CONFLICT,
-                        "imageId does not belong to item: " + imageId
-                );
+                throw new ItemException(ItemErrorType.IMAGE_NOT_BELONG_TO_ITEM, "imageId does not belong to item: " + imageId);
             }
             image.updateSortOrder(sortOrder++);
         }
@@ -342,9 +324,9 @@ public class AdminItemService {
     @Transactional
     public void deleteImage(Long itemId, Long imageId) {
         ItemImage image = itemImageRepository.findById(imageId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "item image not found"));
+                .orElseThrow(() -> new ItemException(ItemErrorType.IMAGE_NOT_FOUND));
         if (!image.getItem().getId().equals(itemId)) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "imageId does not belong to item");
+            throw new ItemException(ItemErrorType.IMAGE_NOT_BELONG_TO_ITEM);
         }
         itemImageRepository.delete(image);
     }
@@ -352,19 +334,13 @@ public class AdminItemService {
     @Transactional(readOnly = true)
     public ProjectItemJournalPresignGetResponseDto createJournalPresignGet(Long itemId) {
         ProjectItem item = projectItemRepository.findById(itemId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "item not found"));
+                .orElseThrow(() -> new ItemException(ItemErrorType.ITEM_NOT_FOUND));
         if (item.getItemType() != ItemType.DIGITAL_JOURNAL) {
-            throw new ResponseStatusException(
-                    HttpStatus.UNPROCESSABLE_ENTITY,
-                    "itemType must be DIGITAL_JOURNAL"
-            );
+            throw new ItemException(ItemErrorType.DIGITAL_JOURNAL_VIOLATION, "itemType must be DIGITAL_JOURNAL");
         }
         String key = toNonBlankString(item.getJournalFileKey());
         if (key == null) {
-            throw new ResponseStatusException(
-                    HttpStatus.UNPROCESSABLE_ENTITY,
-                    "journalFileKey is required"
-            );
+            throw new ItemException(ItemErrorType.JOURNAL_FILE_KEY_REQUIRED);
         }
         String downloadFileName = buildJournalDownloadFileName(item, key);
         String contentType = isPdfKey(key) ? "application/pdf" : null;
@@ -377,10 +353,7 @@ public class AdminItemService {
             );
             return new ProjectItemJournalPresignGetResponseDto(url);
         } catch (Exception e) {
-            throw new ResponseStatusException(
-                    HttpStatus.INTERNAL_SERVER_ERROR,
-                    "presign get failed"
-            );
+            throw new ItemException(ItemErrorType.PRESIGN_FAILED);
         }
     }
 
@@ -430,32 +403,20 @@ public class AdminItemService {
     ) {
         if (itemType == ItemType.DIGITAL_JOURNAL) {
             if (price != 0) {
-                throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "price must be 0 for DIGITAL_JOURNAL");
+                throw new ItemException(ItemErrorType.DIGITAL_JOURNAL_VIOLATION, "price must be 0 for DIGITAL_JOURNAL");
             }
             if (saleType != ItemSaleType.NORMAL) {
-                throw new ResponseStatusException(
-                        HttpStatus.UNPROCESSABLE_ENTITY,
-                        "saleType must be NORMAL for DIGITAL_JOURNAL"
-                );
+                throw new ItemException(ItemErrorType.DIGITAL_JOURNAL_VIOLATION, "saleType must be NORMAL for DIGITAL_JOURNAL");
             }
             if (targetQty != null) {
-                throw new ResponseStatusException(
-                        HttpStatus.UNPROCESSABLE_ENTITY,
-                        "targetQty must be null for DIGITAL_JOURNAL"
-                );
+                throw new ItemException(ItemErrorType.DIGITAL_JOURNAL_VIOLATION, "targetQty must be null for DIGITAL_JOURNAL");
             }
             if (fundedQty != null && fundedQty != 0) {
-                throw new ResponseStatusException(
-                        HttpStatus.UNPROCESSABLE_ENTITY,
-                        "fundedQty must be null or 0 for DIGITAL_JOURNAL"
-                );
+                throw new ItemException(ItemErrorType.DIGITAL_JOURNAL_VIOLATION, "fundedQty must be null or 0 for DIGITAL_JOURNAL");
             }
             String normalizedJournalKey = toNonBlankString(journalFileKey);
             if (normalizedJournalKey == null) {
-                throw new ResponseStatusException(
-                        HttpStatus.UNPROCESSABLE_ENTITY,
-                        "journalFileKey is required for DIGITAL_JOURNAL"
-                );
+                throw new ItemException(ItemErrorType.JOURNAL_FILE_KEY_REQUIRED, "journalFileKey is required for DIGITAL_JOURNAL");
             }
             String normalizedThumbnailKey = toNonBlankString(thumbnailKey);
             return new NormalizedItemRequest(itemType, null, fundedQty, normalizedJournalKey, normalizedThumbnailKey, null);
@@ -463,46 +424,31 @@ public class AdminItemService {
 
         String normalizedThumbnailKey = toNonBlankString(thumbnailKey);
         if (normalizedThumbnailKey == null) {
-            throw new ResponseStatusException(
-                    HttpStatus.UNPROCESSABLE_ENTITY,
-                    "thumbnailKey is required for PHYSICAL"
-            );
+            throw new ItemException(ItemErrorType.THUMBNAIL_REQUIRED);
         }
 
         if (toNonBlankString(journalFileKey) != null) {
-            throw new ResponseStatusException(
-                    HttpStatus.UNPROCESSABLE_ENTITY,
-                    "journalFileKey is allowed only for DIGITAL_JOURNAL"
-            );
+            throw new ItemException(ItemErrorType.DIGITAL_JOURNAL_VIOLATION, "journalFileKey is allowed only for DIGITAL_JOURNAL");
         }
 
         if (fundedQty != null && fundedQty < 0) {
-            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "fundedQty must be >= 0");
+            throw new ItemException(ItemErrorType.GROUPBUY_VIOLATION, "fundedQty must be >= 0");
         }
 
         Integer normalizedTargetQty = targetQty;
         Integer normalizedStockQty;
         if (saleType == ItemSaleType.GROUPBUY) {
             if (normalizedTargetQty == null || normalizedTargetQty < 1) {
-                throw new ResponseStatusException(
-                        HttpStatus.UNPROCESSABLE_ENTITY,
-                        "targetQty must be >= 1 for GROUPBUY"
-                );
+                throw new ItemException(ItemErrorType.GROUPBUY_VIOLATION, "targetQty must be >= 1 for GROUPBUY");
             }
             normalizedStockQty = null;
         } else {
             normalizedTargetQty = null;
             if (stockQty == null) {
-                throw new ResponseStatusException(
-                        HttpStatus.UNPROCESSABLE_ENTITY,
-                        "stockQty is required for NORMAL"
-                );
+                throw new ItemException(ItemErrorType.NORMAL_SALE_VIOLATION, "stockQty is required for NORMAL");
             }
             if (stockQty < 0) {
-                throw new ResponseStatusException(
-                        HttpStatus.UNPROCESSABLE_ENTITY,
-                        "stockQty must be >= 0"
-                );
+                throw new ItemException(ItemErrorType.NORMAL_SALE_VIOLATION, "stockQty must be >= 0");
             }
             normalizedStockQty = stockQty;
         }
@@ -519,10 +465,7 @@ public class AdminItemService {
 
     private void validateDescription(ItemType itemType, String description) {
         if (itemType != ItemType.DIGITAL_JOURNAL && toNonBlankString(description) == null) {
-            throw new ResponseStatusException(
-                    HttpStatus.UNPROCESSABLE_ENTITY,
-                    "description is required for PHYSICAL"
-            );
+            throw new ItemException(ItemErrorType.DESCRIPTION_REQUIRED);
         }
     }
 
@@ -533,16 +476,10 @@ public class AdminItemService {
             resolved = category == ProjectCategory.JOURNAL ? ItemType.DIGITAL_JOURNAL : ItemType.PHYSICAL;
         }
         if (category == ProjectCategory.JOURNAL && resolved != ItemType.DIGITAL_JOURNAL) {
-            throw new ResponseStatusException(
-                    HttpStatus.UNPROCESSABLE_ENTITY,
-                    "itemType must be DIGITAL_JOURNAL for JOURNAL project"
-            );
+            throw new ItemException(ItemErrorType.ITEM_TYPE_MISMATCH, "itemType must be DIGITAL_JOURNAL for JOURNAL project");
         }
         if (category == ProjectCategory.GOODS && resolved != ItemType.PHYSICAL) {
-            throw new ResponseStatusException(
-                    HttpStatus.UNPROCESSABLE_ENTITY,
-                    "itemType must be PHYSICAL for GOODS project"
-            );
+            throw new ItemException(ItemErrorType.ITEM_TYPE_MISMATCH, "itemType must be PHYSICAL for GOODS project");
         }
         return resolved;
     }
@@ -612,7 +549,7 @@ public class AdminItemService {
 
     private void ensureItemExists(Long itemId) {
         if (!projectItemRepository.existsById(itemId)) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "item not found");
+            throw new ItemException(ItemErrorType.ITEM_NOT_FOUND);
         }
     }
 
@@ -621,7 +558,7 @@ public class AdminItemService {
     ) {
         List<S3PresignFacade.PresignPutItem> items = response.items();
         if (items == null || items.isEmpty()) {
-            throw new IllegalStateException("presign items is empty");
+            throw new ItemException(ItemErrorType.PRESIGN_FAILED);
         }
 
         List<AdminItemPresignPutBatchResponseDto.ItemDto> result = new ArrayList<>(items.size());
@@ -641,17 +578,14 @@ public class AdminItemService {
             List<AdminItemPresignPutBatchRequestDto.FileDto> files
     ) {
         if (files == null || files.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "files are required");
+            throw new ItemException(ItemErrorType.FILE_REQUIRED);
         }
 
         List<S3PresignFacade.PresignPutFile> result = new ArrayList<>(files.size());
         for (int i = 0; i < files.size(); i++) {
             AdminItemPresignPutBatchRequestDto.FileDto file = files.get(i);
             if (file == null) {
-                throw new ResponseStatusException(
-                        HttpStatus.UNPROCESSABLE_ENTITY,
-                        "files[" + i + "] is null"
-                );
+                throw new ItemException(ItemErrorType.FILE_REQUIRED, "files[" + i + "] is null");
             }
             result.add(new S3PresignFacade.PresignPutFile(
                     file.fileName(),

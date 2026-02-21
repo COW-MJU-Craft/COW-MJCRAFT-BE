@@ -10,6 +10,8 @@ import com.example.cowmjucraft.domain.project.dto.response.AdminProjectResponseD
 import com.example.cowmjucraft.domain.project.entity.Project;
 import com.example.cowmjucraft.domain.project.entity.ProjectCategory;
 import com.example.cowmjucraft.domain.project.repository.ProjectRepository;
+import com.example.cowmjucraft.domain.project.exception.ProjectErrorType;
+import com.example.cowmjucraft.domain.project.exception.ProjectException;
 import com.example.cowmjucraft.global.cloud.S3PresignFacade;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -21,10 +23,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
 
 @Service
 public class AdminProjectService {
@@ -146,7 +146,7 @@ public class AdminProjectService {
         if (projects.size() != ids.size()) {
             Set<Long> foundIds = projects.stream().map(Project::getId).collect(Collectors.toSet());
             ids.removeAll(foundIds);
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "project not found: " + ids);
+            throw new ProjectException(ProjectErrorType.PROJECT_NOT_FOUND, "project not found: " + ids);
         }
 
         Map<Long, Project> projectMap = projects.stream()
@@ -178,7 +178,7 @@ public class AdminProjectService {
 
     private Project findProject(Long projectId) {
         return projectRepository.findById(projectId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "project not found"));
+                .orElseThrow(() -> new ProjectException(ProjectErrorType.PROJECT_NOT_FOUND));
     }
 
     private void validateOrders(List<AdminProjectOrderPatchRequestDto.ItemDto> items) {
@@ -290,8 +290,8 @@ public class AdminProjectService {
         return ordered;
     }
 
-    private ResponseStatusException validationFailed(String message) {
-        return new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, message);
+    private ProjectException validationFailed(String message) {
+        return new ProjectException(ProjectErrorType.ORDER_PATCH_VALIDATION_FAILED, message);
     }
 
     private ProjectCategory resolveCategory(ProjectCategory category) {
@@ -331,7 +331,7 @@ public class AdminProjectService {
     ) {
         List<S3PresignFacade.PresignPutItem> items = response.items();
         if (items == null || items.isEmpty()) {
-            throw new IllegalArgumentException("presign items is empty");
+            throw new ProjectException(ProjectErrorType.FILE_REQUIRED, "presign items is empty");
         }
 
         List<AdminProjectPresignPutBatchResponseDto.ItemDto> result = new ArrayList<>(items.size());
@@ -351,7 +351,7 @@ public class AdminProjectService {
             List<AdminProjectPresignPutBatchRequestDto.FileDto> files
     ) {
         if (files == null || files.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "files are required");
+            throw new ProjectException(ProjectErrorType.FILE_REQUIRED);
         }
 
         List<S3PresignFacade.PresignPutFile> result = new ArrayList<>(files.size());
@@ -359,10 +359,7 @@ public class AdminProjectService {
         for (int i = 0; i < files.size(); i++) {
             AdminProjectPresignPutBatchRequestDto.FileDto file = files.get(i);
             if (file == null) {
-                throw new ResponseStatusException(
-                        HttpStatus.UNPROCESSABLE_ENTITY,
-                        "files[" + i + "] is null"
-                );
+                throw new ProjectException(ProjectErrorType.FILE_REQUIRED, "files[" + i + "] is null");
             }
             result.add(new S3PresignFacade.PresignPutFile(
                     file.fileName(),

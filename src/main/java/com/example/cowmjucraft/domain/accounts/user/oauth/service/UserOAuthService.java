@@ -9,11 +9,11 @@ import com.example.cowmjucraft.domain.accounts.user.oauth.dto.request.NaverLogin
 import com.example.cowmjucraft.domain.accounts.user.oauth.dto.response.UserSocialLoginResponseDto;
 import com.example.cowmjucraft.domain.accounts.user.repository.MemberRepository;
 import com.example.cowmjucraft.global.config.jwt.JwtTokenProvider;
+import com.example.cowmjucraft.domain.accounts.exception.AccountErrorType;
+import com.example.cowmjucraft.domain.accounts.exception.AccountException;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.util.Locale;
 
@@ -44,7 +44,7 @@ public class UserOAuthService {
             String nickname
     ) {
         if (providerId == null || providerId.isBlank()) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid social user id");
+            throw new AccountException(AccountErrorType.INVALID_SOCIAL_USER_ID);
         }
 
         Member member = memberRepository.findByProviderAndProviderId(provider, providerId)
