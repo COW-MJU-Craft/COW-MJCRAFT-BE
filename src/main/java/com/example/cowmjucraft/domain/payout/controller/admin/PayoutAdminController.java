@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 
-@RequestMapping("api/admin/payouts")
+@RequestMapping("/api/admin/payouts")
 @RestController
 @AllArgsConstructor
 public class PayoutAdminController {

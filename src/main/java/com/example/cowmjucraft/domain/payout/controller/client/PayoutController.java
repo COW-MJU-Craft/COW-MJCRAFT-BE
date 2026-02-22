@@ -18,7 +18,7 @@ import java.util.List;
 
 @RequiredArgsConstructor
 @RestController
-@RequestMapping("api/payouts")
+@RequestMapping("/api/payouts")
 public class PayoutController {
 
     private final PayoutService payoutService;
