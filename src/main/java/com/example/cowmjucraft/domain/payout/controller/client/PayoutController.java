@@ -4,9 +4,11 @@ import com.example.cowmjucraft.domain.payout.dto.response.PayoutDetailResponse;
 import com.example.cowmjucraft.domain.payout.dto.response.PayoutListResponse;
 import com.example.cowmjucraft.domain.payout.entity.PayoutItem;
 import com.example.cowmjucraft.domain.payout.service.client.PayoutService;
+import com.example.cowmjucraft.global.response.ApiResponse;
 import com.example.cowmjucraft.global.response.ApiResult;
 import com.example.cowmjucraft.global.response.type.SuccessType;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -22,12 +24,12 @@ public class PayoutController {
     private final PayoutService payoutService;
 
     @GetMapping
-    public ApiResult<List<PayoutListResponse>> getPayoutList() {
-        return ApiResult.success(SuccessType.SUCCESS, payoutService.getPayoutList());
+    public ResponseEntity<ApiResult<List<PayoutListResponse>>> getPayoutList() {
+        return ApiResponse.of(SuccessType.SUCCESS, payoutService.getPayoutList());
     }
 
     @GetMapping("{payoutId}")
-    public ApiResult<PayoutDetailResponse> getPayoutDetail(@PathVariable Long payoutId) {
-        return ApiResult.success(SuccessType.SUCCESS, payoutService.getPayoutDetail(payoutId));
+    public ResponseEntity<ApiResult<PayoutDetailResponse>> getPayoutDetail(@PathVariable Long payoutId) {
+        return ApiResponse.of(SuccessType.SUCCESS, payoutService.getPayoutDetail(payoutId));
     }
 }
