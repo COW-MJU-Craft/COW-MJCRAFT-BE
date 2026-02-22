@@ -19,7 +19,7 @@ import java.util.Map;
 @RequestMapping("/api/admin/payouts")
 @RestController
 @AllArgsConstructor
-public class PayoutAdminController {
+public class PayoutAdminController implements PayoutAdminControllerDocs{
 
     PayoutAdminService payoutAdminService;
     PayoutItemAdminService payoutItemAdminService;
