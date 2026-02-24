@@ -36,7 +36,7 @@ public class PayoutItem {
         this.type = type;
         this.name = name;
         this.amount = amount;
-        this.category = normalizeCategory(type, category);
+        this.category = category;
     }
 
     void attach(Payout payout) {
@@ -51,13 +51,6 @@ public class PayoutItem {
         this.type = type;
         this.name = name;
         this.amount = amount;
-        this.category = normalizeCategory(type, category);
-    }
-
-    private String normalizeCategory(PayoutItemType type, String category) {
-        if (type == PayoutItemType.INCOME) return null;
-        if (category == null) return null;
-        String trimmed = category.trim();
-        return trimmed.isEmpty() ? null : trimmed;
+        this.category = category;
     }
 }

@@ -4,6 +4,8 @@ import com.example.cowmjucraft.domain.payout.dto.request.PayoutCreateAdminReques
 import com.example.cowmjucraft.domain.payout.dto.request.PayoutItemCreateAdminRequest;
 import com.example.cowmjucraft.domain.payout.dto.request.PayoutItemUpdateAdminRequest;
 import com.example.cowmjucraft.domain.payout.dto.request.PayoutUpdateAdminRequest;
+import com.example.cowmjucraft.domain.payout.dto.response.PayoutDetailResponse;
+import com.example.cowmjucraft.domain.payout.dto.response.PayoutListResponse;
 import com.example.cowmjucraft.domain.payout.service.admin.PayoutAdminService;
 import com.example.cowmjucraft.domain.payout.service.admin.PayoutItemAdminService;
 import com.example.cowmjucraft.global.response.ApiResponse;
@@ -14,11 +16,11 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
 
 @RequestMapping("/api/admin/payouts")
 @RestController
-@AllArgsConstructor
 @RequiredArgsConstructor
 public class PayoutAdminController implements PayoutAdminControllerDocs{
 
@@ -44,6 +46,16 @@ public class PayoutAdminController implements PayoutAdminControllerDocs{
         payoutAdminService.deletePayout(payoutId);
 
         return ApiResponse.of(SuccessType.SUCCESS, null);
+    }
+
+    @GetMapping
+    public ResponseEntity<ApiResult<List<PayoutListResponse>>> getPayoutList() {
+        return ApiResponse.of(SuccessType.SUCCESS, payoutAdminService.getPayoutList());
+    }
+
+    @GetMapping("{payoutId}")
+    public ResponseEntity<ApiResult<PayoutDetailResponse>> getPayoutDetail(@PathVariable Long payoutId) {
+        return ApiResponse.of(SuccessType.SUCCESS, payoutAdminService.getPayoutDetail(payoutId));
     }
 
     @PostMapping("/{payoutId}/items")

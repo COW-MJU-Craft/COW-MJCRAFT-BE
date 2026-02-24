@@ -20,21 +20,23 @@ public class PayoutItemAdminService {
     private final PayoutItemRepository payoutItemRepository;
 
     @Transactional
-    public Long createPayoutItem(Long payoutId, PayoutItemCreateAdminRequest payoutItemCreateAdminRequest) {
+    public Long createPayoutItem(Long payoutId, PayoutItemCreateAdminRequest request) {
         Payout payout = payoutRepository.findById(payoutId)
                 .orElseThrow(() -> new PayoutException(PayoutErrorType.PAYOUT_NOT_FOUND));
 
         PayoutItem payoutItem = new PayoutItem(
-                payoutItemCreateAdminRequest.getType(),
-                payoutItemCreateAdminRequest.getName().trim(),
-                payoutItemCreateAdminRequest.getAmount(),
-                payoutItemCreateAdminRequest.getCategory()
+                request.getType(),
+                request.getName().trim(),
+                request.getAmount(),
+                request.getCategory()
         );
 
         payout.addItem(payoutItem);
-        payout.calculateSummary();
 
+        payoutItemRepository.save(payoutItem);
+        payout.calculateSummary();
         payoutRepository.save(payout);
+
         return payoutItem.getId();
     }
 
