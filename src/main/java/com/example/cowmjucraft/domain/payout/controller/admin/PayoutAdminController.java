@@ -19,16 +19,17 @@ import java.util.Map;
 @RequestMapping("/api/admin/payouts")
 @RestController
 @AllArgsConstructor
+@RequiredArgsConstructor
 public class PayoutAdminController implements PayoutAdminControllerDocs{
 
-    PayoutAdminService payoutAdminService;
-    PayoutItemAdminService payoutItemAdminService;
+    private final PayoutAdminService payoutAdminService;
+    private final PayoutItemAdminService payoutItemAdminService;
 
     @PostMapping
     public ResponseEntity<ApiResult<Map<String, Long>>> createPayout(@RequestBody PayoutCreateAdminRequest payoutCreateAdminRequest) {
         Long payoutId = payoutAdminService.createPayout(payoutCreateAdminRequest);
 
-        return ApiResponse.of(SuccessType.SUCCESS, Map.of("payoutId", payoutId));
+        return ApiResponse.of(SuccessType.CREATED, Map.of("payoutId", payoutId));
     }
 
     @PutMapping("/payoutId")
@@ -49,7 +50,7 @@ public class PayoutAdminController implements PayoutAdminControllerDocs{
     public ResponseEntity<ApiResult<Map<String, Long>>> createPayoutItem(@PathVariable Long payoutId, @RequestBody PayoutItemCreateAdminRequest payoutItemCreateAdminRequest) {
         Long payoutItemId = payoutItemAdminService.createPayoutItem(payoutId, payoutItemCreateAdminRequest);
 
-        return ApiResponse.of(SuccessType.SUCCESS, Map.of("payoutItemId", payoutItemId));
+        return ApiResponse.of(SuccessType.CREATED, Map.of("payoutItemId", payoutItemId));
     }
 
     @PutMapping("/{payoutId}/items/{payoutItemId}")
@@ -60,7 +61,7 @@ public class PayoutAdminController implements PayoutAdminControllerDocs{
     }
 
     @DeleteMapping("/{payoutId}/items/{payoutItemId}")
-    public ResponseEntity<ApiResult<Void>> deletePayoutItem(@PathVariable Long payoutId, Long payoutItemId) {
+    public ResponseEntity<ApiResult<Void>> deletePayoutItem(@PathVariable Long payoutId, @PathVariable Long payoutItemId) {
         payoutItemAdminService.deletePayoutItem(payoutId, payoutItemId);
 
         return ApiResponse.of(SuccessType.SUCCESS, null);
