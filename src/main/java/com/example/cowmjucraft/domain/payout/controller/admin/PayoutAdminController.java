@@ -4,8 +4,7 @@ import com.example.cowmjucraft.domain.payout.dto.request.PayoutCreateAdminReques
 import com.example.cowmjucraft.domain.payout.dto.request.PayoutItemCreateAdminRequest;
 import com.example.cowmjucraft.domain.payout.dto.request.PayoutItemUpdateAdminRequest;
 import com.example.cowmjucraft.domain.payout.dto.request.PayoutUpdateAdminRequest;
-import com.example.cowmjucraft.domain.payout.dto.response.PayoutDetailResponse;
-import com.example.cowmjucraft.domain.payout.dto.response.PayoutListResponse;
+import com.example.cowmjucraft.domain.payout.dto.response.*;
 import com.example.cowmjucraft.domain.payout.service.admin.PayoutAdminService;
 import com.example.cowmjucraft.domain.payout.service.admin.PayoutItemAdminService;
 import com.example.cowmjucraft.global.response.ApiResponse;
@@ -28,10 +27,8 @@ public class PayoutAdminController implements PayoutAdminControllerDocs{
     private final PayoutItemAdminService payoutItemAdminService;
 
     @PostMapping
-    public ResponseEntity<ApiResult<Map<String, Long>>> createPayout(@RequestBody PayoutCreateAdminRequest payoutCreateAdminRequest) {
-        Long payoutId = payoutAdminService.createPayout(payoutCreateAdminRequest);
-
-        return ApiResponse.of(SuccessType.CREATED, Map.of("payoutId", payoutId));
+    public ResponseEntity<ApiResult<PayoutCreateResponse>> createPayout(@RequestBody PayoutCreateAdminRequest payoutCreateAdminRequest) {
+        return ApiResponse.of(SuccessType.CREATED, payoutAdminService.createPayout(payoutCreateAdminRequest));
     }
 
     @PutMapping("/{payoutId}")
@@ -49,7 +46,7 @@ public class PayoutAdminController implements PayoutAdminControllerDocs{
     }
 
     @GetMapping
-    public ResponseEntity<ApiResult<List<PayoutListResponse>>> getPayoutList() {
+    public ResponseEntity<ApiResult<PayoutListWrapperResponse>> getPayoutList() {
         return ApiResponse.of(SuccessType.SUCCESS, payoutAdminService.getPayoutList());
     }
 
@@ -59,10 +56,8 @@ public class PayoutAdminController implements PayoutAdminControllerDocs{
     }
 
     @PostMapping("/{payoutId}/items")
-    public ResponseEntity<ApiResult<Map<String, Long>>> createPayoutItem(@PathVariable Long payoutId, @RequestBody PayoutItemCreateAdminRequest payoutItemCreateAdminRequest) {
-        Long payoutItemId = payoutItemAdminService.createPayoutItem(payoutId, payoutItemCreateAdminRequest);
-
-        return ApiResponse.of(SuccessType.CREATED, Map.of("payoutItemId", payoutItemId));
+    public ResponseEntity<ApiResult<PayoutItemCreateResponse>> createPayoutItem(@PathVariable Long payoutId, @RequestBody PayoutItemCreateAdminRequest payoutItemCreateAdminRequest) {
+        return ApiResponse.of(SuccessType.CREATED, payoutItemAdminService.createPayoutItem(payoutId, payoutItemCreateAdminRequest));
     }
 
     @PutMapping("/{payoutId}/items/{payoutItemId}")

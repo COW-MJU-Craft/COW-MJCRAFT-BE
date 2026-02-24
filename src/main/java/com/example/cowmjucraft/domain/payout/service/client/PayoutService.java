@@ -1,11 +1,6 @@
 package com.example.cowmjucraft.domain.payout.service.client;
 
-import com.example.cowmjucraft.domain.payout.dto.response.PayoutDetailResponse;
-import com.example.cowmjucraft.domain.payout.dto.response.PayoutExpenseCategoryGroupResponse;
-import com.example.cowmjucraft.domain.payout.dto.response.PayoutExpenseItemResponse;
-import com.example.cowmjucraft.domain.payout.dto.response.PayoutIncomeItemResponse;
-import com.example.cowmjucraft.domain.payout.dto.response.PayoutListResponse;
-import com.example.cowmjucraft.domain.payout.dto.response.PayoutSummaryResponse;
+import com.example.cowmjucraft.domain.payout.dto.response.*;
 import com.example.cowmjucraft.domain.payout.entity.Payout;
 import com.example.cowmjucraft.domain.payout.entity.PayoutItem;
 import com.example.cowmjucraft.domain.payout.entity.PayoutItemType;
@@ -29,10 +24,10 @@ public class PayoutService {
 
     private final PayoutRepository payoutRepository;
 
-    public List<PayoutListResponse> getPayoutList() {
-        return payoutRepository.findAll().stream()
-                .map(this::convertToPayoutListResponse)
-                .toList();
+    public PayoutListWrapperResponse getPayoutList() {
+        List<PayoutListResponse> payoutListResponses = payoutRepository.findAll().stream().map(this::convertToPayoutListResponse).toList();
+
+        return new PayoutListWrapperResponse(payoutListResponses);
     }
 
     public PayoutDetailResponse getPayoutDetail(Long payoutId) {

@@ -2,6 +2,7 @@ package com.example.cowmjucraft.domain.payout.controller.client;
 
 import com.example.cowmjucraft.domain.payout.dto.response.PayoutDetailResponse;
 import com.example.cowmjucraft.domain.payout.dto.response.PayoutListResponse;
+import com.example.cowmjucraft.domain.payout.dto.response.PayoutListWrapperResponse;
 import com.example.cowmjucraft.global.response.ApiResult;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -19,7 +20,7 @@ public interface PayoutControllerDocs {
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "성공")
     })
-    ResponseEntity<ApiResult<List<PayoutListResponse>>> getPayoutList();
+    ResponseEntity<ApiResult<PayoutListWrapperResponse>> getPayoutList();
 
     @Operation(summary = "정산서 상세 조회")
     @ApiResponses({

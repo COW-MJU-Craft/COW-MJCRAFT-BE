@@ -26,14 +26,16 @@ public class PayoutAdminService {
     private final PayoutRepository payoutRepository;
 
     @Transactional
-    public Long createPayout(PayoutCreateAdminRequest payoutCreateAdminRequest) {
+    public PayoutCreateResponse createPayout( PayoutCreateAdminRequest payoutCreateAdminRequest) {
         Payout payout = new Payout(
                 payoutCreateAdminRequest.getTitle().trim(),
                 payoutCreateAdminRequest.getSemester().trim()
         );
+
         payout.calculateSummary();
         payoutRepository.save(payout);
-        return payout.getId();
+
+        return new PayoutCreateResponse(payout.getId());
     }
 
     @Transactional
@@ -50,10 +52,10 @@ public class PayoutAdminService {
         payoutRepository.delete(payout);
     }
 
-    public List<PayoutListResponse> getPayoutList() {
-        return payoutRepository.findAll().stream()
-                .map(this::convertToPayoutListResponse)
-                .toList();
+    public PayoutListWrapperResponse getPayoutList() {
+        List<PayoutListResponse> payoutListResponses = payoutRepository.findAll().stream().map(this::convertToPayoutListResponse).toList();
+
+        return new PayoutListWrapperResponse(payoutListResponses);
     }
 
     public PayoutDetailResponse getPayoutDetail(Long payoutId) {

@@ -4,8 +4,7 @@ import com.example.cowmjucraft.domain.payout.dto.request.PayoutCreateAdminReques
 import com.example.cowmjucraft.domain.payout.dto.request.PayoutItemCreateAdminRequest;
 import com.example.cowmjucraft.domain.payout.dto.request.PayoutItemUpdateAdminRequest;
 import com.example.cowmjucraft.domain.payout.dto.request.PayoutUpdateAdminRequest;
-import com.example.cowmjucraft.domain.payout.dto.response.PayoutDetailResponse;
-import com.example.cowmjucraft.domain.payout.dto.response.PayoutListResponse;
+import com.example.cowmjucraft.domain.payout.dto.response.*;
 import com.example.cowmjucraft.global.response.ApiResult;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -23,9 +22,10 @@ public interface PayoutAdminControllerDocs {
 
     @Operation(summary = "정산서 생성")
     @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "성공")
+            @ApiResponse(responseCode = "201", description = "생성 성공"),
+            @ApiResponse(responseCode = "400", description = "잘못된 요청")
     })
-    ResponseEntity<ApiResult<Map<String, Long>>> createPayout(
+    ResponseEntity<ApiResult<PayoutCreateResponse>> createPayout(
             @RequestBody PayoutCreateAdminRequest request
     );
 
@@ -43,7 +43,7 @@ public interface PayoutAdminControllerDocs {
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "성공")
     })
-    ResponseEntity<ApiResult<List<PayoutListResponse>>> getPayoutList();
+    ResponseEntity<ApiResult<PayoutListWrapperResponse>> getPayoutList();
 
     @Operation(summary = "정산서 상세 조회")
     @ApiResponses({
@@ -63,10 +63,11 @@ public interface PayoutAdminControllerDocs {
 
     @Operation(summary = "정산 항목 생성")
     @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "성공"),
-            @ApiResponse(responseCode = "404", description = "Payout 없음")
+            @ApiResponse(responseCode = "201", description = "생성 성공"),
+            @ApiResponse(responseCode = "404", description = "정산서 없음"),
+            @ApiResponse(responseCode = "400", description = "잘못된 요청")
     })
-    ResponseEntity<ApiResult<Map<String, Long>>> createPayoutItem(
+    ResponseEntity<ApiResult<PayoutItemCreateResponse>> createPayoutItem(
             @PathVariable Long payoutId,
             @RequestBody PayoutItemCreateAdminRequest request
     );

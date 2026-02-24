@@ -2,6 +2,7 @@ package com.example.cowmjucraft.domain.payout.service.admin;
 
 import com.example.cowmjucraft.domain.payout.dto.request.PayoutItemCreateAdminRequest;
 import com.example.cowmjucraft.domain.payout.dto.request.PayoutItemUpdateAdminRequest;
+import com.example.cowmjucraft.domain.payout.dto.response.PayoutItemCreateResponse;
 import com.example.cowmjucraft.domain.payout.entity.Payout;
 import com.example.cowmjucraft.domain.payout.entity.PayoutItem;
 import com.example.cowmjucraft.domain.payout.exception.PayoutErrorType;
@@ -20,7 +21,7 @@ public class PayoutItemAdminService {
     private final PayoutItemRepository payoutItemRepository;
 
     @Transactional
-    public Long createPayoutItem(Long payoutId, PayoutItemCreateAdminRequest request) {
+    public PayoutItemCreateResponse createPayoutItem(Long payoutId, PayoutItemCreateAdminRequest request) {
         Payout payout = payoutRepository.findById(payoutId)
                 .orElseThrow(() -> new PayoutException(PayoutErrorType.PAYOUT_NOT_FOUND));
 
@@ -34,10 +35,11 @@ public class PayoutItemAdminService {
         payout.addItem(payoutItem);
 
         payoutItemRepository.save(payoutItem);
+
         payout.calculateSummary();
         payoutRepository.save(payout);
 
-        return payoutItem.getId();
+        return new PayoutItemCreateResponse(payoutItem.getId());
     }
 
     @Transactional
