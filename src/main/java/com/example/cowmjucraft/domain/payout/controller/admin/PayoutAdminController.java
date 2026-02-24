@@ -32,7 +32,7 @@ public class PayoutAdminController implements PayoutAdminControllerDocs{
         return ApiResponse.of(SuccessType.CREATED, Map.of("payoutId", payoutId));
     }
 
-    @PutMapping("/payoutId")
+    @PutMapping("/{payoutId}")
     public ResponseEntity<ApiResult<Void>> updatePayout(@PathVariable Long payoutId, @RequestBody PayoutUpdateAdminRequest payoutUpdateAdminRequest) {
         payoutAdminService.updatePayout(payoutId, payoutUpdateAdminRequest);
 
