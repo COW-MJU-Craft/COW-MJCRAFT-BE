@@ -9,6 +9,8 @@ import com.example.cowmjucraft.domain.payout.dto.response.PayoutSummaryResponse;
 import com.example.cowmjucraft.domain.payout.entity.Payout;
 import com.example.cowmjucraft.domain.payout.entity.PayoutItem;
 import com.example.cowmjucraft.domain.payout.entity.PayoutItemType;
+import com.example.cowmjucraft.domain.payout.exception.PayoutErrorType;
+import com.example.cowmjucraft.domain.payout.exception.PayoutException;
 import com.example.cowmjucraft.domain.payout.repository.PayoutRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -35,7 +37,7 @@ public class PayoutService {
 
     public PayoutDetailResponse getPayoutDetail(Long payoutId) {
         Payout payout = payoutRepository.findById(payoutId)
-                .orElseThrow(() -> new IllegalArgumentException("PAYOUT_NOT_FOUND"));
+                .orElseThrow(() -> new PayoutException(PayoutErrorType.PAYOUT_NOT_FOUND));
 
         List<PayoutIncomeItemResponse> incomeItemResponses =
                 payout.getItems().stream()

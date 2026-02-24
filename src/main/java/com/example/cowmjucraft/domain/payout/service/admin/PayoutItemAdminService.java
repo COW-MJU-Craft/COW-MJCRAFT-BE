@@ -4,6 +4,8 @@ import com.example.cowmjucraft.domain.payout.dto.request.PayoutItemCreateAdminRe
 import com.example.cowmjucraft.domain.payout.dto.request.PayoutItemUpdateAdminRequest;
 import com.example.cowmjucraft.domain.payout.entity.Payout;
 import com.example.cowmjucraft.domain.payout.entity.PayoutItem;
+import com.example.cowmjucraft.domain.payout.exception.PayoutErrorType;
+import com.example.cowmjucraft.domain.payout.exception.PayoutException;
 import com.example.cowmjucraft.domain.payout.repository.PayoutItemRepository;
 import com.example.cowmjucraft.domain.payout.repository.PayoutRepository;
 import lombok.RequiredArgsConstructor;
@@ -20,7 +22,7 @@ public class PayoutItemAdminService {
     @Transactional
     public Long createPayoutItem(Long payoutId, PayoutItemCreateAdminRequest payoutItemCreateAdminRequest) {
         Payout payout = payoutRepository.findById(payoutId)
-                .orElseThrow(() -> new IllegalArgumentException("PAYOUT_NOT_FOUND"));
+                .orElseThrow(() -> new PayoutException(PayoutErrorType.PAYOUT_NOT_FOUND));
 
         PayoutItem payoutItem = new PayoutItem(
                 payoutItemCreateAdminRequest.getType(),
@@ -43,10 +45,10 @@ public class PayoutItemAdminService {
             PayoutItemUpdateAdminRequest payoutItemUpdateAdminRequest
     ) {
         PayoutItem payoutItem = payoutItemRepository.findById(payoutItemId)
-                .orElseThrow(() -> new IllegalArgumentException("PAYOUT_ITEM_NOT_FOUND"));
+                .orElseThrow(() -> new PayoutException(PayoutErrorType.PAYOUT_NOT_FOUND));
 
         if (!payoutItem.getPayout().getId().equals(payoutId)) {
-            throw new IllegalArgumentException("PAYOUT_ITEM_NOT_BELONG_TO_PAYOUT");
+            throw new PayoutException(PayoutErrorType.PAYOUT_ITEM_NOT_BELONG_TO_PAYOUT);
         }
 
         payoutItem.update(
@@ -62,10 +64,10 @@ public class PayoutItemAdminService {
     @Transactional
     public void deletePayoutItem(Long payoutId, Long payoutItemId) {
         PayoutItem payoutItem = payoutItemRepository.findById(payoutItemId)
-                .orElseThrow(() -> new IllegalArgumentException("PAYOUT_ITEM_NOT_FOUND"));
+                .orElseThrow(() -> new PayoutException(PayoutErrorType.PAYOUT_ITEM_NOT_FOUND));
 
         if (!payoutItem.getPayout().getId().equals(payoutId)) {
-            throw new IllegalArgumentException("PAYOUT_ITEM_NOT_BELONG_TO_PAYOUT");
+            throw new PayoutException(PayoutErrorType.PAYOUT_ITEM_NOT_BELONG_TO_PAYOUT);
         }
 
         Payout payout = payoutItem.getPayout();
