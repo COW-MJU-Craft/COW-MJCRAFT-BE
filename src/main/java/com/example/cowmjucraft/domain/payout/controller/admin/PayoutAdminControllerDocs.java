@@ -4,6 +4,8 @@ import com.example.cowmjucraft.domain.payout.dto.request.PayoutCreateAdminReques
 import com.example.cowmjucraft.domain.payout.dto.request.PayoutItemCreateAdminRequest;
 import com.example.cowmjucraft.domain.payout.dto.request.PayoutItemUpdateAdminRequest;
 import com.example.cowmjucraft.domain.payout.dto.request.PayoutUpdateAdminRequest;
+import com.example.cowmjucraft.domain.payout.dto.response.PayoutDetailResponse;
+import com.example.cowmjucraft.domain.payout.dto.response.PayoutListResponse;
 import com.example.cowmjucraft.global.response.ApiResult;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -13,6 +15,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 
+import java.util.List;
 import java.util.Map;
 
 @Tag(name = "Payout (Admin)", description = "정산서 관리자 API")
@@ -35,6 +38,19 @@ public interface PayoutAdminControllerDocs {
             @PathVariable Long payoutId,
             @RequestBody PayoutUpdateAdminRequest request
     );
+
+    @Operation(summary = "정산서 목록 조회")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "성공")
+    })
+    ResponseEntity<ApiResult<List<PayoutListResponse>>> getPayoutList();
+
+    @Operation(summary = "정산서 상세 조회")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "성공"),
+            @ApiResponse(responseCode = "404", description = "정산서 없음")
+    })
+    ResponseEntity<ApiResult<PayoutDetailResponse>> getPayoutDetail(@PathVariable Long payoutId);
 
     @Operation(summary = "정산서 삭제")
     @ApiResponses({
