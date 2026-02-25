@@ -10,6 +10,8 @@ public enum AccountErrorType implements ErrorCode {
 
     INVALID_CREDENTIALS(401, "아이디 또는 비밀번호가 올바르지 않습니다."),
     INVALID_SOCIAL_USER_ID(401, "유효하지 않은 소셜 사용자 ID입니다."),
+    INVALID_REFRESH_TOKEN(401, "유효하지 않은 리프레시 토큰입니다."),
+    REFRESH_TOKEN_EXPIRED(401, "리프레시 토큰이 만료되었습니다."),
     OAUTH_PROFILE_FETCH_FAILED(401, "소셜 프로필 조회에 실패했습니다."),
     OAUTH_TOKEN_FETCH_FAILED(401, "소셜 액세스 토큰 발급에 실패했습니다."),
 
