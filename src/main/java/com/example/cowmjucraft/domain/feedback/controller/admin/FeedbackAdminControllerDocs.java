@@ -15,6 +15,8 @@ import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.Parameter;
 
 import jakarta.validation.Valid;
+import org.springframework.web.bind.annotation.PathVariable;
+
 import java.util.List;
 
 @Tag(name = "Feedback - Admin", description = "건의사항 관리자 API")
@@ -59,5 +61,18 @@ public interface FeedbackAdminControllerDocs {
             )
             @Valid
             FeedbackAdminUpdateRequestDto request
+    );
+
+    @Operation(
+            summary = "건의사항 삭제",
+            description = "관리자가 특정 건의사항을 삭제합니다."
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "성공"),
+            @ApiResponse(responseCode = "404", description = "피드백을 찾을 수 없음")
+    })
+    ResponseEntity<ApiResult<Void>> deleteFeedback(
+            @Parameter(description = "삭제할 피드백의 ID", example = "1")
+            @PathVariable Long feedbackId
     );
 }
