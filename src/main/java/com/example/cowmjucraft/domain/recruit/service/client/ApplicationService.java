@@ -204,9 +204,9 @@ public class ApplicationService {
                 DepartmentType departmentType = formQuestion.getDepartmentType();
 
                 if (departmentType == application.getFirstDepartment()) {
-                    firstDepartment.add(new ApplicationReadResponse.AnswerItem(formQuestion.getId(), answer.getValue()));
+                    firstDepartment.add(new ApplicationReadResponse.AnswerItem(formQuestion.getId(), value));
                 } else if (departmentType == application.getSecondDepartment()) {
-                    secondDepartment.add(new ApplicationReadResponse.AnswerItem(formQuestion.getId(), answer.getValue()));
+                    secondDepartment.add(new ApplicationReadResponse.AnswerItem(formQuestion.getId(), value));
                 } else {
                     throw new RecruitException(RecruitErrorType.INVALID_SECTION_OR_DEPARTMENT_TYPE);
                 }

@@ -4,6 +4,7 @@ import com.example.cowmjucraft.domain.recruit.entity.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class AnswerGroupsAdmin {
 
@@ -11,7 +12,7 @@ public class AnswerGroupsAdmin {
     private final List<AnswerItem> firstDepartment;
     private final List<AnswerItem> secondDepartment;
 
-    public AnswerGroupsAdmin(Application application, List<Answer> answers) {
+    public AnswerGroupsAdmin(Application application, List<Answer> answers, Map<String, String> urlMap) {
         this.common = new ArrayList<>();
         this.firstDepartment = new ArrayList<>();
         this.secondDepartment = new ArrayList<>();
@@ -21,18 +22,24 @@ public class AnswerGroupsAdmin {
 
         for (Answer answer : answers) {
             FormQuestion formQuestion = answer.getFormQuestion();
+            String key = answer.getValue();
+            String fileUrl = null;
+
+            if (formQuestion.getAnswerType() == AnswerType.FILE && key != null) {
+                fileUrl = urlMap.get(key);
+            }
 
             if (formQuestion.getSectionType() == SectionType.COMMON) {
-                common.add(new AnswerItem(formQuestion.getId(), answer.getValue()));
+                common.add(new AnswerItem(formQuestion.getId(), answer.getValue(), fileUrl));
                 continue;
             }
 
             if (formQuestion.getSectionType() == SectionType.DEPARTMENT) {
                 DepartmentType dt = formQuestion.getDepartmentType();
                 if (dt == first) {
-                    firstDepartment.add(new AnswerItem(formQuestion.getId(), answer.getValue()));
+                    firstDepartment.add(new AnswerItem(formQuestion.getId(), answer.getValue(), fileUrl));
                 } else if (dt == second) {
-                    secondDepartment.add(new AnswerItem(formQuestion.getId(), answer.getValue()));
+                    secondDepartment.add(new AnswerItem(formQuestion.getId(), answer.getValue(), fileUrl));
                 }
             }
         }
