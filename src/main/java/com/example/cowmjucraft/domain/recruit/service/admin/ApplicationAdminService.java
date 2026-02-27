@@ -10,12 +10,15 @@ import com.example.cowmjucraft.domain.recruit.repository.AnswerRepository;
 import com.example.cowmjucraft.domain.recruit.repository.ApplicationRepository;
 import com.example.cowmjucraft.domain.recruit.repository.FormRepository;
 import com.example.cowmjucraft.domain.recruit.exception.RecruitErrorType;
+import com.example.cowmjucraft.global.cloud.S3PresignFacade;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
 @RequiredArgsConstructor
 @Service
@@ -24,6 +27,7 @@ public class ApplicationAdminService {
     private final FormRepository formRepository;
     private final ApplicationRepository applicationRepository;
     private final AnswerRepository answerRepository;
+    private final S3PresignFacade s3PresignFacade;
 
     @Transactional(readOnly = true)
     public List<ApplicationListAdminResponse> getApplicationsByFormId(Long formId) {
@@ -62,7 +66,18 @@ public class ApplicationAdminService {
 
         List<Answer> answers = answerRepository.findAllByApplication(application);
 
-        AnswerGroupsAdmin groups = new AnswerGroupsAdmin(application, answers);
+        List<String> fileKeys = answers.stream().filter(answer -> answer.getFormQuestion().getAnswerType() == AnswerType.FILE)
+                .map(Answer::getValue).filter(Objects::nonNull).distinct().toList();
+
+        Map<String, String> urlMap;
+
+        if (fileKeys.isEmpty()) {
+            urlMap = Map.of();
+        } else {
+            urlMap = s3PresignFacade.presignGet(fileKeys);
+        }
+
+        AnswerGroupsAdmin groups = new AnswerGroupsAdmin(application, answers, urlMap);
 
         return new ApplicationDetailAdminResponse(
                 application.getId(),

@@ -8,4 +8,5 @@ import lombok.Getter;
 public class AnswerItem {
     private Long formQuestionId;
     private String value;
+    private String fileUrl;
 }
