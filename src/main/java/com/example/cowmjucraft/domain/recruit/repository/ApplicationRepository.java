@@ -14,4 +14,6 @@ public interface ApplicationRepository extends JpaRepository<Application, Long> 
     Optional<Application> findByFormAndStudentId(Form form, String studentId);
 
     List<Application> findAllByForm(Form form);
+
+    boolean existsByForm(Form form);
 }

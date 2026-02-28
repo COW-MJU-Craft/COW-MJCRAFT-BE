@@ -32,6 +32,14 @@ public class FormAdminController implements FormAdminControllerDocs {
     }
 
     @Override
+    @DeleteMapping("/forms/{formId}")
+    public ResponseEntity<ApiResult<Void>> deleteForm(@PathVariable Long formId) {
+        formAdminService.deleteForm(formId);
+
+        return ApiResponse.of(SuccessType.SUCCESS);
+    }
+
+    @Override
     @PutMapping("/forms/{formId}/open")
     public ResponseEntity<ApiResult<Void>> openForm(@PathVariable Long formId) {
         formAdminService.openForm(formId);

@@ -33,6 +33,8 @@ public enum RecruitErrorType implements ErrorCode {
     INVALID_SECTION_OR_DEPARTMENT_TYPE(400, "섹션 또는 부서 정보가 올바르지 않습니다."),
     FORM_QUESTION_NOT_IN_THIS_FORM(400, "해당 폼에 속한 문항이 아닙니다."),
     REQUIRED_ANSWER_CANNOT_BE_DELETED(400, "필수 답변은 삭제할 수 없습니다."),
+    CANNOT_DELETE_OPEN_FORM(400,"활성화되어 있는 폼은 삭제할 수 없습니다."),
+    CANNOT_DELETE_FORM_WITH_APPLICATIONS(400,"지원서가 존재하는 폼은 삭제할 수 없습니다"),
 
     RECRUITMENT_CLOSED(409, "모집이 마감되었습니다."),
     DUPLICATE_STUDENT_ID(409, "이미 제출된 학번입니다."),
