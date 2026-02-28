@@ -4,10 +4,7 @@ import com.example.cowmjucraft.domain.recruit.dto.admin.request.*;
 import com.example.cowmjucraft.domain.recruit.dto.admin.response.*;
 import com.example.cowmjucraft.domain.recruit.entity.*;
 import com.example.cowmjucraft.domain.recruit.exception.RecruitException;
-import com.example.cowmjucraft.domain.recruit.repository.FormNoticeRepository;
-import com.example.cowmjucraft.domain.recruit.repository.FormQuestionRepository;
-import com.example.cowmjucraft.domain.recruit.repository.FormRepository;
-import com.example.cowmjucraft.domain.recruit.repository.QuestionRepository;
+import com.example.cowmjucraft.domain.recruit.repository.*;
 import com.example.cowmjucraft.domain.recruit.exception.RecruitErrorType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -24,6 +21,7 @@ public class FormAdminService {
     private final QuestionRepository questionRepository;
     private final FormQuestionRepository formQuestionRepository;
     private final FormNoticeRepository formNoticeRepository;
+    private final ApplicationRepository applicationRepository;
 
     @Transactional
     public FormCreateAdminResponse createForm(FormCreateAdminRequest request) {
@@ -40,6 +38,31 @@ public class FormAdminService {
         formRepository.save(form);
 
         return new FormCreateAdminResponse(form.getId(), form.isOpen());
+    }
+
+    @Transactional
+    public void deleteForm(Long formId) {
+        Form form = formRepository.findById(formId).orElseThrow(() -> new RecruitException(RecruitErrorType.FORM_NOT_FOUND));
+
+        if (form.isOpen()) {
+            throw new RecruitException(RecruitErrorType.CANNOT_DELETE_OPEN_FORM);
+        }
+
+        if (applicationRepository.existsByForm(form)) {
+            throw new RecruitException(RecruitErrorType.CANNOT_DELETE_FORM_WITH_APPLICATIONS);
+        }
+
+        List<FormQuestion> formQuestions = formQuestionRepository.findAllByForm(form);
+
+        List<Long> questionIds = formQuestions.stream().map(formQuestion -> formQuestion.getQuestion().getId()).toList();
+
+        formQuestionRepository.deleteAllByForm(form);
+
+        if (!questionIds.isEmpty()) {
+            questionRepository.deleteAllByIdInBatch(questionIds);
+        }
+
+        formRepository.delete(form);
     }
 
     @Transactional
