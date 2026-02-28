@@ -42,7 +42,8 @@ public class FormAdminService {
 
     @Transactional
     public void deleteForm(Long formId) {
-        Form form = formRepository.findById(formId).orElseThrow(() -> new RecruitException(RecruitErrorType.FORM_NOT_FOUND));
+        Form form = formRepository.findById(formId)
+                .orElseThrow(() -> new RecruitException(RecruitErrorType.FORM_NOT_FOUND));
 
         if (form.isOpen()) {
             throw new RecruitException(RecruitErrorType.CANNOT_DELETE_OPEN_FORM);
@@ -52,11 +53,11 @@ public class FormAdminService {
             throw new RecruitException(RecruitErrorType.CANNOT_DELETE_FORM_WITH_APPLICATIONS);
         }
 
-        List<FormQuestion> formQuestions = formQuestionRepository.findAllByForm(form);
+        List<Long> questionIds = formQuestionRepository.findQuestionIdsByFormId(formId);
 
-        List<Long> questionIds = formQuestions.stream().map(formQuestion -> formQuestion.getQuestion().getId()).toList();
+        formQuestionRepository.deleteAllByFormId(formId);
 
-        formQuestionRepository.deleteAllByForm(form);
+        formNoticeRepository.deleteAllByFormId(formId);
 
         if (!questionIds.isEmpty()) {
             questionRepository.deleteAllByIdInBatch(questionIds);
