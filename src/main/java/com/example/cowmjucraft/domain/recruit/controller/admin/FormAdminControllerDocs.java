@@ -11,6 +11,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.web.bind.annotation.PathVariable;
+
 import java.util.List;
 
 @Tag(
@@ -34,6 +36,17 @@ public interface FormAdminControllerDocs {
     ResponseEntity<ApiResult<FormCreateAdminResponse>> createForm(
             @Parameter(description = "Form 생성 요청")
             FormCreateAdminRequest request
+    );
+
+    @Operation(summary = "폼 삭제")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "성공"),
+            @ApiResponse(responseCode = "400", description = "현재 활성화된 폼은 삭제할 수 없습니다. / 지원서가 존재하는 폼은 삭제할 수 없습니다."),
+            @ApiResponse(responseCode = "404", description = "폼을 찾을 수 없습니다.")
+    })
+    ResponseEntity<ApiResult<Void>> deleteForm(
+            @Parameter(description = "폼 ID", example = "1")
+            @PathVariable Long formId
     );
 
     // ------------------------------------------------------------
