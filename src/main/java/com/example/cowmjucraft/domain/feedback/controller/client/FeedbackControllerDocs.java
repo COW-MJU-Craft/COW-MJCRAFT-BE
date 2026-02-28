@@ -2,6 +2,7 @@ package com.example.cowmjucraft.domain.feedback.controller.client;
 
 import com.example.cowmjucraft.domain.feedback.dto.request.FeedbackRequestDto;
 import com.example.cowmjucraft.global.response.ApiResult;
+import io.swagger.v3.oas.annotations.Parameter;
 import org.springframework.http.ResponseEntity;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -12,6 +13,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 
 import jakarta.validation.Valid;
+import org.springframework.web.bind.annotation.PathVariable;
 
 @Tag(name = "Feedback - Public", description = "건의사항 등록 API")
 public interface FeedbackControllerDocs {
