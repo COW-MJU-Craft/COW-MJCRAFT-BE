@@ -11,8 +11,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 
-import java.util.List;
-
 @Tag(name = "Payout", description = "정산서 조회 API")
 public interface PayoutControllerDocs {
 

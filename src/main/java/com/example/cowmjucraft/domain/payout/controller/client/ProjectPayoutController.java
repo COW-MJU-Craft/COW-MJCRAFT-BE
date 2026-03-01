@@ -15,10 +15,11 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/api/projects")
-public class ProjectPayoutController {
+public class ProjectPayoutController implements ProjectPayoutControllerDocs{
 
     private final PayoutService payoutService;
 
+    @Override
     @GetMapping("/{projectId}/payout")
     public ResponseEntity<ApiResult<PayoutDetailResponse>> getPayoutDetailByProjectId(@PathVariable Long projectId) {
         return ApiResponse.of(SuccessType.SUCCESS, payoutService.getPayoutDetailByProjectId(projectId));
