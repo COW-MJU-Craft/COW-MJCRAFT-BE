@@ -32,7 +32,9 @@ public class SecurityConfig {
                                 "/swagger-ui.html"
                         ).permitAll()
                         .requestMatchers("/api/admin/login").permitAll()
+                        .requestMatchers("/api/admin/refresh").permitAll()
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/api/oauth/logout").hasRole("USER")
                         .requestMatchers("/api/mypage/**").hasRole("USER")
                         .requestMatchers("/api/**").permitAll()
                         .anyRequest().permitAll()
