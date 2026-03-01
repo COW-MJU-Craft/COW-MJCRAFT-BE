@@ -8,4 +8,6 @@ public class PayoutCreateAdminRequest {
     private String title;
 
     private String semester;
+
+    private Long projectId;
 }

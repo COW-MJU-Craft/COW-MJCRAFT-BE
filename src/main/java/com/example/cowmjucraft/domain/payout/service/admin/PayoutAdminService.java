@@ -9,6 +9,8 @@ import com.example.cowmjucraft.domain.payout.entity.PayoutItemType;
 import com.example.cowmjucraft.domain.payout.exception.PayoutErrorType;
 import com.example.cowmjucraft.domain.payout.exception.PayoutException;
 import com.example.cowmjucraft.domain.payout.repository.PayoutRepository;
+import com.example.cowmjucraft.domain.project.entity.Project;
+import com.example.cowmjucraft.domain.project.repository.ProjectRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,12 +26,21 @@ import java.util.stream.Collectors;
 public class PayoutAdminService {
 
     private final PayoutRepository payoutRepository;
+    private final ProjectRepository projectRepository;
 
     @Transactional
     public PayoutCreateResponse createPayout( PayoutCreateAdminRequest payoutCreateAdminRequest) {
+
+        Project project = projectRepository.findById(payoutCreateAdminRequest.getProjectId()).orElseThrow(() -> new PayoutException(PayoutErrorType.PROJECT_NOT_FOUND));
+
+        if (payoutRepository.existsByProjectId(project.getId())) {
+            throw new PayoutException(PayoutErrorType.PAYOUT_ALREADY_EXISTS_FOR_PROJECT);
+        }
+
         Payout payout = new Payout(
                 payoutCreateAdminRequest.getTitle().trim(),
-                payoutCreateAdminRequest.getSemester().trim()
+                payoutCreateAdminRequest.getSemester().trim(),
+                project
         );
 
         payout.calculateSummary();
@@ -41,6 +52,17 @@ public class PayoutAdminService {
     @Transactional
     public void updatePayout(Long payoutId, PayoutUpdateAdminRequest payoutUpdateAdminRequest) {
         Payout payout = payoutRepository.findById(payoutId).orElseThrow(() -> new PayoutException(PayoutErrorType.PAYOUT_NOT_FOUND));
+        Project project = projectRepository.findById(payoutUpdateAdminRequest.getProjectId()).orElseThrow(() -> new PayoutException(PayoutErrorType.PROJECT_NOT_FOUND));
+
+        Long currentProjectId = payout.getProject().getId();
+        Long newProjectId = project.getId();
+
+        if (!currentProjectId.equals(newProjectId)) {
+            if (payoutRepository.existsByProjectId(newProjectId)) {
+                throw new PayoutException(PayoutErrorType.PAYOUT_ALREADY_EXISTS_FOR_PROJECT);
+            }
+            payout.changeProject(project);
+        }
 
         payout.changeTitle(payoutUpdateAdminRequest.getTitle().trim());
         payout.changeSemester(payoutUpdateAdminRequest.getSemester().trim());
@@ -52,12 +74,14 @@ public class PayoutAdminService {
         payoutRepository.delete(payout);
     }
 
+    @Transactional(readOnly = true)
     public PayoutListWrapperResponse getPayoutList() {
         List<PayoutListResponse> payoutListResponses = payoutRepository.findAll().stream().map(this::convertToPayoutListResponse).toList();
 
         return new PayoutListWrapperResponse(payoutListResponses);
     }
 
+    @Transactional(readOnly = true)
     public PayoutDetailResponse getPayoutDetail(Long payoutId) {
         Payout payout = payoutRepository.findById(payoutId)
                 .orElseThrow(() -> new PayoutException(PayoutErrorType.PAYOUT_NOT_FOUND));
@@ -126,6 +150,7 @@ public class PayoutAdminService {
         return new PayoutDetailResponse(
                 payout.getId(),
                 payout.getTitle(),
+                payout.getProject().getId(),
                 payout.getSemester(),
                 payoutSummaryResponse,
                 incomeItemResponses,

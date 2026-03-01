@@ -1,5 +1,7 @@
 package com.example.cowmjucraft.domain.payout.entity;
 
+import com.example.cowmjucraft.domain.project.entity.Project;
+import com.example.cowmjucraft.domain.project.entity.ProjectStatus;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -35,16 +37,21 @@ public class Payout {
     @Column(nullable = false)
     private double profitRate;
 
+    @OneToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "project_id", nullable = false, unique = true)
+    private Project project;
+
     @OneToMany(mappedBy = "payout", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<PayoutItem> items = new ArrayList<>();
 
-    public Payout(String title, String semester) {
+    public Payout(String title, String semester, Project project) {
         this.title = title;
         this.semester = semester;
         this.totalIncome = 0L;
         this.totalExpense = 0L;
         this.netProfit = 0L;
         this.profitRate = 0.0;
+        this.project = project;
     }
 
     public void changeTitle(String title) {
@@ -53,6 +60,10 @@ public class Payout {
 
     public void changeSemester(String semester) {
         this.semester = semester;
+    }
+
+    public void changeProject(Project project) {
+        this.project = project;
     }
 
     public void addItem(PayoutItem item) {
