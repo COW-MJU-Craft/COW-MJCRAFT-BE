@@ -4,6 +4,7 @@ import com.example.cowmjucraft.domain.item.dto.response.ProjectItemDetailRespons
 import com.example.cowmjucraft.domain.item.dto.response.ProjectItemImageResponseDto;
 import com.example.cowmjucraft.domain.item.dto.response.ProjectItemJournalPresignGetResponseDto;
 import com.example.cowmjucraft.domain.item.dto.response.ProjectItemListResponseDto;
+import com.example.cowmjucraft.domain.item.entity.ItemImage;
 import com.example.cowmjucraft.domain.item.entity.ItemSaleType;
 import com.example.cowmjucraft.domain.item.entity.ProjectItem;
 import com.example.cowmjucraft.domain.item.entity.ItemType;
@@ -53,23 +54,19 @@ public class ItemService {
         ProjectItem item = projectItemRepository.findById(itemId)
                 .orElseThrow(() -> new ItemException(ItemErrorType.ITEM_NOT_FOUND));
 
-        List<ProjectItemImageResponseDto> images = itemImageRepository.findByItemIdOrderBySortOrderAsc(itemId)
-                .stream()
-                .map(ProjectItemImageResponseDto::from)
-                .toList();
+        List<ItemImage> itemImages = itemImageRepository.findByItemIdOrderBySortOrderAsc(itemId);
         Set<String> keySet = new LinkedHashSet<>();
         addIfValidKey(keySet, item.getThumbnailKey());
-        for (ProjectItemImageResponseDto image : images) {
-            addIfValidKey(keySet, image.imageKey());
+        for (ItemImage image : itemImages) {
+            addIfValidKey(keySet, image.getImageKey());
         }
         Map<String, String> urls = presignGetSafely(keySet);
 
-        List<ProjectItemImageResponseDto> enrichedImages = images.stream()
+        List<ProjectItemImageResponseDto> enrichedImages = itemImages.stream()
                 .map(image -> new ProjectItemImageResponseDto(
-                        image.id(),
-                        image.imageKey(),
-                        resolveUrl(urls, image.imageKey()),
-                        image.sortOrder()
+                        image.getId(),
+                        resolveUrl(urls, image.getImageKey()),
+                        image.getSortOrder()
                 ))
                 .toList();
 
@@ -113,7 +110,6 @@ public class ItemService {
                 item.getSaleType(),
                 item.getItemType(),
                 item.getStatus(),
-                item.getThumbnailKey(),
                 resolveUrl(urls, item.getThumbnailKey()),
                 stockQty,
                 info.targetQty(),
@@ -140,7 +136,6 @@ public class ItemService {
                 item.getSaleType(),
                 item.getItemType(),
                 item.getStatus(),
-                item.getThumbnailKey(),
                 resolveUrl(urls, item.getThumbnailKey()),
                 stockQty,
                 images,

@@ -8,7 +8,9 @@ import com.example.cowmjucraft.domain.introduce.dto.common.IntroducePurposeDto;
 import com.example.cowmjucraft.domain.introduce.dto.request.AdminIntroduceDetailUpsertRequestDto;
 import com.example.cowmjucraft.domain.introduce.dto.request.AdminIntroduceMainUpsertRequestDto;
 import com.example.cowmjucraft.domain.introduce.dto.request.AdminIntroducePresignPutRequestDto;
+import com.example.cowmjucraft.domain.introduce.dto.response.AdminIntroduceCurrentLogoResponseDto;
 import com.example.cowmjucraft.domain.introduce.dto.response.AdminIntroduceDetailResponseDto;
+import com.example.cowmjucraft.domain.introduce.dto.response.AdminIntroduceLogoHistoryResponseDto;
 import com.example.cowmjucraft.domain.introduce.dto.response.AdminIntroduceMainResponseDto;
 import com.example.cowmjucraft.domain.introduce.dto.response.AdminIntroducePresignPutResponseDto;
 import com.example.cowmjucraft.domain.introduce.dto.response.IntroduceBrandResponseDto;
@@ -182,8 +184,8 @@ public class IntroduceService {
         return new AdminIntroduceDetailResponseDto(
                 intro,
                 purpose,
-                toCurrentLogoResponse(currentLogo, urls),
-                toHistoryResponses(histories, urls),
+                toAdminCurrentLogoResponse(currentLogo, urls),
+                toAdminHistoryResponses(histories, urls),
                 introduce.getUpdatedAt()
         );
     }
@@ -220,8 +222,8 @@ public class IntroduceService {
         return new AdminIntroduceDetailResponseDto(
                 content.intro(),
                 content.purpose(),
-                toCurrentLogoResponse(content.currentLogo(), urls),
-                toHistoryResponses(content.logoHistories(), urls),
+                toAdminCurrentLogoResponse(content.currentLogo(), urls),
+                toAdminHistoryResponses(content.logoHistories(), urls),
                 introduce.getUpdatedAt()
         );
     }
@@ -327,7 +329,6 @@ public class IntroduceService {
         if (dto == null) return null;
         return new IntroduceCurrentLogoResponseDto(
                 dto.title(),
-                dto.imageKey(),
                 resolveUrl(urls, dto.imageKey()),
                 dto.description()
         );
@@ -342,6 +343,36 @@ public class IntroduceService {
         List<IntroduceLogoHistoryResponseDto> result = new ArrayList<>();
         for (IntroduceLogoHistoryDto h : histories) {
             result.add(new IntroduceLogoHistoryResponseDto(
+                    h.year(),
+                    resolveUrl(urls, h.imageKey()),
+                    h.description()
+            ));
+        }
+        return result;
+    }
+
+    private AdminIntroduceCurrentLogoResponseDto toAdminCurrentLogoResponse(
+            IntroduceCurrentLogoDto dto,
+            Map<String, String> urls
+    ) {
+        if (dto == null) return null;
+        return new AdminIntroduceCurrentLogoResponseDto(
+                dto.title(),
+                dto.imageKey(),
+                resolveUrl(urls, dto.imageKey()),
+                dto.description()
+        );
+    }
+
+    private List<AdminIntroduceLogoHistoryResponseDto> toAdminHistoryResponses(
+            List<IntroduceLogoHistoryDto> histories,
+            Map<String, String> urls
+    ) {
+        if (histories == null) return List.of();
+
+        List<AdminIntroduceLogoHistoryResponseDto> result = new ArrayList<>();
+        for (IntroduceLogoHistoryDto h : histories) {
+            result.add(new AdminIntroduceLogoHistoryResponseDto(
                     h.year(),
                     h.imageKey(),
                     resolveUrl(urls, h.imageKey()),
