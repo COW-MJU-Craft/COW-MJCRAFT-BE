@@ -13,6 +13,8 @@ public class PayoutDetailResponse {
 
     private String title;
 
+    private Long projectId;
+
     private String semester;
 
     private PayoutSummaryResponse summary;
