@@ -3,9 +3,9 @@ package com.example.cowmjucraft.domain.notice.service;
 import com.example.cowmjucraft.domain.notice.dto.request.AdminNoticeCreateRequestDto;
 import com.example.cowmjucraft.domain.notice.dto.request.AdminNoticePresignPutRequestDto;
 import com.example.cowmjucraft.domain.notice.dto.request.AdminNoticeUpdateRequestDto;
+import com.example.cowmjucraft.domain.notice.dto.response.AdminNoticeDetailResponseDto;
 import com.example.cowmjucraft.domain.notice.dto.response.AdminNoticePresignPutResponseDto;
-import com.example.cowmjucraft.domain.notice.dto.response.NoticeDetailResponseDto;
-import com.example.cowmjucraft.domain.notice.dto.response.NoticeSummaryResponseDto;
+import com.example.cowmjucraft.domain.notice.dto.response.AdminNoticeSummaryResponseDto;
 import com.example.cowmjucraft.domain.notice.entity.Notice;
 import com.example.cowmjucraft.domain.notice.repository.NoticeRepository;
 import com.example.cowmjucraft.domain.notice.exception.NoticeErrorType;
@@ -34,7 +34,7 @@ public class AdminNoticeService {
     }
 
     @Transactional
-    public NoticeDetailResponseDto create(AdminNoticeCreateRequestDto request) {
+    public AdminNoticeDetailResponseDto create(AdminNoticeCreateRequestDto request) {
         Notice notice = new Notice(request.title(), request.content(), request.imageKeys());
         Notice saved = noticeRepository.save(notice);
         Set<String> keySet = new LinkedHashSet<>();
@@ -44,7 +44,7 @@ public class AdminNoticeService {
     }
 
     @Transactional
-    public NoticeDetailResponseDto update(Long noticeId, AdminNoticeUpdateRequestDto request) {
+    public AdminNoticeDetailResponseDto update(Long noticeId, AdminNoticeUpdateRequestDto request) {
         Notice notice = noticeRepository.findById(noticeId)
                 .orElseThrow(() -> new NoticeException(NoticeErrorType.NOTICE_NOT_FOUND));
         notice.update(request.title(), request.content(), request.imageKeys());
@@ -62,7 +62,7 @@ public class AdminNoticeService {
     }
 
     @Transactional(readOnly = true)
-    public List<NoticeSummaryResponseDto> getNotices() {
+    public List<AdminNoticeSummaryResponseDto> getNotices() {
         List<Notice> notices = noticeRepository.findAllByOrderByCreatedAtDesc();
         Set<String> keySet = new LinkedHashSet<>();
         for (Notice notice : notices) {
@@ -77,7 +77,7 @@ public class AdminNoticeService {
     }
 
     @Transactional(readOnly = true)
-    public NoticeDetailResponseDto getNotice(Long noticeId) {
+    public AdminNoticeDetailResponseDto getNotice(Long noticeId) {
         Notice notice = noticeRepository.findById(noticeId)
                 .orElseThrow(() -> new NoticeException(NoticeErrorType.NOTICE_NOT_FOUND));
         Set<String> keySet = new LinkedHashSet<>();
@@ -94,8 +94,8 @@ public class AdminNoticeService {
         return toSinglePresignResponse(response);
     }
 
-    private NoticeSummaryResponseDto toSummaryResponse(Notice notice, Map<String, String> urls) {
-        return new NoticeSummaryResponseDto(
+    private AdminNoticeSummaryResponseDto toSummaryResponse(Notice notice, Map<String, String> urls) {
+        return new AdminNoticeSummaryResponseDto(
                 notice.getId(),
                 notice.getTitle(),
                 notice.getImageKeys(),
@@ -104,8 +104,8 @@ public class AdminNoticeService {
         );
     }
 
-    private NoticeDetailResponseDto toDetailResponse(Notice notice, Map<String, String> urls) {
-        return new NoticeDetailResponseDto(
+    private AdminNoticeDetailResponseDto toDetailResponse(Notice notice, Map<String, String> urls) {
+        return new AdminNoticeDetailResponseDto(
                 notice.getId(),
                 notice.getTitle(),
                 notice.getContent(),
