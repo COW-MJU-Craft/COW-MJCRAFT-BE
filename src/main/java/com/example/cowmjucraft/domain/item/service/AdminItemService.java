@@ -468,16 +468,9 @@ public class AdminItemService {
     }
 
     private ItemType resolveItemType(Project project, ItemType requested, ItemType fallback) {
-        ProjectCategory category = project.getCategory() == null ? ProjectCategory.GOODS : project.getCategory();
         ItemType resolved = requested != null ? requested : fallback;
         if (resolved == null) {
-            resolved = category == ProjectCategory.JOURNAL ? ItemType.DIGITAL_JOURNAL : ItemType.PHYSICAL;
-        }
-        if (category == ProjectCategory.JOURNAL && resolved != ItemType.DIGITAL_JOURNAL) {
-            throw new ItemException(ItemErrorType.ITEM_TYPE_MISMATCH, "itemType must be DIGITAL_JOURNAL for JOURNAL project");
-        }
-        if (category == ProjectCategory.GOODS && resolved != ItemType.PHYSICAL) {
-            throw new ItemException(ItemErrorType.ITEM_TYPE_MISMATCH, "itemType must be PHYSICAL for GOODS project");
+            resolved = ItemType.PHYSICAL;
         }
         return resolved;
     }
