@@ -58,7 +58,6 @@ public class NoticeService {
         return new NoticeSummaryResponseDto(
                 notice.getId(),
                 notice.getTitle(),
-                notice.getImageKeys(),
                 buildUrlsForKeys(notice.getImageKeys(), urls),
                 notice.getCreatedAt()
         );
@@ -69,7 +68,6 @@ public class NoticeService {
                 notice.getId(),
                 notice.getTitle(),
                 notice.getContent(),
-                notice.getImageKeys(),
                 buildUrlsForKeys(notice.getImageKeys(), urls),
                 notice.getCreatedAt(),
                 notice.getUpdatedAt()

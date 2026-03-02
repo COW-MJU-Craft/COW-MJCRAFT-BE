@@ -16,10 +16,10 @@ public record AdminIntroduceDetailResponseDto(
         IntroducePurposeDto purpose,
 
         @Schema(description = "현재 로고 (url 포함)")
-        IntroduceCurrentLogoResponseDto currentLogo,
+        AdminIntroduceCurrentLogoResponseDto currentLogo,
 
         @Schema(description = "로고 히스토리 목록 (url 포함)")
-        List<IntroduceLogoHistoryResponseDto> logoHistories,
+        List<AdminIntroduceLogoHistoryResponseDto> logoHistories,
 
         @Schema(description = "최종 수정 시각", example = "2026-01-29T00:12:34")
         LocalDateTime updatedAt

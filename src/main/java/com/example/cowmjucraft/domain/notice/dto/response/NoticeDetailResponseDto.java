@@ -16,9 +16,6 @@ public record NoticeDetailResponseDto(
         @Schema(description = "공지 내용", example = "설 연휴 기간 동안 배송이 중단됩니다.")
         String content,
 
-        @Schema(description = "공지 이미지 S3 object key 목록", example = "[\"uploads/notices/images/uuid-notice.png\"]")
-        List<String> imageKeys,
-
         @Schema(description = "공지 이미지 presigned URL 목록", example = "[\"https://bucket.s3.amazonaws.com/uploads/notices/images/uuid-notice.png?X-Amz-Signature=...\"]")
         List<String> imageUrls,
 

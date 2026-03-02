@@ -3,9 +3,9 @@ package com.example.cowmjucraft.domain.notice.controller.admin;
 import com.example.cowmjucraft.domain.notice.dto.request.AdminNoticeCreateRequestDto;
 import com.example.cowmjucraft.domain.notice.dto.request.AdminNoticePresignPutRequestDto;
 import com.example.cowmjucraft.domain.notice.dto.request.AdminNoticeUpdateRequestDto;
+import com.example.cowmjucraft.domain.notice.dto.response.AdminNoticeDetailResponseDto;
 import com.example.cowmjucraft.domain.notice.dto.response.AdminNoticePresignPutResponseDto;
-import com.example.cowmjucraft.domain.notice.dto.response.NoticeDetailResponseDto;
-import com.example.cowmjucraft.domain.notice.dto.response.NoticeSummaryResponseDto;
+import com.example.cowmjucraft.domain.notice.dto.response.AdminNoticeSummaryResponseDto;
 import com.example.cowmjucraft.domain.notice.service.AdminNoticeService;
 import com.example.cowmjucraft.global.response.ApiResponse;
 import com.example.cowmjucraft.global.response.ApiResult;
@@ -32,7 +32,7 @@ public class AdminNoticeController implements AdminNoticeControllerDocs {
 
     @PostMapping
     @Override
-    public ResponseEntity<ApiResult<NoticeDetailResponseDto>> createNotice(
+    public ResponseEntity<ApiResult<AdminNoticeDetailResponseDto>> createNotice(
             @Valid @RequestBody AdminNoticeCreateRequestDto request
     ) {
         return ApiResponse.of(SuccessType.CREATED, adminNoticeService.create(request));
@@ -48,7 +48,7 @@ public class AdminNoticeController implements AdminNoticeControllerDocs {
 
     @PutMapping("/{noticeId}")
     @Override
-    public ResponseEntity<ApiResult<NoticeDetailResponseDto>> updateNotice(
+    public ResponseEntity<ApiResult<AdminNoticeDetailResponseDto>> updateNotice(
             @PathVariable Long noticeId,
             @Valid @RequestBody AdminNoticeUpdateRequestDto request
     ) {
@@ -66,13 +66,13 @@ public class AdminNoticeController implements AdminNoticeControllerDocs {
 
     @GetMapping
     @Override
-    public ResponseEntity<ApiResult<List<NoticeSummaryResponseDto>>> getNotices() {
+    public ResponseEntity<ApiResult<List<AdminNoticeSummaryResponseDto>>> getNotices() {
         return ApiResponse.of(SuccessType.SUCCESS, adminNoticeService.getNotices());
     }
 
     @GetMapping("/{noticeId}")
     @Override
-    public ResponseEntity<ApiResult<NoticeDetailResponseDto>> getNotice(
+    public ResponseEntity<ApiResult<AdminNoticeDetailResponseDto>> getNotice(
             @PathVariable Long noticeId
     ) {
         return ApiResponse.of(SuccessType.SUCCESS, adminNoticeService.getNotice(noticeId));

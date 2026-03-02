@@ -216,7 +216,6 @@ public class AdminItemService {
         List<ProjectItemImageResponseDto> imageDtos = images.stream()
                 .map(image -> new ProjectItemImageResponseDto(
                         image.getId(),
-                        image.getImageKey(),
                         resolveUrl(urls, image.getImageKey()),
                         image.getSortOrder()
                 ))
@@ -268,7 +267,6 @@ public class AdminItemService {
         return saved.stream()
                 .map(image -> new ProjectItemImageResponseDto(
                         image.getId(),
-                        image.getImageKey(),
                         resolveUrl(urls, image.getImageKey()),
                         image.getSortOrder()
                 ))

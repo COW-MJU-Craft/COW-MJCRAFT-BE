@@ -3,9 +3,9 @@ package com.example.cowmjucraft.domain.notice.controller.admin;
 import com.example.cowmjucraft.domain.notice.dto.request.AdminNoticeCreateRequestDto;
 import com.example.cowmjucraft.domain.notice.dto.request.AdminNoticePresignPutRequestDto;
 import com.example.cowmjucraft.domain.notice.dto.request.AdminNoticeUpdateRequestDto;
+import com.example.cowmjucraft.domain.notice.dto.response.AdminNoticeDetailResponseDto;
 import com.example.cowmjucraft.domain.notice.dto.response.AdminNoticePresignPutResponseDto;
-import com.example.cowmjucraft.domain.notice.dto.response.NoticeDetailResponseDto;
-import com.example.cowmjucraft.domain.notice.dto.response.NoticeSummaryResponseDto;
+import com.example.cowmjucraft.domain.notice.dto.response.AdminNoticeSummaryResponseDto;
 import com.example.cowmjucraft.global.response.ApiResult;
 import org.springframework.http.ResponseEntity;
 import io.swagger.v3.oas.annotations.Operation;
@@ -70,7 +70,7 @@ public interface AdminNoticeControllerDocs {
             ),
             @ApiResponse(responseCode = "422", description = "요청 값 검증 실패")
     })
-    ResponseEntity<ApiResult<NoticeDetailResponseDto>> createNotice(
+    ResponseEntity<ApiResult<AdminNoticeDetailResponseDto>> createNotice(
             @Valid AdminNoticeCreateRequestDto request
     );
 
@@ -147,7 +147,7 @@ public interface AdminNoticeControllerDocs {
             @ApiResponse(responseCode = "404", description = "요청한 리소스를 찾을 수 없음"),
             @ApiResponse(responseCode = "422", description = "요청 값 검증 실패")
     })
-    ResponseEntity<ApiResult<NoticeDetailResponseDto>> updateNotice(
+    ResponseEntity<ApiResult<AdminNoticeDetailResponseDto>> updateNotice(
             @Parameter(description = "공지 ID", example = "1")
             Long noticeId,
             @Valid AdminNoticeUpdateRequestDto request
@@ -188,7 +188,7 @@ public interface AdminNoticeControllerDocs {
                     content = @Content(schema = @Schema(implementation = ApiResult.class))
             )
     })
-    ResponseEntity<ApiResult<List<NoticeSummaryResponseDto>>> getNotices();
+    ResponseEntity<ApiResult<List<AdminNoticeSummaryResponseDto>>> getNotices();
 
     @Operation(summary = "공지사항 상세 조회", description = "공지사항 상세를 조회합니다.")
     @ApiResponses({
@@ -199,7 +199,7 @@ public interface AdminNoticeControllerDocs {
             ),
             @ApiResponse(responseCode = "404", description = "요청한 리소스를 찾을 수 없음")
     })
-    ResponseEntity<ApiResult<NoticeDetailResponseDto>> getNotice(
+    ResponseEntity<ApiResult<AdminNoticeDetailResponseDto>> getNotice(
             @Parameter(description = "공지 ID", example = "1")
             Long noticeId
     );
