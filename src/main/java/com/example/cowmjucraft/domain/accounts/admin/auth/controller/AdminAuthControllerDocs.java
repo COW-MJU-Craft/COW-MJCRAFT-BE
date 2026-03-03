@@ -2,11 +2,13 @@ package com.example.cowmjucraft.domain.accounts.admin.auth.controller;
 
 import com.example.cowmjucraft.domain.accounts.admin.auth.dto.request.AdminLoginRequestDto;
 import com.example.cowmjucraft.domain.accounts.admin.auth.dto.response.AdminLoginTokenResponseDto;
+import com.example.cowmjucraft.domain.accounts.auth.dto.request.RefreshTokenRequestDto;
 import com.example.cowmjucraft.global.response.ApiResult;
 import org.springframework.http.ResponseEntity;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -18,7 +20,7 @@ public interface AdminAuthControllerDocs {
 
     @Operation(
             summary = "관리자 로그인",
-            description = "userId/password로 로그인 후 JWT를 응답 바디에 반환합니다. Swagger Authorize에 Bearer 토큰으로 입력해 테스트하세요."
+            description = "userId/password로 로그인 후 Access/Refresh 토큰을 응답 바디에 반환합니다. Swagger Authorize에는 accessToken을 사용하세요."
     )
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "로그인 성공", content = @Content(schema = @Schema(implementation = AdminLoginTokenResponseDto.class))),
@@ -28,14 +30,23 @@ public interface AdminAuthControllerDocs {
     ResponseEntity<ApiResult<AdminLoginTokenResponseDto>> login(@Valid @RequestBody AdminLoginRequestDto request);
 
     @Operation(
+            summary = "관리자 토큰 재발급",
+            description = "Refresh Token으로 새로운 Access/Refresh 토큰 쌍을 발급합니다."
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "재발급 성공", content = @Content(schema = @Schema(implementation = AdminLoginTokenResponseDto.class))),
+            @ApiResponse(responseCode = "401", description = "유효하지 않거나 만료된 리프레시 토큰")
+    })
+    ResponseEntity<ApiResult<AdminLoginTokenResponseDto>> refresh(@Valid @RequestBody RefreshTokenRequestDto request);
+
+    @Operation(
             summary = "관리자 로그아웃",
-            description = "서버는 JWT를 상태로 관리하지 않으며 실제 로그아웃은 클라이언트에서 토큰 삭제로 수행됩니다. " +
-                    "본 API는 로그아웃 플로우 통일 및 향후 확장을 위해 제공됩니다."
+            description = "현재 로그인한 관리자 계정의 활성 Refresh Token들을 모두 무효화합니다."
     )
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "로그아웃 처리 완료"),
             @ApiResponse(responseCode = "401", description = "인증 실패"),
             @ApiResponse(responseCode = "403", description = "ADMIN 권한 아님")
     })
-    ResponseEntity<ApiResult<Void>> logout();
+    ResponseEntity<ApiResult<Void>> logout(@Parameter(hidden = true) String loginId);
 }

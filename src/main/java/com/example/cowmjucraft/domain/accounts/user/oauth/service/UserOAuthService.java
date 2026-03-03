@@ -2,15 +2,17 @@ package com.example.cowmjucraft.domain.accounts.user.oauth.service;
 
 import com.example.cowmjucraft.domain.accounts.user.entity.Member;
 import com.example.cowmjucraft.domain.accounts.user.entity.SocialProvider;
+import com.example.cowmjucraft.domain.accounts.auth.service.RefreshTokenService;
 import com.example.cowmjucraft.domain.accounts.user.oauth.client.KakaoOAuthClient;
 import com.example.cowmjucraft.domain.accounts.user.oauth.client.NaverOAuthClient;
 import com.example.cowmjucraft.domain.accounts.user.oauth.dto.request.KakaoLoginRequestDto;
 import com.example.cowmjucraft.domain.accounts.user.oauth.dto.request.NaverLoginRequestDto;
 import com.example.cowmjucraft.domain.accounts.user.oauth.dto.response.UserSocialLoginResponseDto;
 import com.example.cowmjucraft.domain.accounts.user.repository.MemberRepository;
-import com.example.cowmjucraft.global.config.jwt.JwtTokenProvider;
+import com.example.cowmjucraft.domain.accounts.Role;
 import com.example.cowmjucraft.domain.accounts.exception.AccountErrorType;
 import com.example.cowmjucraft.domain.accounts.exception.AccountException;
+import com.example.cowmjucraft.global.config.jwt.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,6 +27,7 @@ public class UserOAuthService {
     private final KakaoOAuthClient kakaoOAuthClient;
     private final NaverOAuthClient naverOAuthClient;
     private final MemberRepository memberRepository;
+    private final RefreshTokenService refreshTokenService;
     private final JwtTokenProvider jwtTokenProvider;
 
     public UserSocialLoginResponseDto loginWithNaver(NaverLoginRequestDto request) {
@@ -50,8 +53,25 @@ public class UserOAuthService {
         Member member = memberRepository.findByProviderAndProviderId(provider, providerId)
                 .orElseGet(() -> createOrLinkMember(provider, providerId, email, nickname));
 
-        String token = jwtTokenProvider.generateMemberToken(member.getId());
-        return new UserSocialLoginResponseDto(member.getId(), member.getUserName(), member.getEmail(), token);
+        RefreshTokenService.TokenPair tokenPair = refreshTokenService.issueTokenPair(String.valueOf(member.getId()), Role.ROLE_USER);
+        return UserSocialLoginResponseDto.from(member, tokenPair);
+    }
+
+    public UserSocialLoginResponseDto refresh(String refreshToken) {
+        RefreshTokenService.TokenPair tokenPair = refreshTokenService.refresh(refreshToken, Role.ROLE_USER);
+        Long memberId;
+        try {
+            memberId = Long.valueOf(jwtTokenProvider.getSubject(tokenPair.accessToken()));
+        } catch (NumberFormatException e) {
+            throw new AccountException(AccountErrorType.INVALID_REFRESH_TOKEN);
+        }
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new AccountException(AccountErrorType.INVALID_CREDENTIALS));
+        return UserSocialLoginResponseDto.from(member, tokenPair);
+    }
+
+    public void logout(String memberId) {
+        refreshTokenService.revokeAllActiveBySubjectAndRole(memberId, Role.ROLE_USER);
     }
 
     private Member createOrLinkMember(
