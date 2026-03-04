@@ -66,7 +66,8 @@ jobs:
               "ADMIN_PASSWORD=${{ secrets.ADMIN_PASSWORD }}",
               "ADMIN_EMAIL=${{ secrets.ADMIN_EMAIL }}",
               "JWT_SECRET=${{ secrets.JWT_SECRET }}",
-              "JWT_EXPIRATION_SECONDS=${{ secrets.JWT_EXPIRATION_SECONDS }}",
+              "JWT_ACCESS_EXPIRATION_SECONDS=${{ secrets.JWT_ACCESS_EXPIRATION_SECONDS }}",
+              "JWT_REFRESH_EXPIRATION_SECONDS=${{ secrets.JWT_REFRESH_EXPIRATION_SECONDS }}",
               "AWS_REGION=${{ secrets.AWS_REGION }}",
               "AWS_S3_BUCKET=${{ secrets.AWS_S3_BUCKET }}",
               "AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}",
@@ -96,6 +97,9 @@ jobs:
               "sudo docker rm cowmjucraft || true",
               "sudo docker run -d --name cowmjucraft --restart always -p 8080:8080 --env-file /opt/cowmjucraft/prod.env yunjin1213/cowmjucraft:latest",
               "sudo docker ps --filter name=cowmjucraft",
+              "sudo egrep -c '\''^JWT_SECRET='\'' /opt/cowmjucraft/prod.env | grep -q '\''^1$'\'' && echo '\''[OK] JWT_SECRET present'\'' || { echo '\''[FAIL] JWT_SECRET missing'\''; exit 1; }",
+              "sudo egrep -c '\''^JWT_ACCESS_EXPIRATION_SECONDS='\'' /opt/cowmjucraft/prod.env | grep -q '\''^1$'\'' && echo '\''[OK] JWT_ACCESS_EXPIRATION_SECONDS present'\'' || { echo '\''[FAIL] JWT_ACCESS_EXPIRATION_SECONDS missing'\''; exit 1; }",
+              "sudo egrep -c '\''^JWT_REFRESH_EXPIRATION_SECONDS='\'' /opt/cowmjucraft/prod.env | grep -q '\''^1$'\'' && echo '\''[OK] JWT_REFRESH_EXPIRATION_SECONDS present'\'' || { echo '\''[FAIL] JWT_REFRESH_EXPIRATION_SECONDS missing'\''; exit 1; }",
               "sudo egrep -n '\''^(MAIL_|APP_)'\'' /opt/cowmjucraft/prod.env || true"
             ]' \
             --query "Command.CommandId" \

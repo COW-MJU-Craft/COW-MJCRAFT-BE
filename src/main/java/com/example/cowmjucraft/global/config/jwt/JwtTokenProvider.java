@@ -8,7 +8,6 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.security.Key;
@@ -26,14 +25,10 @@ public class JwtTokenProvider {
     private final long accessExpirationSeconds;
     private final long refreshExpirationSeconds;
 
-    public JwtTokenProvider(
-            @Value("${jwt.secret}") String secret,
-            @Value("${jwt.access-expiration-seconds}") long accessExpirationSeconds,
-            @Value("${jwt.refresh-expiration-seconds}") long refreshExpirationSeconds
-    ) {
-        this.key = Keys.hmacShaKeyFor(Decoders.BASE64URL.decode(secret));
-        this.accessExpirationSeconds = accessExpirationSeconds;
-        this.refreshExpirationSeconds = refreshExpirationSeconds;
+    public JwtTokenProvider(JwtProperties props) {
+        this.key = Keys.hmacShaKeyFor(Decoders.BASE64URL.decode(props.getSecret()));
+        this.accessExpirationSeconds = props.getAccessExpirationSeconds();
+        this.refreshExpirationSeconds = props.getRefreshExpirationSeconds();
     }
 
     public String generateAdminAccessToken(String loginId) {
