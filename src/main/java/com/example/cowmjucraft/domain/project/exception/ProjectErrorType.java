@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 public enum ProjectErrorType implements ErrorCode {
 
     PROJECT_NOT_FOUND(404, "프로젝트를 찾을 수 없습니다."),
+    PROJECT_DELETE_CONFLICT(409, "프로젝트에 연결된 데이터가 있어 삭제할 수 없습니다."),
 
     ORDER_PATCH_VALIDATION_FAILED(422, "프로젝트 순서 변경 요청 값이 올바르지 않습니다."),
     FILE_REQUIRED(422, "파일 목록이 필요합니다.");

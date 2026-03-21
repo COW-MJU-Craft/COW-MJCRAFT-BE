@@ -352,8 +352,9 @@ public interface AdminProjectControllerDocs {
                                             }
                                             """
                             )
-                    )
+            )
             ),
+            @ApiResponse(responseCode = "409", description = "연결된 상품 또는 정산서가 있어 삭제할 수 없음"),
             @ApiResponse(responseCode = "404", description = "요청한 리소스를 찾을 수 없음")
     })
     ResponseEntity<ApiResult<Void>> deleteProject(

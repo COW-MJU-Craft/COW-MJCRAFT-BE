@@ -13,6 +13,8 @@ public interface ProjectItemRepository extends JpaRepository<ProjectItem, Long> 
 
     List<ProjectItem> findByProjectIdOrderByCreatedAtDescIdDesc(Long projectId);
 
+    boolean existsByProjectId(Long projectId);
+
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select pi from ProjectItem pi where pi.id = :id")
     Optional<ProjectItem> findByIdForUpdate(@Param("id") Long id);

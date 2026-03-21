@@ -1,5 +1,7 @@
 package com.example.cowmjucraft.domain.project.service;
 
+import com.example.cowmjucraft.domain.item.repository.ProjectItemRepository;
+import com.example.cowmjucraft.domain.payout.repository.PayoutRepository;
 import com.example.cowmjucraft.domain.project.dto.request.AdminProjectCreateRequestDto;
 import com.example.cowmjucraft.domain.project.dto.request.AdminProjectOrderPatchRequestDto;
 import com.example.cowmjucraft.domain.project.dto.request.AdminProjectPresignPutBatchRequestDto;
@@ -30,13 +32,19 @@ import org.springframework.transaction.annotation.Transactional;
 public class AdminProjectService {
 
     private final ProjectRepository projectRepository;
+    private final ProjectItemRepository projectItemRepository;
+    private final PayoutRepository payoutRepository;
     private final S3PresignFacade s3PresignFacade;
 
     public AdminProjectService(
             ProjectRepository projectRepository,
+            ProjectItemRepository projectItemRepository,
+            PayoutRepository payoutRepository,
             S3PresignFacade s3PresignFacade
     ) {
         this.projectRepository = projectRepository;
+        this.projectItemRepository = projectItemRepository;
+        this.payoutRepository = payoutRepository;
         this.s3PresignFacade = s3PresignFacade;
     }
 
@@ -77,6 +85,7 @@ public class AdminProjectService {
     @Transactional
     public void delete(Long projectId) {
         Project project = findProject(projectId);
+        validateProjectDeletable(projectId);
         projectRepository.delete(project);
     }
 
@@ -179,6 +188,22 @@ public class AdminProjectService {
     private Project findProject(Long projectId) {
         return projectRepository.findById(projectId)
                 .orElseThrow(() -> new ProjectException(ProjectErrorType.PROJECT_NOT_FOUND));
+    }
+
+    private void validateProjectDeletable(Long projectId) {
+        List<String> reasons = new ArrayList<>();
+
+        if (projectItemRepository.existsByProjectId(projectId)) {
+            reasons.add("연결된 상품이 있습니다. 상품을 먼저 삭제해주세요.");
+        }
+
+        if (payoutRepository.existsByProjectId(projectId)) {
+            reasons.add("연결된 정산서가 있습니다. 정산서를 먼저 삭제해주세요.");
+        }
+
+        if (!reasons.isEmpty()) {
+            throw new ProjectException(ProjectErrorType.PROJECT_DELETE_CONFLICT, String.join(" ", reasons));
+        }
     }
 
     private void validateOrders(List<AdminProjectOrderPatchRequestDto.ItemDto> items) {
