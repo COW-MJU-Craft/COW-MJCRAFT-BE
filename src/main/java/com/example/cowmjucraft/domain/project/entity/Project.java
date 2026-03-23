@@ -38,7 +38,7 @@ public class Project extends BaseTimeEntity {
     private String summary;
 
     @Lob
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "TEXT")
     private String description;
 
     @Column(length = 255, nullable = false)
