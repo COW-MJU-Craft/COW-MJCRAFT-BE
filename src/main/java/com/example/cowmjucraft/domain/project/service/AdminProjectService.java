@@ -1,6 +1,10 @@
 package com.example.cowmjucraft.domain.project.service;
 
+import com.example.cowmjucraft.domain.item.entity.ItemImage;
+import com.example.cowmjucraft.domain.item.entity.ProjectItem;
+import com.example.cowmjucraft.domain.item.repository.ItemImageRepository;
 import com.example.cowmjucraft.domain.item.repository.ProjectItemRepository;
+import com.example.cowmjucraft.domain.order.repository.OrderItemRepository;
 import com.example.cowmjucraft.domain.payout.repository.PayoutRepository;
 import com.example.cowmjucraft.domain.project.dto.request.AdminProjectCreateRequestDto;
 import com.example.cowmjucraft.domain.project.dto.request.AdminProjectOrderPatchRequestDto;
@@ -33,17 +37,23 @@ public class AdminProjectService {
 
     private final ProjectRepository projectRepository;
     private final ProjectItemRepository projectItemRepository;
+    private final ItemImageRepository itemImageRepository;
+    private final OrderItemRepository orderItemRepository;
     private final PayoutRepository payoutRepository;
     private final S3PresignFacade s3PresignFacade;
 
     public AdminProjectService(
             ProjectRepository projectRepository,
             ProjectItemRepository projectItemRepository,
+            ItemImageRepository itemImageRepository,
+            OrderItemRepository orderItemRepository,
             PayoutRepository payoutRepository,
             S3PresignFacade s3PresignFacade
     ) {
         this.projectRepository = projectRepository;
         this.projectItemRepository = projectItemRepository;
+        this.itemImageRepository = itemImageRepository;
+        this.orderItemRepository = orderItemRepository;
         this.payoutRepository = payoutRepository;
         this.s3PresignFacade = s3PresignFacade;
     }
@@ -85,8 +95,43 @@ public class AdminProjectService {
     @Transactional
     public void delete(Long projectId) {
         Project project = findProject(projectId);
-        validateProjectDeletable(projectId);
+
+        List<ProjectItem> items = projectItemRepository.findByProjectId(projectId);
+        List<Long> itemIds = items.stream().map(ProjectItem::getId).toList();
+
+        // S3 키 수집
+        List<String> s3KeysToDelete = new ArrayList<>();
+        addS3KeyIfValid(s3KeysToDelete, project.getThumbnailKey());
+        project.getImageKeys().forEach(k -> addS3KeyIfValid(s3KeysToDelete, k));
+
+        if (!itemIds.isEmpty()) {
+            List<ItemImage> itemImages = itemImageRepository.findByItemIdIn(itemIds);
+            itemImages.forEach(img -> addS3KeyIfValid(s3KeysToDelete, img.getImageKey()));
+            items.forEach(item -> {
+                addS3KeyIfValid(s3KeysToDelete, item.getThumbnailKey());
+                addS3KeyIfValid(s3KeysToDelete, item.getJournalFileKey());
+            });
+
+            // OrderItem 삭제 (Order는 건드리지 않음)
+            orderItemRepository.deleteByProjectItemIdIn(itemIds);
+
+            // ItemImage 삭제
+            itemImageRepository.deleteByItemIdIn(itemIds);
+
+            // ProjectItem 삭제
+            projectItemRepository.deleteByProjectId(projectId);
+        }
+
+        // Payout 삭제 (cascade로 PayoutItem도 삭제)
+        payoutRepository.findByProjectId(projectId).ifPresent(payoutRepository::delete);
+
+        // Project 삭제 (cascade로 project_images도 삭제)
         projectRepository.delete(project);
+
+        // S3 파일 삭제
+        if (!s3KeysToDelete.isEmpty()) {
+            s3PresignFacade.deleteByKeys(s3KeysToDelete);
+        }
     }
 
     @Transactional(readOnly = true)
@@ -188,22 +233,6 @@ public class AdminProjectService {
     private Project findProject(Long projectId) {
         return projectRepository.findById(projectId)
                 .orElseThrow(() -> new ProjectException(ProjectErrorType.PROJECT_NOT_FOUND));
-    }
-
-    private void validateProjectDeletable(Long projectId) {
-        List<String> reasons = new ArrayList<>();
-
-        if (projectItemRepository.existsByProjectId(projectId)) {
-            reasons.add("연결된 상품이 있습니다. 상품을 먼저 삭제해주세요.");
-        }
-
-        if (payoutRepository.existsByProjectId(projectId)) {
-            reasons.add("연결된 정산서가 있습니다. 정산서를 먼저 삭제해주세요.");
-        }
-
-        if (!reasons.isEmpty()) {
-            throw new ProjectException(ProjectErrorType.PROJECT_DELETE_CONFLICT, String.join(" ", reasons));
-        }
     }
 
     private void validateOrders(List<AdminProjectOrderPatchRequestDto.ItemDto> items) {
@@ -453,6 +482,13 @@ public class AdminProjectService {
         }
         for (String value : values) {
             addIfValidKey(keys, value);
+        }
+    }
+
+    private void addS3KeyIfValid(List<String> keys, String value) {
+        String k = toNonBlankString(value);
+        if (k != null) {
+            keys.add(k);
         }
     }
 

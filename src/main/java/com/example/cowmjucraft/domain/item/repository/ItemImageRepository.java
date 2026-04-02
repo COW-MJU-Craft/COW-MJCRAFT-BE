@@ -8,5 +8,9 @@ public interface ItemImageRepository extends JpaRepository<ItemImage, Long> {
 
     List<ItemImage> findByItemIdOrderBySortOrderAsc(Long itemId);
 
+    List<ItemImage> findByItemIdIn(List<Long> itemIds);
+
+    void deleteByItemIdIn(List<Long> itemIds);
+
     long countByItemId(Long itemId);
 }

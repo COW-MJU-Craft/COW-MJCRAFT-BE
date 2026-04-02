@@ -13,7 +13,11 @@ public interface ProjectItemRepository extends JpaRepository<ProjectItem, Long> 
 
     List<ProjectItem> findByProjectIdOrderByCreatedAtDescIdDesc(Long projectId);
 
+    List<ProjectItem> findByProjectId(Long projectId);
+
     boolean existsByProjectId(Long projectId);
+
+    void deleteByProjectId(Long projectId);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select pi from ProjectItem pi where pi.id = :id")
