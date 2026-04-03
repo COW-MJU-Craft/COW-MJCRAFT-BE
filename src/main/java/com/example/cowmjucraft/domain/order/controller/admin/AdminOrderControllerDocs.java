@@ -1,6 +1,8 @@
 package com.example.cowmjucraft.domain.order.controller.admin;
 
 import com.example.cowmjucraft.domain.order.dto.request.AdminOrderCancelRequestDto;
+import com.example.cowmjucraft.domain.order.dto.request.AdminOrderCompletePageUpsertRequestDto;
+import com.example.cowmjucraft.domain.order.dto.response.AdminOrderCompletePageResponseDto;
 import com.example.cowmjucraft.domain.order.dto.response.AdminOrderListItemResponseDto;
 import com.example.cowmjucraft.domain.order.dto.response.AdminOrderStatusResponseDto;
 import com.example.cowmjucraft.domain.order.dto.response.OrderDetailResponseDto;
@@ -39,6 +41,38 @@ public interface AdminOrderControllerDocs {
     ResponseEntity<ApiResult<OrderDetailResponseDto>> getOrderDetail(
             @Parameter(description = "주문 ID", example = "1")
             Long orderId
+    );
+
+    @Operation(summary = "관리자 주문 완료 페이지 조회", description = "관리자가 주문 완료 페이지 설정 정보를 조회합니다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "조회 성공", content = @Content(schema = @Schema(implementation = ApiResult.class))),
+            @ApiResponse(responseCode = "404", description = "주문 완료 페이지 설정을 찾을 수 없음")
+    })
+    ResponseEntity<ApiResult<AdminOrderCompletePageResponseDto>> getOrderCompletePage();
+
+    @Operation(summary = "관리자 주문 완료 페이지 저장/수정", description = "관리자가 주문 완료 페이지 설정 정보를 저장하거나 수정합니다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "처리 성공", content = @Content(schema = @Schema(implementation = ApiResult.class))),
+            @ApiResponse(responseCode = "400", description = "필수 입력값이 누락됨")
+    })
+    ResponseEntity<ApiResult<AdminOrderCompletePageResponseDto>> upsertOrderCompletePage(@RequestBody(
+                    required = true,
+                    description = "관리자 주문 완료 페이지 저장/수정 요청",
+                    content = @Content(
+                            schema = @Schema(implementation = AdminOrderCompletePageUpsertRequestDto.class),
+                            examples = @ExampleObject(
+                                    name = "admin-order-complete-page-upsert-request",
+                                    value = """
+                                        {
+                                          "messageTitle": "주문이 완료되었습니다.",
+                                          "messageDescription": "입금 기한 내에 계좌이체를 완료해 주세요.",
+                                          "paymentInformation": "국민은행 123456-78-901234 / 예금주: 명지공방"
+                                        }
+                                        """
+                            )
+                    )
+            )
+            AdminOrderCompletePageUpsertRequestDto request
     );
 
     @Operation(summary = "관리자 결제 확정", description = "입금 대기(PENDING_DEPOSIT) 주문을 결제 확정(PAID) 처리하고, 조회 토큰을 갱신합니다.")

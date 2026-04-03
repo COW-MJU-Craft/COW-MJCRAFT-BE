@@ -1,26 +1,21 @@
 package com.example.cowmjucraft.domain.order.controller.admin;
 
 import com.example.cowmjucraft.domain.order.dto.request.AdminOrderCancelRequestDto;
-import com.example.cowmjucraft.domain.order.dto.response.AdminOrderListItemResponseDto;
-import com.example.cowmjucraft.domain.order.dto.response.AdminOrderStatusResponseDto;
-import com.example.cowmjucraft.domain.order.dto.response.OrderDetailResponseDto;
+import com.example.cowmjucraft.domain.order.dto.request.AdminOrderCompletePageUpsertRequestDto;
+import com.example.cowmjucraft.domain.order.dto.response.*;
 import com.example.cowmjucraft.domain.order.entity.OrderStatus;
+import com.example.cowmjucraft.domain.order.service.AdminOrderCompletePageService;
 import com.example.cowmjucraft.domain.order.service.AdminOrderPaymentService;
 import com.example.cowmjucraft.domain.order.service.AdminOrderQueryService;
 import com.example.cowmjucraft.domain.order.service.AdminOrderRefundService;
 import com.example.cowmjucraft.global.response.ApiResponse;
 import com.example.cowmjucraft.global.response.ApiResult;
 import com.example.cowmjucraft.global.response.type.SuccessType;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RequiredArgsConstructor
 @RestController
@@ -30,6 +25,7 @@ public class AdminOrderController implements AdminOrderControllerDocs {
     private final AdminOrderQueryService adminOrderQueryService;
     private final AdminOrderPaymentService adminOrderPaymentService;
     private final AdminOrderRefundService adminOrderRefundService;
+    private final AdminOrderCompletePageService adminOrderCompletePageService;
 
     @GetMapping("/orders")
     @Override
@@ -43,6 +39,26 @@ public class AdminOrderController implements AdminOrderControllerDocs {
     @Override
     public ResponseEntity<ApiResult<OrderDetailResponseDto>> getOrderDetail(@PathVariable Long orderId) {
         return ApiResponse.of(SuccessType.SUCCESS, adminOrderQueryService.getOrderDetail(orderId));
+    }
+
+    @GetMapping("/admin/orders/complete-page")
+    @Override
+    public ResponseEntity<ApiResult<AdminOrderCompletePageResponseDto>> getOrderCompletePage() {
+        return ApiResponse.of(
+                SuccessType.SUCCESS,
+                adminOrderCompletePageService.getOrderCompletePage()
+        );
+    }
+
+    @PutMapping("/admin/orders/complete-page")
+    @Override
+    public ResponseEntity<ApiResult<AdminOrderCompletePageResponseDto>> upsertOrderCompletePage(
+            @Valid @RequestBody AdminOrderCompletePageUpsertRequestDto request
+    ) {
+        return ApiResponse.of(
+                SuccessType.SUCCESS,
+                adminOrderCompletePageService.upsertOrderCompletePage(request)
+        );
     }
 
     @PostMapping("/orders/{orderId}/confirm-paid")
