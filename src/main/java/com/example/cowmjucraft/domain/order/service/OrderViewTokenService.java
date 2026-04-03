@@ -68,6 +68,26 @@ public class OrderViewTokenService {
         return base + path + "?token=" + token;
     }
 
+    @Transactional(readOnly = true)
+    public Order getValidOrder(String rawToken) {
+        if (rawToken == null || rawToken.trim().isEmpty()) {
+            throw new OrderException(OrderErrorType.VIEW_TOKEN_REQUIRED);
+        }
+
+        String tokenHash = hashToken(rawToken);
+
+        OrderViewToken orderViewToken = orderViewTokenRepository.findByTokenHash(tokenHash)
+                .orElseThrow(() -> new OrderException(OrderErrorType.INVALID_VIEW_TOKEN));
+
+        LocalDateTime now = LocalDateTime.now();
+
+        if (orderViewToken.getRevokedAt() != null || orderViewToken.getExpiresAt().isBefore(now)) {
+            throw new OrderException(OrderErrorType.EXPIRED_VIEW_TOKEN);
+        }
+
+        return orderViewToken.getOrder();
+    }
+
     private String generateRawToken() {
         byte[] bytes = new byte[32];
         SECURE_RANDOM.nextBytes(bytes);
