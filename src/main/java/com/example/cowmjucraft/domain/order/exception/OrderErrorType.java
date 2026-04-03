@@ -13,6 +13,7 @@ public enum OrderErrorType implements ErrorCode {
     BUYER_NOT_FOUND(404, "주문자 정보를 찾을 수 없습니다."),
     FULFILLMENT_NOT_FOUND(404, "수령 정보를 찾을 수 없습니다."),
     INVALID_VIEW_TOKEN(404, "유효하지 않은 조회 링크입니다."),
+    ORDER_COMPLETE_PAGE_NOT_FOUND(404, "주문 완료 페이지 설정을 찾을 수 없습니다."),
 
     EXPIRED_VIEW_TOKEN(410, "만료되었거나 폐기된 조회 링크입니다."),
 
