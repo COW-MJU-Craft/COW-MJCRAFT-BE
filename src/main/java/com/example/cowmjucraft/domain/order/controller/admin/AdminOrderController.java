@@ -41,7 +41,7 @@ public class AdminOrderController implements AdminOrderControllerDocs {
         return ApiResponse.of(SuccessType.SUCCESS, adminOrderQueryService.getOrderDetail(orderId));
     }
 
-    @GetMapping("/admin/orders/complete-page")
+    @GetMapping("/orders/complete-page")
     @Override
     public ResponseEntity<ApiResult<AdminOrderCompletePageResponseDto>> getOrderCompletePage() {
         return ApiResponse.of(
@@ -50,7 +50,7 @@ public class AdminOrderController implements AdminOrderControllerDocs {
         );
     }
 
-    @PutMapping("/admin/orders/complete-page")
+    @PutMapping("/orders/complete-page")
     @Override
     public ResponseEntity<ApiResult<AdminOrderCompletePageResponseDto>> upsertOrderCompletePage(
             @Valid @RequestBody AdminOrderCompletePageUpsertRequestDto request
