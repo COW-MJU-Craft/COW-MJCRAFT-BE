@@ -2,6 +2,7 @@ package com.example.cowmjucraft.domain.order.controller.client;
 
 import com.example.cowmjucraft.domain.order.dto.request.OrderCreateRequestDto;
 import com.example.cowmjucraft.domain.order.dto.request.OrderLookupRequestDto;
+import com.example.cowmjucraft.domain.order.dto.response.OrderCompletePageResponseDto;
 import com.example.cowmjucraft.domain.order.dto.response.OrderCreateResponseDto;
 import com.example.cowmjucraft.domain.order.dto.response.OrderDetailResponseDto;
 import com.example.cowmjucraft.domain.order.dto.response.OrderLookupIdAvailabilityResponseDto;
@@ -16,6 +17,7 @@ import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.web.bind.annotation.RequestParam;
 
 @Tag(name = "Order - Public", description = "비회원 주문 API")
 public interface ClientOrderControllerDocs {
@@ -231,5 +233,38 @@ public interface ClientOrderControllerDocs {
     ResponseEntity<ApiResult<OrderDetailResponseDto>> viewOrderByToken(
             @Parameter(description = "이메일 링크 조회 토큰", required = true, example = "raw-view-token-string")
             String token
+    );
+
+    @Operation(
+            summary = "주문 완료 페이지 조회",
+            description = "조회 토큰으로 주문 완료 페이지 정보를 조회합니다."
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "주문 완료 페이지 조회 성공",
+                    content = @Content(schema = @Schema(implementation = OrderCompletePageResponseDto.class))
+            ),
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "조회 토큰이 누락되었습니다."
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "유효하지 않은 조회 링크이거나 주문 완료 페이지 설정이 존재하지 않습니다."
+            ),
+            @ApiResponse(
+                    responseCode = "410",
+                    description = "만료되었거나 폐기된 조회 링크입니다."
+            )
+    })
+    ResponseEntity<ApiResult<OrderCompletePageResponseDto>> getOrderCompletePage(
+            @Parameter(
+                    name = "token",
+                    description = "주문 조회 토큰",
+                    required = true,
+                    example = "sample-order-view-token"
+            )
+            @RequestParam("token") String token
     );
 }
