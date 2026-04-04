@@ -1,20 +1,11 @@
 package com.example.cowmjucraft.domain.order.service;
 
 import com.example.cowmjucraft.domain.order.dto.response.OrderDetailResponseDto;
-import com.example.cowmjucraft.domain.order.entity.Order;
-import com.example.cowmjucraft.domain.order.entity.OrderAuth;
-import com.example.cowmjucraft.domain.order.entity.OrderBuyer;
-import com.example.cowmjucraft.domain.order.entity.OrderFulfillment;
-import com.example.cowmjucraft.domain.order.entity.OrderItem;
-import com.example.cowmjucraft.domain.order.entity.OrderViewToken;
+import com.example.cowmjucraft.domain.order.entity.*;
 import com.example.cowmjucraft.domain.order.exception.OrderErrorType;
 import com.example.cowmjucraft.domain.order.exception.OrderException;
-import com.example.cowmjucraft.domain.order.repository.OrderAuthRepository;
-import com.example.cowmjucraft.domain.order.repository.OrderBuyerRepository;
-import com.example.cowmjucraft.domain.order.repository.OrderFulfillmentRepository;
-import com.example.cowmjucraft.domain.order.repository.OrderItemRepository;
-import com.example.cowmjucraft.domain.order.repository.OrderRepository;
-import com.example.cowmjucraft.domain.order.repository.OrderViewTokenRepository;
+import com.example.cowmjucraft.domain.order.repository.*;
+
 import java.time.LocalDateTime;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -34,6 +25,7 @@ public class OrderDetailQueryService {
     private final OrderRepository orderRepository;
     private final OrderViewTokenService orderViewTokenService;
     private final PasswordEncoder passwordEncoder;
+    private final OrderCompletePageRepository orderCompletePageRepository;
 
     @Transactional(readOnly = true)
     public OrderDetailResponseDto getByLookupIdAndPassword(String lookupId, String password) {
@@ -82,6 +74,12 @@ public class OrderDetailQueryService {
         OrderFulfillment fulfillment = orderFulfillmentRepository.findById(orderId)
                 .orElseThrow(() -> new OrderException(OrderErrorType.FULFILLMENT_NOT_FOUND));
 
+        OrderCompletePage orderCompletePage = orderCompletePageRepository.findFirstByOrderByIdAsc()
+                .orElseThrow(() -> new OrderException(OrderErrorType.ORDER_COMPLETE_PAGE_NOT_FOUND));
+
+        String paymentInformation = orderCompletePage.getPaymentInformation();
+
+
         List<OrderDetailResponseDto.ItemInfo> items = orderItemRepository.findAllByOrderIdOrderByProjectItemIdAsc(orderId).stream()
                 .map(item -> new OrderDetailResponseDto.ItemInfo(
                         item.getProjectItem().getId(),
@@ -127,6 +125,7 @@ public class OrderDetailQueryService {
                         fulfillment.getPostalCode(),
                         fulfillment.getDeliveryMemo()
                 ),
+                paymentInformation,
                 items
         );
     }

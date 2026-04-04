@@ -211,6 +211,7 @@ public interface ClientOrderControllerDocs {
                                                   "postalCode": "04524",
                                                   "deliveryMemo": "부재 시 문 앞에 놓아주세요"
                                                 },
+                                                "paymentInformation": "국민은행 123456-78-901234 / 예금주: 명지공방",
                                                 "items": [
                                                   {
                                                     "projectItemId": 1,
