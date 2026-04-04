@@ -16,6 +16,9 @@ public record OrderDetailResponseDto(
         @Schema(description = "수령/배송 정보")
         FulfillmentInfo fulfillment,
 
+        @Schema(description = "입금/결제 정보", example = "국민은행 123456-78-901234 / 예금주: 명지공방", nullable = true)
+        String paymentInformation,
+
         @ArraySchema(arraySchema = @Schema(description = "주문 상품 목록"))
         List<ItemInfo> items
 ) {
