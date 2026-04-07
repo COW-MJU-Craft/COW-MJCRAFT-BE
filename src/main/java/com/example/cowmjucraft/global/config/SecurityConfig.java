@@ -1,5 +1,6 @@
 package com.example.cowmjucraft.global.config;
 
+import com.example.cowmjucraft.global.config.jwt.JwtAuthenticationEntryPoint;
 import com.example.cowmjucraft.global.config.jwt.JwtAuthenticationFilter;
 import com.example.cowmjucraft.global.config.jwt.JwtTokenProvider;
 import org.springframework.context.annotation.Bean;
@@ -17,7 +18,8 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig {
 
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http, JwtAuthenticationFilter jwtAuthenticationFilter)
+    public SecurityFilterChain filterChain(HttpSecurity http, JwtAuthenticationFilter jwtAuthenticationFilter,
+            JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint)
             throws Exception {
 
         http
@@ -41,6 +43,7 @@ public class SecurityConfig {
                 )
                 .formLogin(form -> form.disable())
                 .httpBasic(basic -> basic.disable())
+                .exceptionHandling(ex -> ex.authenticationEntryPoint(jwtAuthenticationEntryPoint))
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
