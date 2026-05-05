@@ -226,6 +226,10 @@ public class ProjectItem extends BaseTimeEntity {
         this.stockQty = stockQty;
     }
 
+    public void updateFundedQty(Integer fundedQty) {
+        this.fundedQty = fundedQty;
+    }
+
     public void clearThumbnail() {
         this.thumbnailKey = null;
     }

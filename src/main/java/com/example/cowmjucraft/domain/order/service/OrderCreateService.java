@@ -84,14 +84,7 @@ public class OrderCreateService {
                 throw new OrderException(OrderErrorType.ITEM_NOT_AVAILABLE, "projectItemId=" + projectItemId);
             }
 
-            if (projectItem.getSaleType() != ItemSaleType.NORMAL) {
-                throw new OrderException(OrderErrorType.NORMAL_SALE_ONLY, "projectItemId=" + projectItemId);
-            }
-
-            Integer stockQty = projectItem.getStockQty();
-            if (stockQty == null || stockQty < quantity) {
-                throw new OrderException(OrderErrorType.INSUFFICIENT_STOCK, "projectItemId=" + projectItemId);
-            }
+            validateOrderableQuantity(projectItem, quantity);
 
             int unitPrice = projectItem.getPrice();
             int lineAmount;
@@ -242,6 +235,27 @@ public class OrderCreateService {
             quantityByItemId.merge(item.projectItemId(), item.quantity(), Math::addExact);
         }
         return quantityByItemId;
+    }
+
+    private void validateOrderableQuantity(ProjectItem projectItem, int quantity) {
+        if (projectItem.getSaleType() == ItemSaleType.NORMAL) {
+            Integer stockQty = projectItem.getStockQty();
+            if (stockQty == null || stockQty < quantity) {
+                throw new OrderException(OrderErrorType.INSUFFICIENT_STOCK, "projectItemId=" + projectItem.getId());
+            }
+            return;
+        }
+
+        if (projectItem.getSaleType() == ItemSaleType.GROUPBUY) {
+            Integer targetQty = projectItem.getTargetQty();
+            int fundedQty = projectItem.getFundedQty() == null ? 0 : projectItem.getFundedQty();
+            if (targetQty == null || targetQty - fundedQty < quantity) {
+                throw new OrderException(OrderErrorType.INSUFFICIENT_STOCK, "projectItemId=" + projectItem.getId());
+            }
+            return;
+        }
+
+        throw new OrderException(OrderErrorType.SALE_TYPE_NOT_ORDERABLE, "projectItemId=" + projectItem.getId());
     }
 
     private String generateOrderNo(LocalDateTime now) {
