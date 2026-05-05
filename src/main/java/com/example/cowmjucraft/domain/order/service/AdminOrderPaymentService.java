@@ -53,21 +53,7 @@ public class AdminOrderPaymentService {
                             "projectItemId=" + orderItem.getProjectItem().getId()
                     ));
 
-            if (projectItem.getSaleType() != ItemSaleType.NORMAL) {
-                throw new OrderException(OrderErrorType.NON_NORMAL_SALE_NOT_DEDUCTIBLE, "projectItemId=" + projectItem.getId());
-            }
-
-            Integer stockQty = projectItem.getStockQty();
-            int orderQty = orderItem.getQuantity();
-
-            if (stockQty == null) {
-                throw new OrderException(OrderErrorType.STOCK_INFO_MISSING, "projectItemId=" + projectItem.getId());
-            }
-            if (stockQty < orderQty) {
-                throw new OrderException(OrderErrorType.INSUFFICIENT_STOCK, "projectItemId=" + projectItem.getId());
-            }
-
-            projectItem.updateStockQty(stockQty - orderQty);
+            applyPaidQuantity(projectItem, orderItem.getQuantity());
         }
 
         LocalDateTime now = LocalDateTime.now();
@@ -87,5 +73,31 @@ public class AdminOrderPaymentService {
         );
 
         return new AdminOrderStatusResponseDto(order.getId(), order.getStatus().name());
+    }
+
+    private void applyPaidQuantity(ProjectItem projectItem, int orderQty) {
+        if (projectItem.getSaleType() == ItemSaleType.NORMAL) {
+            Integer stockQty = projectItem.getStockQty();
+            if (stockQty == null) {
+                throw new OrderException(OrderErrorType.STOCK_INFO_MISSING, "projectItemId=" + projectItem.getId());
+            }
+            if (stockQty < orderQty) {
+                throw new OrderException(OrderErrorType.INSUFFICIENT_STOCK, "projectItemId=" + projectItem.getId());
+            }
+            projectItem.updateStockQty(stockQty - orderQty);
+            return;
+        }
+
+        if (projectItem.getSaleType() == ItemSaleType.GROUPBUY) {
+            Integer targetQty = projectItem.getTargetQty();
+            int fundedQty = projectItem.getFundedQty() == null ? 0 : projectItem.getFundedQty();
+            if (targetQty == null || targetQty - fundedQty < orderQty) {
+                throw new OrderException(OrderErrorType.INSUFFICIENT_STOCK, "projectItemId=" + projectItem.getId());
+            }
+            projectItem.updateFundedQty(fundedQty + orderQty);
+            return;
+        }
+
+        throw new OrderException(OrderErrorType.SALE_TYPE_NOT_ORDERABLE, "projectItemId=" + projectItem.getId());
     }
 }
