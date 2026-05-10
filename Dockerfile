@@ -14,6 +14,9 @@ RUN ./gradlew clean bootJar -x test
 FROM eclipse-temurin:21-jre
 WORKDIR /app
 
+ENV TZ=Asia/Seoul
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+
 COPY --from=builder /app/build/libs/*.jar app.jar
 
 EXPOSE 8080
