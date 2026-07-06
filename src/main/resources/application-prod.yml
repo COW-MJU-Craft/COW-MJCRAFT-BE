@@ -28,6 +28,7 @@ spring:
 aws:
   s3:
     endpoint: ${AWS_S3_ENDPOINT}
+    public-endpoint: ${AWS_S3_PUBLIC_ENDPOINT}
 
 app:
   public-base-url: ${APP_PUBLIC_BASE_URL}
