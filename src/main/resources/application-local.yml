@@ -29,6 +29,7 @@ spring:
 aws:
   s3:
     endpoint: ${AWS_S3_ENDPOINT:http://localhost:9000}
+    public-endpoint: ${AWS_S3_PUBLIC_ENDPOINT:http://localhost:9000}
 
 app:
   public-base-url: ${APP_PUBLIC_BASE_URL}

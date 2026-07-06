@@ -18,6 +18,9 @@ public class S3Config {
     @Value("${aws.s3.endpoint}")
     private String endpoint;
 
+    @Value("${aws.s3.public-endpoint}")
+    private String publicEndpoint;
+
     @Bean
     public S3Client s3Client() {
         return S3Client.builder()
@@ -31,7 +34,7 @@ public class S3Config {
     public S3Presigner s3Presigner() {
         return S3Presigner.builder()
                 .region(Region.of(region))
-                .endpointOverride(URI.create(endpoint))
+                .endpointOverride(URI.create(publicEndpoint))
                 .serviceConfiguration(s3Configuration())
                 .build();
     }
