@@ -17,7 +17,7 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      IMAGE: ghcr.io/${{ github.repository_owner }}/cowmjucraft
+      IMAGE: ghcr.io/cow-mju-craft/cowmjucraft
 
     steps:
       - uses: actions/checkout@v4
