@@ -1,0 +1,12 @@
+# gitleaks 설정 — 기본 룰셋 확장
+[extend]
+useDefault = true
+
+[allowlist]
+description = "오탐 제외 경로"
+paths = [
+  # 테스트 전용 더미 자격증명 (실제 시크릿 아님)
+  '''src/test/resources/.*''',
+  # pre-commit 훅 자체의 탐지 패턴 문자열
+  '''\.githooks/.*''',
+]
