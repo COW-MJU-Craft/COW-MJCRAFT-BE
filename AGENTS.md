@@ -370,12 +370,17 @@ void createOrder_재고부족_OrderException발생() {
 
 다음 행동은 어떤 상황에서도 금지된다.
 
-1. **자동 push 금지** — `git push`는 사용자가 직접 실행
+1. **main 병합은 사람만** — PR 머지는 사용자가 직접 실행, 에이전트는 절대 병합하지 않는다
 2. **force push 금지** — `git push --force` 절대 실행 금지
-3. **main 직접 커밋 금지** — main 브랜치에 직접 commit 금지
+3. **main 직접 커밋/push 금지** — main 브랜치에 직접 commit·push 금지 (서버 ruleset으로도 차단됨)
 4. **민감정보 커밋 금지** — API 키, 비밀번호, JWT 시크릿, DB 접속 정보, AWS 자격증명 등 커밋 금지
 5. **보안 변경 사람 리뷰 필수** — `SecurityConfig`, `JwtAuthenticationFilter`, `JwtTokenProvider` 수정 시 반드시 사람이 리뷰 후 병합
 6. **커밋 전 사용자 승인 필수** — 커밋 메시지 제안 후 승인 대기, 자동 커밋 금지
+
+**허용되는 것** (2026-07 개정)
+- 작업 브랜치(`feat/*`, `fix/*` 등)로의 push — 커밋이 사용자 승인을 받았다면 허용
+- `gh pr create --draft` — draft PR 생성 허용, 단 라벨(`agent:claude-code` 또는 `agent:codex`)을 붙인다
+- main은 branch ruleset(PR 필수 + CI 필수 + force push 차단)이 서버에서 보호하므로, 위 위임이 가능하다
 
 ---
 
@@ -398,4 +403,4 @@ void createOrder_재고부족_OrderException발생() {
 - 커맨드 파일 내용이 AGENTS.md와 충돌하면 AGENTS.md를 우선한다.
 - 커맨드 파일을 읽었더라도 절대 규칙은 항상 유지한다.
 - `/commit`은 커밋 메시지 제안 후 사용자 승인을 받은 경우에만 실행한다.
-- `/pr`은 PR 초안만 작성하고, push 및 `gh pr create`는 실행하지 않는다.
+- `/pr`은 브랜치 push 후 draft PR 생성까지 실행한다. 머지는 하지 않는다.

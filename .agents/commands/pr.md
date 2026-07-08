@@ -1,8 +1,9 @@
-# /pr - PR 설명 초안 작성
+# /pr - PR 작성 및 draft PR 생성
 
 ## 역할
-현재 브랜치와 main의 차이를 분석하여 PR 설명 초안을 작성한다.
-push와 `gh pr create`는 사용자가 직접 실행한다.
+현재 브랜치와 main의 차이를 분석하여 PR 설명을 작성하고,
+사용자 승인 후 브랜치 push와 draft PR 생성까지 실행한다.
+**머지는 절대 하지 않는다** — 머지는 사용자의 몫이다.
 
 ## 실행 순서
 
@@ -46,22 +47,31 @@ PR 템플릿을 기반으로 작성하되, 다음 내용을 포함한다.
 - 프론트엔드, 인프라 등 다른 직군에 전달할 사항
 - API 스펙 변경, 환경변수 추가, S3 버킷 설정 변경 등
 
-### 4. 초안 저장 및 보고
-`.ai-workspace/pr.md`에 저장하고 사용자에게 전문을 보여준다.
+### 4. 초안 저장 및 승인 요청
+`.ai-workspace/pr.md`에 저장하고 사용자에게 전문을 보여준 뒤 다음 메시지로 대기한다.
 (`.ai-workspace/` 디렉토리가 없으면 생성 후 저장)
 
-### 5. push 및 PR 생성 안내
-사용자가 직접 실행할 명령어를 안내한다.
-```bash
-# 브랜치 push
-git push origin <브랜치명>
-
-# PR 생성 (gh CLI 사용 시)
-gh pr create --title "<제목>" --body "$(cat .ai-workspace/pr.md)"
+```
+PR 초안입니다. "승인"이라고 답하시면 push 후 draft PR을 생성합니다.
 ```
 
+### 5. push 및 draft PR 생성 (사용자 승인 후에만)
+```bash
+git push -u origin <브랜치명>
+
+# 에이전트 라벨 준비 (없으면 생성)
+gh label create "agent:claude-code" --color "D97706" --description "Claude Code가 작성한 PR" 2>/dev/null || true
+gh label create "agent:codex" --color "6366F1" --description "Codex가 작성한 PR" 2>/dev/null || true
+
+# draft PR 생성 — 자신에 맞는 라벨 사용 (Claude Code면 agent:claude-code, Codex면 agent:codex)
+gh pr create --draft --title "<제목>" --body-file .ai-workspace/pr.md --label "agent:claude-code"
+```
+
+생성된 PR URL을 사용자에게 보고하고 종료한다.
+
 ## 주의사항
-- push 자동 실행 절대 금지
-- `gh pr create` 자동 실행 절대 금지
+- 사용자 승인 없이 push/PR 생성 금지
+- PR 머지(`gh pr merge`) 절대 금지
+- main으로의 직접 push 절대 금지
 - 1000줄 이상 diff인 경우 전체 분석 대신 `--stat` 기반으로 요약하고 사용자에게 알림
 - main 브랜치에서 실행 중이라면 경고 후 중단

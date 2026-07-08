@@ -35,7 +35,7 @@
 
 ## 남은 Phase (계획서 참고: docs/agent-harness-plan.md)
 
-- **Phase 5** (branch protection 활성화 후): 절대 규칙 완화 — feat/* push 허용, draft PR 생성 허용, 에이전트 라벨. `.claude/settings.json`의 `git push` deny 제거 포함
+- ~~Phase 5~~ 완료 (2026-07-09): 작업 브랜치 push·draft PR 생성 위임, 에이전트 라벨(`agent:claude-code`/`agent:codex`), 머지·force push·main push는 계속 금지
 - **Phase 6** (컨벤션 위반이 반복될 때): JPA/트랜잭션/로깅 컨벤션, Spotless, ArchUnit, skills
 
 ## 참고

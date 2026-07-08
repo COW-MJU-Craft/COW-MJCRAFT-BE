@@ -78,10 +78,11 @@ FAIL 항목이 없다면 바로 "승인"이라고 답해주세요.
 
 ---
 
-### STEP 6: PR 초안 작성 (/pr)
+### STEP 6: PR 작성 (/pr)
 커밋 완료 후 /pr을 실행한다.
-PR 초안을 `.ai-workspace/pr.md`에 저장하고 사용자에게 보여준다.
-push와 PR 생성 명령어를 안내하고 종료한다.
+PR 초안을 `.ai-workspace/pr.md`에 저장하고 사용자에게 보여준 뒤,
+승인받으면 push + draft PR 생성까지 실행하고 PR URL을 보고하며 종료한다.
+머지는 사용자가 CI 통과를 확인한 후 직접 한다.
 
 ---
 
@@ -94,5 +95,5 @@ push와 PR 생성 명령어를 안내하고 종료한다.
 ## 주의사항
 - 사용자 확인 없이 단계를 건너뛰거나 자동 진행 금지
 - 어느 단계에서든 사용자가 중단을 요청하면 즉시 중단
-- push 자동 실행 절대 금지
+- 사용자 승인 없는 push 금지, PR 머지 절대 금지
 - 보안 관련 파일(`SecurityConfig`, `JwtAuthenticationFilter`, `JwtTokenProvider`) 수정이 포함된 경우 STEP 2 시작 전 별도 경고
