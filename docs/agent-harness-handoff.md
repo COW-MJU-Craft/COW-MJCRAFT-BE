@@ -7,7 +7,7 @@
 | 커밋 | 내용 |
 |---|---|
 | Phase 1 | `.agents/commands/` 단일소스화 + `.claude`/`.codex` 심링크 + `CLAUDE.md`(@AGENTS.md) + gitignore |
-| Phase 2 | `CODEOWNERS` + CI에 gitleaks 시크릿 스캔 + 심링크 구조 검증 job |
+| Phase 2 | CI에 gitleaks 시크릿 스캔 + 심링크 구조 검증 job |
 | Phase 3 | `pre-commit` 훅(main 커밋 차단·시크릿 차단) + `.claude/settings.json`(팀 공유 권한) |
 | Phase 4 | JaCoCo + PR diff coverage 70% 게이트 + AGENTS.md 테스트 컨벤션 + `/impl` 테스트 필수화 |
 
@@ -29,10 +29,9 @@
 3. `bash scripts/setup-hooks.sh` — pre-commit 활성화 (팀원들도 clone 후 각자 실행 필요)
 4. push + PR 생성 → CI 3개 job(test, secret-scan, agent-config) 통과 확인
 5. **GitHub branch protection 설정** (수동, ~5분): Settings → Branches → Add branch ruleset (main)
-   - Require a pull request before merging + Require review from Code Owners
+   - Require a pull request before merging (리뷰 필수는 끔 — 솔로 운영)
    - Require status checks: `test`, `secret-scan`, `agent-config`
    - Block force pushes
-6. CODEOWNERS의 `@yunjin1213` 핸들 확인, 팀원 추가 (예: 배한준 핸들)
 
 ## 남은 Phase (계획서 참고: docs/agent-harness-plan.md)
 
