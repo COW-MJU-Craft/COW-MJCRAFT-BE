@@ -39,14 +39,6 @@ public class JwtTokenProvider {
         return generateToken(loginId, Role.ROLE_ADMIN, TOKEN_TYPE_REFRESH, refreshExpirationSeconds);
     }
 
-    public String generateMemberAccessToken(Long memberId) {
-        return generateToken(String.valueOf(memberId), Role.ROLE_USER, TOKEN_TYPE_ACCESS, accessExpirationSeconds);
-    }
-
-    public String generateMemberRefreshToken(Long memberId) {
-        return generateToken(String.valueOf(memberId), Role.ROLE_USER, TOKEN_TYPE_REFRESH, refreshExpirationSeconds);
-    }
-
     public String generateAccessToken(String subject, Role role) {
         return generateToken(subject, role, TOKEN_TYPE_ACCESS, accessExpirationSeconds);
     }
