@@ -320,6 +320,39 @@ public class ProjectItem extends BaseTimeEntity {
 
 ---
 
+## 테스트 컨벤션
+
+**작성 의무**: 새 서비스 로직 또는 기존 로직 변경 시 해당 부분의 테스트를 반드시 함께 작성한다. CI에서 PR 변경 코드의 diff coverage 70% 이상을 요구한다 — 구현 완료의 정의에 테스트가 포함된다.
+
+**계층별 전략**
+
+| 계층 | 방식 | 도구 |
+|---|---|---|
+| Service | 단위 테스트 (리포지토리/외부 의존성 mock) | JUnit 5 + Mockito |
+| Repository | 슬라이스 테스트 | `@DataJpaTest` + H2 |
+| Controller | 슬라이스 테스트 (필요 시) | `@WebMvcTest` |
+
+**작성 규칙**
+- 테스트 이름: `메서드명_상황_기대결과` (예: `createOrder_재고부족_OrderException발생`)
+- 구조: given-when-then 주석으로 구분
+- 검증 우선순위: 정상 케이스 1개 + 예외 케이스(도메인 예외 발생) 각 1개 이상
+- 깡통 테스트 금지 — assertion 없는 테스트, 구현을 그대로 복사한 테스트는 작성하지 않는다
+- 커버리지 수치를 올리기 위한 무의미한 getter/setter 테스트 금지
+
+```java
+@Test
+void createOrder_재고부족_OrderException발생() {
+    // given
+    given(itemRepository.findById(1L)).willReturn(Optional.of(soldOutItem));
+
+    // when & then
+    assertThatThrownBy(() -> orderCreateService.create(request))
+            .isInstanceOf(OrderException.class);
+}
+```
+
+---
+
 ## Git 워크플로우
 
 - 브랜치 전략: `main` ← PR로만 병합
