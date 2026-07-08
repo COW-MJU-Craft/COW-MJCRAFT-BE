@@ -1,0 +1,12 @@
+# CODEOWNERS — 아래 경로는 지정된 리뷰어의 승인 없이 병합 불가
+# (GitHub Settings > Branches > main 보호 규칙에서 "Require review from Code Owners" 활성화 필요)
+
+# 보안 관련 코드 — 사람 리뷰 필수 (AGENTS.md 절대 규칙 5)
+/src/main/java/com/example/cowmjucraft/global/config/           @yunjin1213
+/src/main/java/com/example/cowmjucraft/domain/accounts/user/oauth/config/  @yunjin1213
+
+# CI/CD 및 에이전트 설정 변경
+/.github/        @yunjin1213
+/.agents/        @yunjin1213
+/AGENTS.md       @yunjin1213
+/CLAUDE.md       @yunjin1213
