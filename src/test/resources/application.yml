@@ -43,16 +43,6 @@ aws:
     public-endpoint: http://localhost:9000
     bucket: test-bucket
 
-oauth:
-  naver:
-    client-id: test
-    client-secret: test
-    redirect-uri: http://localhost/oauth/naver
-  kakao:
-    client-id: test
-    client-secret: test
-    redirect-uri: http://localhost/oauth/kakao
-
 app:
   public-base-url: http://localhost:8080
   order-view-path: /orders/view
