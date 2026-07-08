@@ -1,0 +1,62 @@
+# CI/테스트 환경용 설정 — MySQL·AWS·외부 서비스 없이 context 로드 가능하게
+
+spring:
+  datasource:
+    url: jdbc:h2:mem:testdb;MODE=MySQL;DB_CLOSE_DELAY=-1;NON_KEYWORDS=VALUE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    database-platform: org.hibernate.dialect.H2Dialect
+    show-sql: false
+  mail:
+    host: localhost
+    port: 25
+    username: test
+    password: test
+
+  # awspring이 EC2 인스턴스 메타데이터 조회를 시도하지 않도록
+  cloud:
+    aws:
+      credentials:
+        access-key: test-access-key
+        secret-key: test-secret-key
+      region:
+        static: ap-northeast-2
+
+aws:
+  s3:
+    endpoint: http://localhost:9000
+    public-endpoint: http://localhost:9000
+    bucket: test-bucket
+
+oauth:
+  naver:
+    client-id: test
+    client-secret: test
+    redirect-uri: http://localhost/oauth/naver
+  kakao:
+    client-id: test
+    client-secret: test
+    redirect-uri: http://localhost/oauth/kakao
+
+app:
+  public-base-url: http://localhost:8080
+  order-view-path: /orders/view
+  order-view-token-ttl-minutes: 60
+
+mail:
+  from: test@test.com
+  from-name: 테스트
+
+admin:
+  login-id: admin
+  password: Test1234!
+  email: admin@test.com
+
+jwt:
+  secret: test-secret-key-for-ci-only-minimum-256-bits-long
+  access-expiration-seconds: 3600
+  refresh-expiration-seconds: 1209600
