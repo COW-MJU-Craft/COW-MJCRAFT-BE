@@ -10,15 +10,22 @@
       "Bash(git diff:*)",
       "Bash(git log:*)",
       "Bash(git branch:*)",
-      "Bash(git switch:*)"
+      "Bash(git switch:*)",
+      "Bash(git push origin:*)",
+      "Bash(gh pr create:*)",
+      "Bash(gh label create:*)"
     ],
     "deny": [
-      "Bash(git push:*)",
       "Bash(git commit --no-verify:*)",
       "Bash(git config core.hooksPath:*)",
       "Read(./.env)",
       "Read(./src/main/resources/application-local.yml)",
-      "Read(./src/main/resources/application-prod.yml)"
+      "Read(./src/main/resources/application-prod.yml)",
+      "Bash(git push --force:*)",
+      "Bash(git push -f:*)",
+      "Bash(git push origin main:*)",
+      "Bash(git push origin HEAD:main:*)",
+      "Bash(gh pr merge:*)"
     ]
   }
 }
