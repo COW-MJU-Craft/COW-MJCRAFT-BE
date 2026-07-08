@@ -346,21 +346,23 @@ public class ProjectItem extends BaseTimeEntity {
 
 ---
 
-## Claude 커맨드 워크플로우
+## AI 에이전트 커맨드 워크플로우
 
-Claude Code에서 아래 명령을 요청하면 `.claude/commands/<command>.md` 파일을 먼저 읽고 해당 절차를 따른다.
+커맨드 원본은 `.agents/commands/`에 있다. `.claude/commands/`와 `.codex/commands/`는 이 디렉토리를 가리키는 심링크이므로, **수정은 반드시 `.agents/commands/`에서만** 한다.
+
+아래 명령을 요청하면 `.agents/commands/<command>.md` 파일을 먼저 읽고 해당 절차를 따른다.
 
 | 명령 | 파일 | 용도 |
 |---|---|---|
-| `/feature` | `.claude/commands/feature.md` | 계획부터 PR 초안까지 전체 기능 워크플로우 |
-| `/plan` | `.claude/commands/plan.md` | 구현 전 계획 수립 |
-| `/impl` | `.claude/commands/impl.md` | 승인된 계획 기반 구현 |
-| `/review` | `.claude/commands/review.md` | 변경사항 셀프 리뷰 |
-| `/commit` | `.claude/commands/commit.md` | 커밋 메시지 제안 및 승인 후 커밋 |
-| `/pr` | `.claude/commands/pr.md` | PR 설명 초안 작성 |
+| `/feature` | `.agents/commands/feature.md` | 계획부터 PR 초안까지 전체 기능 워크플로우 |
+| `/plan` | `.agents/commands/plan.md` | 구현 전 계획 수립 |
+| `/impl` | `.agents/commands/impl.md` | 승인된 계획 기반 구현 |
+| `/review` | `.agents/commands/review.md` | 변경사항 셀프 리뷰 |
+| `/commit` | `.agents/commands/commit.md` | 커밋 메시지 제안 및 승인 후 커밋 |
+| `/pr` | `.agents/commands/pr.md` | PR 설명 초안 작성 |
 
 **적용 규칙**
-- `.claude/commands`의 내용이 AGENTS.md와 충돌하면 AGENTS.md를 우선한다.
+- 커맨드 파일 내용이 AGENTS.md와 충돌하면 AGENTS.md를 우선한다.
 - 커맨드 파일을 읽었더라도 절대 규칙은 항상 유지한다.
 - `/commit`은 커밋 메시지 제안 후 사용자 승인을 받은 경우에만 실행한다.
 - `/pr`은 PR 초안만 작성하고, push 및 `gh pr create`는 실행하지 않는다.
