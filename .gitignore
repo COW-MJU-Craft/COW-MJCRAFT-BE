@@ -39,3 +39,4 @@ out/
 
 ### AI Workspace ###
 .ai-workspace/
+.claude/settings.local.json
