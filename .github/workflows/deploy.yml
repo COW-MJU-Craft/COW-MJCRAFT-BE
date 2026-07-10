@@ -55,15 +55,20 @@ jobs:
 
       - name: Verify deployment (smoke check)
         run: |
-          BASE_URL="${{ vars.PROD_BASE_URL || 'https://mju-craft.shop' }}"
+          BASE_URL="${{ vars.PROD_BASE_URL || 'https://api.mju-craft.shop' }}"
           echo "smoke target: ${BASE_URL}/api/projects"
-          # Coolify 배포·컨테이너 기동 대기 후 운영 API가 200을 반환하는지 확인
+          # Coolify 배포·컨테이너 기동 대기 후 운영 API가 "실제 JSON"을 반환하는지 확인.
+          # HTTP 200만 보면 안 됨 — 프런트 도메인은 SPA fallback이 모든 경로에 200 HTML을 반환함.
           ok=""
           for i in $(seq 1 20); do
             sleep 15
-            code=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 "${BASE_URL}/api/projects" || echo 000)
-            echo "attempt ${i}/20: HTTP ${code}"
-            if [ "$code" = "200" ]; then ok=1; break; fi
+            body=$(curl -s --max-time 10 "${BASE_URL}/api/projects" || echo "")
+            if echo "$body" | grep -q '"resultType":"SUCCESS"'; then
+              echo "attempt ${i}/20: JSON OK"
+              ok=1
+              break
+            fi
+            echo "attempt ${i}/20: 아직 JSON 응답 아님"
           done
           if [ -z "$ok" ]; then
             echo "::error::배포 후 smoke check 실패 — 운영 API가 5분 내 200을 반환하지 않음"
