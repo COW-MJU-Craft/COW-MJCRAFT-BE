@@ -1,3 +1,7 @@
+> ✅ **완료됨 (2026-07-11 확인)** — 이 문서의 모든 작업은 push·병합되어 main에 반영됐다.
+> 아침 체크리스트 완료: CI 3개 job 활성, main ruleset 활성(필수 체크: test·secret-scan·agent-config), diff-cover는 실제 coverage 부족 PR 차단 이력으로 검증됨.
+> 영구 정보(setup-hooks, gitleaks 폴백)는 AGENTS.md로 이관됨. 이 문서는 기록용 아카이브다.
+
 # 에이전트 하네스 작업 핸드오프 (2026-07-09 새벽 작업분)
 
 `chore/agent-harness` 브랜치에 Phase 1~4 완료. **push는 안 했음** — 아래 체크리스트 순서대로 진행하면 됨.

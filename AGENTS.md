@@ -14,7 +14,7 @@
 | Java | 21 |
 | 빌드 도구 | Gradle (Groovy DSL), 단일 모듈 |
 | 데이터베이스 | MySQL |
-| 인증 | JWT (jjwt 0.11.5) + Spring Security |
+| 인증 | JWT (jjwt 0.11.5) + Spring Security — 관리자 로그인만 존재, 소셜(OAuth) 로그인 없음 |
 | 파일 스토리지 | AWS S3 (spring-cloud-aws) |
 | 모듈 구조 | 단일 모듈 |
 
@@ -53,6 +53,12 @@
 ./gradlew build -x test
 ```
 
+**최초 셋업 (clone 후 1회)**
+```bash
+bash scripts/setup-hooks.sh   # pre-commit 훅 활성화 (main 커밋 차단·시크릿 차단)
+```
+- 로컬에 gitleaks가 없으면 훅은 grep 폴백으로 동작한다 (`brew install gitleaks` 권장)
+
 ---
 
 ## 패키지 / 모듈 구조
@@ -61,35 +67,27 @@
 com.example.cowmjucraft
 ├── CowMjuCraftApplication.java
 ├── domain/                             # 비즈니스 도메인
-│   ├── accounts/                       # 계정/인증
+│   ├── accounts/                       # 계정/인증 (관리자 전용 — 일반 사용자 계정 없음)
 │   │   ├── admin/
 │   │   │   ├── account/               # 관리자 계정 관리
-│   │   │   │   ├── controller/
-│   │   │   │   ├── service/
-│   │   │   │   ├── dto/request|response/
-│   │   │   │   ├── entity/
-│   │   │   │   └── repository/
-│   │   │   └── auth/                  # 관리자 인증 (로그인/토큰)
-│   │   ├── auth/                      # RefreshToken 등 공통 인증
-│   │   ├── user/                      # 일반 사용자 (OAuth 포함)
-│   │   │   ├── entity/
-│   │   │   ├── repository/
-│   │   │   └── oauth/
+│   │   │   ├── auth/                  # 관리자 인증 (로그인/토큰)
+│   │   │   ├── entity/                # Admin
+│   │   │   └── repository/
+│   │   ├── auth/                      # RefreshToken 저장/발급
 │   │   └── exception/
 │   ├── common/                         # 공통 엔티티 (BaseTimeEntity)
 │   ├── feedback/                       # 피드백
-│   ├── introduce/                      # 소개
-│   ├── item/                           # 프로젝트 물품
-│   ├── mypage/                         # 마이페이지
+│   ├── introduce/                      # 소개 페이지
+│   ├── item/                           # 프로젝트 물품 (ProjectItem, ItemImage)
 │   ├── notice/                         # 공지사항
-│   ├── order/                          # 주문
-│   ├── payout/                         # 정산
+│   ├── order/                          # 주문 (Order + Auth/Buyer/Fulfillment/Item/ViewToken/CompletePage)
+│   ├── payout/                         # 정산 (Payout, PayoutItem)
 │   ├── project/                        # 프로젝트
-│   ├── recruit/                        # 모집
-│   └── sns/                            # SNS 연동
+│   ├── recruit/                        # 모집/지원 (Form, Question, Application, Answer)
+│   └── sns/                            # SNS 링크
 └── global/                             # 공통/인프라
     ├── cloud/                          # S3 설정 및 서비스
-    ├── config/                         # Spring 설정 (Security, CORS, Swagger, JWT)
+    ├── config/                         # Spring 설정 (Security, CORS, Swagger, Jackson, JPA Auditing)
     │   └── jwt/                        # JwtAuthenticationFilter, JwtTokenProvider
     ├── exception/                      # DomainException, GlobalExceptionHandler
     ├── response/                       # ApiResponse(팩토리), ApiResult(래퍼), type/
@@ -116,17 +114,15 @@ domain/{도메인}/
 | 도메인 | 책임 |
 |---|---|
 | `accounts/admin` | 관리자 계정 생성, 관리자 로그인/토큰 |
-| `accounts/user` | 일반 사용자 엔티티, OAuth 로그인 |
 | `accounts/auth` | RefreshToken 저장소 |
 | `item` | 프로젝트 물품 CRUD, S3 Presign |
 | `project` | 프로젝트 CRUD |
 | `order` | 주문 생성/조회 |
 | `payout` | 정산 처리 |
-| `recruit` | 모집 공고 |
+| `recruit` | 모집 공고, 지원서 접수/결과 |
 | `feedback` | 피드백 |
 | `notice` | 공지사항 |
 | `introduce` | 소개 페이지 |
-| `mypage` | 마이페이지 (주문내역, 프로필) |
 | `sns` | SNS 링크 관리 |
 | `global` | 설정, 공통 응답, 예외 핸들러, JWT, S3 |
 
@@ -404,3 +400,29 @@ void createOrder_재고부족_OrderException발생() {
 - 커맨드 파일을 읽었더라도 절대 규칙은 항상 유지한다.
 - `/commit`은 커밋 메시지 제안 후 사용자 승인을 받은 경우에만 실행한다.
 - `/pr`은 브랜치 push 후 draft PR 생성까지 실행한다. 머지는 하지 않는다.
+
+---
+
+## DB 스키마 변경 규칙 (Flyway)
+
+> Flyway 도입 PR 병합 후 적용된다.
+
+- 스키마 변경은 **반드시** `src/main/resources/db/migration/V{N}__{설명}.sql` 마이그레이션 파일로만 한다
+- 엔티티만 수정하고 마이그레이션 파일을 빠뜨리면 운영 배포가 validate 오류로 실패한다
+- 이미 병합된 마이그레이션 파일은 절대 수정하지 않는다 — 새 버전 파일을 추가한다
+- 운영 프로필은 `ddl-auto: validate` — Hibernate가 스키마를 변경하는 일은 없어야 한다
+- 마이그레이션 검증은 CI의 Testcontainers MySQL 테스트가 수행한다
+
+---
+
+## 핸드오프/상태 문서 컨벤션
+
+에이전트가 작업 인계 문서(핸드오프, 계획, 상태 파일)를 작성할 때:
+
+1. **기준점 기록 필수** — 문서 상단에 작성 시각, 기준 브랜치, HEAD SHA를 적는다
+   ```
+   > 작성: 2026-07-11 · 브랜치: chore/xxx · 기준 HEAD: abc1234
+   ```
+2. **완료 처리 규칙 명시** — 문서가 언제 효력을 잃는지, 완료 시 어떻게 처리할지(배너 후 아카이브 또는 삭제) 문서 안에 적는다
+3. **완료된 핸드오프는 즉시 닫는다** — 체크리스트가 끝나면 상단에 `✅ 완료 (날짜, 병합 PR)` 배너를 달거나 삭제한다. 완료 상태로 방치된 핸드오프는 다음 에이전트에게 틀린 컨텍스트를 준다
+4. **영구 정보는 이 파일(AGENTS.md)로 이관** — 일회성 문서에 영구 규칙을 남기지 않는다
