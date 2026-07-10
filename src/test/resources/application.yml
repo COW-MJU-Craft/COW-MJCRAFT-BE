@@ -10,6 +10,8 @@ spring:
     driver-class-name: org.h2.Driver
     username: sa
     password:
+  flyway:
+    enabled: false  # H2 단위 테스트는 create-drop 사용. MySQL 마이그레이션 검증은 Testcontainers 테스트가 담당
   jpa:
     hibernate:
       ddl-auto: create-drop
