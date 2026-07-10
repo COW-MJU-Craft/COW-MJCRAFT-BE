@@ -44,3 +44,21 @@ jobs:
         run: |
           curl -fSs -X GET "${{ secrets.COOLIFY_WEBHOOK_URL }}" \
             -H "Authorization: Bearer ${{ secrets.COOLIFY_API_TOKEN }}"
+
+      - name: Verify deployment (smoke check)
+        run: |
+          BASE_URL="${{ vars.PROD_BASE_URL || 'https://mju-craft.shop' }}"
+          echo "smoke target: ${BASE_URL}/api/projects"
+          # Coolify 배포·컨테이너 기동 대기 후 운영 API가 200을 반환하는지 확인
+          ok=""
+          for i in $(seq 1 20); do
+            sleep 15
+            code=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 "${BASE_URL}/api/projects" || echo 000)
+            echo "attempt ${i}/20: HTTP ${code}"
+            if [ "$code" = "200" ]; then ok=1; break; fi
+          done
+          if [ -z "$ok" ]; then
+            echo "::error::배포 후 smoke check 실패 — 운영 API가 5분 내 200을 반환하지 않음"
+            exit 1
+          fi
+          echo "smoke check OK"
