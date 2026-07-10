@@ -64,3 +64,17 @@ jobs:
           test -L .codex/commands && test -e .codex/commands || { echo "::error::.codex/commands 심링크 깨짐"; exit 1; }
           grep -q "@AGENTS.md" CLAUDE.md || { echo "::error::CLAUDE.md에 @AGENTS.md import 없음"; exit 1; }
           echo "OK"
+
+  docker-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Docker 이미지 빌드 검증 (push 없음)
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: false
+          cache-from: type=gha
