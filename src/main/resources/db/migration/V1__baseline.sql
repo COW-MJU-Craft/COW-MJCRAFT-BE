@@ -5,9 +5,11 @@
 --   (CamelCase→snake_case, @Enumerated(STRING)→ENUM, @Lob String→LONGTEXT,
 --    boolean→BIT(1), LocalDateTime→DATETIME(6))
 --
--- ⚠️ 운영 반영 전 필수 검증:
---   mysqldump --no-data --skip-comments <prod_db> 결과와 이 파일을 대조할 것.
---   컬럼 존재·타입이 일치해야 함 (제약조건/인덱스 "이름" 차이는 무해).
+-- ✅ 운영 스키마 대조 완료 (2026-07-11, IntelliJ Generate DDL 덤프 기준):
+--   enum 값 순서·nullable·ON DELETE CASCADE를 운영과 일치시킴.
+--   운영에만 있는 레거시 테이블(users, member_addresses)은 baseline에서 제외 —
+--   validate는 여분 테이블을 무시함. 정리는 별도 결정 사항.
+--   운영과 엔티티의 드리프트(BASIC 누락, answer TINYTEXT)는 V2에서 수정.
 --   운영 DB에는 baseline-on-migrate=true 로 이 파일이 실행되지 않고
 --   기준점으로만 기록됨. 실제 실행 대상은 빈 DB(테스트·신규 환경)뿐.
 -- =====================================================================
@@ -17,7 +19,7 @@ CREATE TABLE admins (
     login_id VARCHAR(255) NOT NULL,
     password VARCHAR(255) NOT NULL,
     email VARCHAR(255) NOT NULL,
-    role ENUM('ROLE_ADMIN') NOT NULL,
+    role ENUM('ROLE_ADMIN','ROLE_USER') NOT NULL,
     PRIMARY KEY (id),
     UNIQUE KEY uk_admins_login_id (login_id),
     UNIQUE KEY uk_admins_email (email)
@@ -38,9 +40,9 @@ CREATE TABLE refresh_tokens (
 CREATE TABLE feedbacks (
     id BIGINT NOT NULL AUTO_INCREMENT,
     title VARCHAR(255) NOT NULL,
-    content TEXT NOT NULL,
-    status ENUM('RECEIVED','ANSWERED') NOT NULL,
-    answer LONGTEXT,
+    content TEXT,
+    status ENUM('ANSWERED','RECEIVED') NOT NULL,
+    answer TINYTEXT,
     PRIMARY KEY (id)
 ) ENGINE=InnoDB;
 
@@ -64,7 +66,7 @@ CREATE TABLE projects (
     description TEXT NOT NULL,
     thumbnail_key VARCHAR(255) NOT NULL,
     deadline_date DATE NOT NULL,
-    status ENUM('PREPARING','OPEN','CLOSED') NOT NULL,
+    status ENUM('CLOSED','OPEN','PREPARING') NOT NULL,
     category ENUM('GOODS','JOURNAL') NOT NULL,
     pinned BIT(1) NOT NULL,
     pinned_order INT,
@@ -89,9 +91,9 @@ CREATE TABLE project_items (
     summary VARCHAR(200),
     description MEDIUMTEXT NOT NULL,
     price INT NOT NULL,
-    sale_type ENUM('NORMAL','GROUPBUY') NOT NULL,
-    status ENUM('PREPARING','OPEN','CLOSED') NOT NULL,
-    item_type ENUM('PHYSICAL','DIGITAL_JOURNAL') NOT NULL,
+    sale_type ENUM('GROUPBUY','NORMAL') NOT NULL,
+    status ENUM('CLOSED','OPEN','PREPARING') NOT NULL,
+    item_type ENUM('DIGITAL_JOURNAL','PHYSICAL') NOT NULL,
     thumbnail_key VARCHAR(255),
     journal_file_key VARCHAR(255),
     target_qty INT,
@@ -100,7 +102,7 @@ CREATE TABLE project_items (
     created_at DATETIME(6),
     updated_at DATETIME(6),
     PRIMARY KEY (id),
-    CONSTRAINT fk_project_items_project FOREIGN KEY (project_id) REFERENCES projects (id)
+    CONSTRAINT fk_project_items_project FOREIGN KEY (project_id) REFERENCES projects (id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
 CREATE TABLE item_images (
@@ -111,7 +113,7 @@ CREATE TABLE item_images (
     created_at DATETIME(6),
     updated_at DATETIME(6),
     PRIMARY KEY (id),
-    CONSTRAINT fk_item_images_item FOREIGN KEY (item_id) REFERENCES project_items (id)
+    CONSTRAINT fk_item_images_item FOREIGN KEY (item_id) REFERENCES project_items (id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
 CREATE TABLE notices (
@@ -184,7 +186,7 @@ CREATE TABLE order_auth (
 
 CREATE TABLE order_buyer (
     order_id BIGINT NOT NULL,
-    buyer_type ENUM('STUDENT','STAFF','EXTERNAL') NOT NULL,
+    buyer_type ENUM('EXTERNAL','STAFF','STUDENT') NOT NULL,
     campus VARCHAR(50),
     name VARCHAR(100) NOT NULL,
     department_or_major VARCHAR(100),
@@ -201,7 +203,7 @@ CREATE TABLE order_buyer (
 
 CREATE TABLE order_fulfillment (
     order_id BIGINT NOT NULL,
-    method ENUM('PICKUP','DELIVERY') NOT NULL,
+    method ENUM('DELIVERY','PICKUP') NOT NULL,
     receiver_name VARCHAR(100) NOT NULL,
     receiver_phone VARCHAR(50) NOT NULL,
     info_confirmed BIT(1) NOT NULL,
@@ -253,7 +255,7 @@ CREATE TABLE payouts (
 CREATE TABLE payout_items (
     id BIGINT NOT NULL AUTO_INCREMENT,
     payout_id BIGINT NOT NULL,
-    type ENUM('INCOME','EXPENSE') NOT NULL,
+    type ENUM('EXPENSE','INCOME') NOT NULL,
     name VARCHAR(100) NOT NULL,
     amount BIGINT NOT NULL,
     category VARCHAR(50),
@@ -280,10 +282,10 @@ CREATE TABLE form_questions (
     form_id BIGINT NOT NULL,
     question_id BIGINT NOT NULL,
     question_order INT NOT NULL,
-    answer_type ENUM('TEXT','FILE','SELECT') NOT NULL,
+    answer_type ENUM('FILE','SELECT','TEXT') NOT NULL,
     required BIT(1) NOT NULL,
-    section_type ENUM('BASIC','COMMON','DEPARTMENT') NOT NULL,
-    department_type ENUM('MARKETING','DESIGN','FINANCE','OPERATION'),
+    section_type ENUM('COMMON','DEPARTMENT') NOT NULL,
+    department_type ENUM('DESIGN','FINANCE','MARKETING','OPERATION'),
     select_options VARCHAR(2000),
     PRIMARY KEY (id),
     CONSTRAINT fk_form_questions_form FOREIGN KEY (form_id) REFERENCES forms (id),
@@ -293,8 +295,8 @@ CREATE TABLE form_questions (
 CREATE TABLE form_notice (
     id BIGINT NOT NULL AUTO_INCREMENT,
     form_id BIGINT NOT NULL,
-    section_type ENUM('BASIC','COMMON','DEPARTMENT') NOT NULL,
-    department_type ENUM('MARKETING','DESIGN','FINANCE','OPERATION'),
+    section_type ENUM('COMMON','DEPARTMENT') NOT NULL,
+    department_type ENUM('DESIGN','FINANCE','MARKETING','OPERATION'),
     title VARCHAR(100) NOT NULL,
     content TEXT,
     PRIMARY KEY (id),
@@ -306,9 +308,9 @@ CREATE TABLE applications (
     form_id BIGINT NOT NULL,
     student_id VARCHAR(255) NOT NULL,
     password_hash VARCHAR(255) NOT NULL,
-    first_department ENUM('MARKETING','DESIGN','FINANCE','OPERATION') NOT NULL,
-    second_department ENUM('MARKETING','DESIGN','FINANCE','OPERATION') NOT NULL,
-    result_status ENUM('NOT_PUBLISHED','PASS','FAIL') NOT NULL,
+    first_department ENUM('DESIGN','FINANCE','MARKETING','OPERATION') NOT NULL,
+    second_department ENUM('DESIGN','FINANCE','MARKETING','OPERATION') NOT NULL,
+    result_status ENUM('FAIL','NOT_PUBLISHED','PASS') NOT NULL,
     created_at DATETIME(6),
     updated_at DATETIME(6),
     PRIMARY KEY (id),
