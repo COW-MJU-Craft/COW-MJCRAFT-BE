@@ -35,7 +35,7 @@ public class Feedback {
     private FeedbackStatus status = FeedbackStatus.RECEIVED;
 
     @Lob
-    @Column
+    @Column(columnDefinition = "LONGTEXT")
     private String answer;
 
     public Feedback(String title, String content) {
