@@ -69,8 +69,9 @@ dependencies {
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 	testRuntimeOnly 'com.h2database:h2'
 
-	testImplementation 'org.testcontainers:junit-jupiter'
-	testImplementation 'org.testcontainers:mysql'
+	// Boot 4 BOM이 Testcontainers 버전을 관리하지 않아 명시 (2.x는 API 상이 — 1.x 유지)
+	testImplementation 'org.testcontainers:junit-jupiter:1.21.4'
+	testImplementation 'org.testcontainers:mysql:1.21.4'
 }
 
 tasks.withType(Test) {
