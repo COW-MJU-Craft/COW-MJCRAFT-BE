@@ -60,6 +60,10 @@ dependencies {
 
 	runtimeOnly 'com.mysql:mysql-connector-j'
 
+	// Boot 4 모듈화: flyway-core만으로는 자동설정이 활성화되지 않음 — starter 필수
+	implementation 'org.springframework.boot:spring-boot-starter-flyway'
+	runtimeOnly 'org.flywaydb:flyway-mysql'
+
 	testImplementation 'org.springframework.boot:spring-boot-starter-data-jpa-test'
 	testImplementation 'org.springframework.boot:spring-boot-starter-security-test'
 	testImplementation 'org.springframework.boot:spring-boot-starter-validation-test'

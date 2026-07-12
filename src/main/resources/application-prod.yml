@@ -10,8 +10,15 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: validate
     show-sql: false
+
+  flyway:
+    enabled: true
+    # 기존 운영 DB(테이블 존재)는 V1을 실행하지 않고 기준점(1)만 기록.
+    # 빈 DB에서는 V1부터 전부 실행됨.
+    baseline-on-migrate: true
+    baseline-version: 1
 
   mail:
     host: ${MAIL_HOST}
