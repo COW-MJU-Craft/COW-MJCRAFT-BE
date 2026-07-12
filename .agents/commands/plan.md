@@ -44,6 +44,11 @@ Entity → Repository → XxxErrorType(enum) → XxxException → Service → Co
 `.ai-workspace/plan.md` 파일에 저장한다.
 (`.ai-workspace/` 디렉토리가 없으면 생성 후 저장)
 
+파일 상단에 기준점을 기록한다 (AGENTS.md 핸드오프 문서 컨벤션):
+```
+> 작성: <날짜> · 브랜치: <현재 브랜치> · 기준 HEAD: <git rev-parse --short HEAD>
+```
+
 ### 4. 사용자 보고 및 승인 대기
 계획 전문을 사용자에게 보여주고 다음을 명시한다.
 - "승인하시면 /impl로 구현을 시작합니다."

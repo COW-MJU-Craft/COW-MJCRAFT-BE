@@ -8,11 +8,15 @@
 ## 실행 순서
 
 ### 1. 브랜치 및 변경사항 파악
+
+로컬 main은 오래됐을 수 있다 — 반드시 origin/main을 기준으로 비교한다.
+
 ```bash
 git branch --show-current
-git log main..HEAD --oneline
-git diff main...HEAD --stat
-git diff main...HEAD
+git fetch origin main
+git log origin/main..HEAD --oneline
+git diff origin/main...HEAD --stat
+git diff origin/main...HEAD
 ```
 
 ### 2. PR 템플릿 확인
@@ -67,7 +71,13 @@ gh label create "agent:codex" --color "6366F1" --description "Codex가 작성한
 gh pr create --draft --title "<제목>" --body-file .ai-workspace/pr.md --label "agent:claude-code"
 ```
 
-생성된 PR URL을 사용자에게 보고하고 종료한다.
+생성된 PR URL을 사용자에게 보고한다.
+
+### 6. 상태 파일 정리
+`.ai-workspace/pr.md` 상단에 완료 기록을 추가한다 (다음 작업이 낡은 초안을 읽지 않게):
+```
+> ✅ 완료 — PR: <URL> (생성일)
+```
 
 ## 주의사항
 - 사용자 승인 없이 push/PR 생성 금지

@@ -1,5 +1,8 @@
 # CI/CD·하네스 리팩토링 계획
 
+> ✅ **완료 (2026-07-12)** — ①~⑥ 전부 main 병합·배포됨. 기록용 아카이브.
+> 추가 반영: smoke check JSON 검증 강화, Boot 4 starter-flyway 대응, V2 드리프트 수정(BASIC enum·answer LONGTEXT), Feedback 엔티티 LONGTEXT 명시.
+
 > 작성: 2026-07-11 · 기준: origin/main `c24e528` (PR #116 머지 시점)
 > 근거: Claude·Codex 교차 리뷰 수렴 결과. 완료 시 이 문서 상단에 ✅ 배너를 달고 아카이브할 것.
 
