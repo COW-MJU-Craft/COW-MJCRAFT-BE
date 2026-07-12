@@ -76,6 +76,9 @@ dependencies {
 
 tasks.withType(Test) {
 	useJUnitPlatform()
+	testLogging {
+		exceptionFormat 'full'   // CI 로그에 실패 원인 메시지 전체 출력
+	}
 }
 
 jacoco {
