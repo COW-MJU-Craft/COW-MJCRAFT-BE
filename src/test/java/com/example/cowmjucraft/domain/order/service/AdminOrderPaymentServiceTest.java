@@ -5,6 +5,7 @@ import com.example.cowmjucraft.domain.item.entity.ItemStatus;
 import com.example.cowmjucraft.domain.item.entity.ItemType;
 import com.example.cowmjucraft.domain.item.entity.ProjectItem;
 import com.example.cowmjucraft.domain.item.repository.ProjectItemRepository;
+import com.example.cowmjucraft.domain.order.entity.MailOutboxEventType;
 import com.example.cowmjucraft.domain.order.entity.Order;
 import com.example.cowmjucraft.domain.order.entity.OrderBuyer;
 import com.example.cowmjucraft.domain.order.entity.OrderBuyerType;
@@ -26,6 +27,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
 class AdminOrderPaymentServiceTest {
@@ -41,7 +43,7 @@ class AdminOrderPaymentServiceTest {
     @Mock
     private OrderViewTokenService orderViewTokenService;
     @Mock
-    private EmailService emailService;
+    private MailOutboxService mailOutboxService;
 
     private AdminOrderPaymentService adminOrderPaymentService;
 
@@ -53,7 +55,7 @@ class AdminOrderPaymentServiceTest {
                 projectItemRepository,
                 orderBuyerRepository,
                 orderViewTokenService,
-                emailService
+                mailOutboxService
         );
     }
 
@@ -75,6 +77,10 @@ class AdminOrderPaymentServiceTest {
 
         assertThat(item.getFundedQty()).isEqualTo(43);
         assertThat(order.getStatus()).isEqualTo(OrderStatus.PAID);
+        verify(mailOutboxService).enqueueStatusMail(
+                org.mockito.ArgumentMatchers.eq(MailOutboxEventType.PAID_CONFIRMED),
+                org.mockito.ArgumentMatchers.eq(10L),
+                any(), any(), any(), any(), org.mockito.ArgumentMatchers.isNull(), any());
     }
 
     @Test

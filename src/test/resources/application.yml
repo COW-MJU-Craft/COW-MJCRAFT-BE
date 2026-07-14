@@ -53,6 +53,8 @@ app:
 mail:
   from: test@test.com
   from-name: 테스트
+  outbox:
+    enabled: false
 
 admin:
   login-id: admin

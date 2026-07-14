@@ -2,11 +2,17 @@ package com.example.cowmjucraft.migration;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.example.cowmjucraft.domain.order.entity.MailOutbox;
+import com.example.cowmjucraft.domain.order.entity.MailOutboxEventType;
+import com.example.cowmjucraft.domain.order.repository.MailOutboxRepository;
+import com.example.cowmjucraft.domain.order.service.MailOutboxMessage;
+import com.example.cowmjucraft.domain.order.service.MailOutboxService;
 import com.example.cowmjucraft.domain.project.entity.Project;
 import com.example.cowmjucraft.domain.project.entity.ProjectCategory;
 import com.example.cowmjucraft.domain.project.entity.ProjectStatus;
 import com.example.cowmjucraft.domain.project.repository.ProjectRepository;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,6 +52,12 @@ class MySqlMigrationVerificationTest {
     @Autowired
     private ProjectRepository projectRepository;
 
+    @Autowired
+    private MailOutboxRepository mailOutboxRepository;
+
+    @Autowired
+    private MailOutboxService mailOutboxService;
+
     @Test
     void 마이그레이션_적용_후_엔티티와_스키마가_일치한다() {
         // context 기동 성공 = flyway 전체 적용 + hibernate validate 통과
@@ -69,5 +81,29 @@ class MySqlMigrationVerificationTest {
         assertThat(projectRepository.findById(id))
                 .isPresent()
                 .hasValueSatisfying(found -> assertThat(found.getTitle()).isEqualTo("테스트 프로젝트"));
+    }
+
+    @Test
+    void 메일_Outbox_대기건을_SKIP_LOCKED로_선점한다() {
+        LocalDateTime now = LocalDateTime.now();
+        mailOutboxRepository.save(new MailOutbox(
+                MailOutboxEventType.PAID_CONFIRMED,
+                1L,
+                1L,
+                "buyer@example.com",
+                "홍길동",
+                "ORD-OUTBOX-001",
+                "https://example.com/orders/view?token=token",
+                null,
+                now,
+                null,
+                now
+        ));
+
+        List<MailOutboxMessage> claimed = mailOutboxService.claimBatch(now, now.minusMinutes(5), 10);
+
+        assertThat(claimed).hasSize(1);
+        assertThat(claimed.getFirst().claimToken()).isNotBlank();
+        assertThat(claimed.getFirst().attemptCount()).isEqualTo(1);
     }
 }

@@ -8,6 +8,13 @@ spring:
       hibernate:
         jdbc:
           time_zone: Asia/Seoul
+  mail:
+    properties:
+      mail:
+        smtp:
+          connectiontimeout: ${MAIL_CONNECTION_TIMEOUT_MS:5000}
+          timeout: ${MAIL_READ_TIMEOUT_MS:10000}
+          writetimeout: ${MAIL_WRITE_TIMEOUT_MS:10000}
 
 server:
   port: 8080
@@ -28,3 +35,14 @@ management:
   endpoint:
     health:
       show-details: never
+
+mail:
+  outbox:
+    enabled: ${MAIL_OUTBOX_ENABLED:true}
+    poll-interval-ms: ${MAIL_OUTBOX_POLL_INTERVAL_MS:1000}
+    initial-delay-ms: ${MAIL_OUTBOX_INITIAL_DELAY_MS:1000}
+    batch-size: ${MAIL_OUTBOX_BATCH_SIZE:20}
+    max-attempts: ${MAIL_OUTBOX_MAX_ATTEMPTS:5}
+    processing-timeout-seconds: ${MAIL_OUTBOX_PROCESSING_TIMEOUT_SECONDS:900}
+    retry-base-seconds: ${MAIL_OUTBOX_RETRY_BASE_SECONDS:10}
+    retry-max-seconds: ${MAIL_OUTBOX_RETRY_MAX_SECONDS:300}

@@ -3,6 +3,7 @@ package com.example.cowmjucraft.domain.order.service;
 import com.example.cowmjucraft.domain.order.dto.response.AdminOrderListItemResponseDto;
 import com.example.cowmjucraft.domain.order.dto.response.AdminOrderStatusResponseDto;
 import com.example.cowmjucraft.domain.order.dto.response.OrderDetailResponseDto;
+import com.example.cowmjucraft.domain.order.entity.MailOutboxEventType;
 import com.example.cowmjucraft.domain.order.entity.Order;
 import com.example.cowmjucraft.domain.order.entity.OrderBuyer;
 import com.example.cowmjucraft.domain.order.entity.OrderStatus;
@@ -28,7 +29,7 @@ public class AdminOrderQueryService {
     private final OrderBuyerRepository orderBuyerRepository;
     private final OrderDetailQueryService orderDetailQueryService;
     private final OrderViewTokenService orderViewTokenService;
-    private final EmailService emailService;
+    private final MailOutboxService mailOutboxService;
 
     @Transactional(readOnly = true)
     public List<AdminOrderListItemResponseDto> getOrders(OrderStatus status) {
@@ -83,7 +84,9 @@ public class AdminOrderQueryService {
             order.cancelPendingDeposit(now, normalizedReason);
 
             String rawToken = orderViewTokenService.rotateToken(order, now);
-            emailService.sendCanceled(
+            mailOutboxService.enqueueStatusMail(
+                    MailOutboxEventType.CANCELED,
+                    order.getId(),
                     buyer.getEmail(),
                     buyer.getName(),
                     order.getOrderNo(),
@@ -96,7 +99,9 @@ public class AdminOrderQueryService {
             order.requestRefund(now, normalizedReason);
 
             String rawToken = orderViewTokenService.rotateToken(order, now);
-            emailService.sendRefundRequested(
+            mailOutboxService.enqueueStatusMail(
+                    MailOutboxEventType.REFUND_REQUESTED,
+                    order.getId(),
                     buyer.getEmail(),
                     buyer.getName(),
                     order.getOrderNo(),

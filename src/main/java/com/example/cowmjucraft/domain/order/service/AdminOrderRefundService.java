@@ -1,6 +1,7 @@
 package com.example.cowmjucraft.domain.order.service;
 
 import com.example.cowmjucraft.domain.order.dto.response.AdminOrderStatusResponseDto;
+import com.example.cowmjucraft.domain.order.entity.MailOutboxEventType;
 import com.example.cowmjucraft.domain.order.entity.Order;
 import com.example.cowmjucraft.domain.order.entity.OrderBuyer;
 import com.example.cowmjucraft.domain.order.entity.OrderStatus;
@@ -20,7 +21,7 @@ public class AdminOrderRefundService {
     private final OrderRepository orderRepository;
     private final OrderBuyerRepository orderBuyerRepository;
     private final OrderViewTokenService orderViewTokenService;
-    private final EmailService emailService;
+    private final MailOutboxService mailOutboxService;
 
     @Transactional
     public AdminOrderStatusResponseDto confirmRefund(Long orderId) {
@@ -36,11 +37,14 @@ public class AdminOrderRefundService {
                 .orElseThrow(() -> new OrderException(OrderErrorType.BUYER_NOT_FOUND, "orderId=" + orderId));
 
         String rawToken = orderViewTokenService.rotateToken(order, now);
-        emailService.sendRefunded(
+        mailOutboxService.enqueueStatusMail(
+                MailOutboxEventType.REFUNDED,
+                order.getId(),
                 buyer.getEmail(),
                 buyer.getName(),
                 order.getOrderNo(),
                 orderViewTokenService.buildOrderViewUrl(rawToken),
+                null,
                 now
         );
 
