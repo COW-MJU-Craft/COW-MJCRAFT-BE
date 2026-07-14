@@ -51,7 +51,7 @@ class OrderCreateServiceTest {
     @Mock
     private OrderViewTokenService orderViewTokenService;
     @Mock
-    private EmailService emailService;
+    private MailOutboxService mailOutboxService;
 
     private OrderCreateService orderCreateService;
 
@@ -66,7 +66,7 @@ class OrderCreateServiceTest {
                 projectItemRepository,
                 passwordEncoder,
                 orderViewTokenService,
-                emailService
+                mailOutboxService
         );
     }
 
@@ -88,6 +88,8 @@ class OrderCreateServiceTest {
         orderCreateService.createOrder(request(60));
 
         verify(orderItemRepository).saveAll(any());
+        verify(mailOutboxService).enqueueOrderViewLink(
+                any(), any(), any(), any(), any(), any());
     }
 
     @Test

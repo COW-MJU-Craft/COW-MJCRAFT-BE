@@ -51,7 +51,7 @@ public class OrderCreateService {
     private final ProjectItemRepository projectItemRepository;
     private final PasswordEncoder passwordEncoder;
     private final OrderViewTokenService orderViewTokenService;
-    private final EmailService emailService;
+    private final MailOutboxService mailOutboxService;
 
     @Transactional
     public OrderCreateResponseDto createOrder(OrderCreateRequestDto request) {
@@ -186,7 +186,8 @@ public class OrderCreateService {
 
         OrderCreateBuyerRequestDto buyerForMail = request.buyer();
         String viewUrl = orderViewTokenService.buildOrderViewUrl(rawViewToken);
-        emailService.sendOrderViewLink(
+        mailOutboxService.enqueueOrderViewLink(
+                savedOrder.getId(),
                 buyerForMail.email(),
                 buyerForMail.name(),
                 savedOrder.getOrderNo(),

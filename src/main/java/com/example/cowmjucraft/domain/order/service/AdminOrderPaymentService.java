@@ -4,6 +4,7 @@ import com.example.cowmjucraft.domain.item.entity.ItemSaleType;
 import com.example.cowmjucraft.domain.item.entity.ProjectItem;
 import com.example.cowmjucraft.domain.item.repository.ProjectItemRepository;
 import com.example.cowmjucraft.domain.order.dto.response.AdminOrderStatusResponseDto;
+import com.example.cowmjucraft.domain.order.entity.MailOutboxEventType;
 import com.example.cowmjucraft.domain.order.entity.Order;
 import com.example.cowmjucraft.domain.order.entity.OrderBuyer;
 import com.example.cowmjucraft.domain.order.entity.OrderItem;
@@ -28,7 +29,7 @@ public class AdminOrderPaymentService {
     private final ProjectItemRepository projectItemRepository;
     private final OrderBuyerRepository orderBuyerRepository;
     private final OrderViewTokenService orderViewTokenService;
-    private final EmailService emailService;
+    private final MailOutboxService mailOutboxService;
 
     @Transactional
     public AdminOrderStatusResponseDto confirmPaid(Long orderId) {
@@ -64,11 +65,14 @@ public class AdminOrderPaymentService {
 
         String rawToken = orderViewTokenService.rotateToken(order, now);
         String viewUrl = orderViewTokenService.buildOrderViewUrl(rawToken);
-        emailService.sendPaidConfirmed(
+        mailOutboxService.enqueueStatusMail(
+                MailOutboxEventType.PAID_CONFIRMED,
+                order.getId(),
                 buyer.getEmail(),
                 buyer.getName(),
                 order.getOrderNo(),
                 viewUrl,
+                null,
                 now
         );
 
