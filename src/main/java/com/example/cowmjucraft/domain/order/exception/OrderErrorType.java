@@ -33,6 +33,7 @@ public enum OrderErrorType implements ErrorCode {
     QUANTITY_MUST_BE_POSITIVE(400, "주문 수량은 1개 이상이어야 합니다."),
     SALE_TYPE_NOT_ORDERABLE(400, "주문할 수 없는 판매 유형입니다."),
     DELIVERY_ADDRESS_REQUIRED(400, "배송 주문은 우편번호와 기본 주소가 필수입니다."),
+    WEAK_PASSWORD(422, "조회 비밀번호는 8자 이상이며 영문과 숫자를 모두 포함해야 합니다."),
     REQUIRED_FIELD_MISSING(400, "필수 입력값이 누락되었습니다."),
     PRIVACY_AGREEMENT_REQUIRED(400, "개인정보 수집 및 이용 동의가 필요합니다."),
     REFUND_AGREEMENT_REQUIRED(400, "환불 정책 동의가 필요합니다."),

@@ -18,6 +18,10 @@ spring:
 
 server:
   port: 8080
+  # 리버스 프록시(Coolify/Traefik) 뒤에서 실제 클라이언트 IP를 인식하기 위해 필요하다.
+  # 이 설정이 없으면 getRemoteAddr()가 프록시 IP만 반환해 IP 기반 로직이 모두 무력화된다.
+  # 프록시가 없는 환경에서는 X-Forwarded-* 헤더가 오지 않으므로 동작에 영향이 없다.
+  forward-headers-strategy: framework
 
 aws:
   region: ${AWS_REGION:ap-northeast-2}
@@ -35,6 +39,29 @@ management:
   endpoint:
     health:
       show-details: never
+
+app:
+  # 인증·조회 엔드포인트 요청 제한. 값은 재배포 없이 환경변수로 조정한다.
+  # 단일 인스턴스 전제의 인메모리 구현 — 스케일아웃 시 Redis 기반으로 교체해야 한다.
+  rate-limit:
+    enabled: ${RATE_LIMIT_ENABLED:true}
+    idle-eviction: ${RATE_LIMIT_IDLE_EVICTION:PT30M}
+    rules:
+      admin-login:
+        capacity: ${RATE_LIMIT_ADMIN_LOGIN_CAPACITY:10}
+        window: ${RATE_LIMIT_ADMIN_LOGIN_WINDOW:PT10M}
+      admin-refresh:
+        capacity: ${RATE_LIMIT_ADMIN_REFRESH_CAPACITY:20}
+        window: ${RATE_LIMIT_ADMIN_REFRESH_WINDOW:PT1M}
+      order-lookup:
+        capacity: ${RATE_LIMIT_ORDER_LOOKUP_CAPACITY:10}
+        window: ${RATE_LIMIT_ORDER_LOOKUP_WINDOW:PT10M}
+      application-read:
+        capacity: ${RATE_LIMIT_APPLICATION_READ_CAPACITY:10}
+        window: ${RATE_LIMIT_APPLICATION_READ_WINDOW:PT10M}
+      lookup-id-availability:
+        capacity: ${RATE_LIMIT_LOOKUP_ID_CAPACITY:20}
+        window: ${RATE_LIMIT_LOOKUP_ID_WINDOW:PT1M}
 
 mail:
   outbox:

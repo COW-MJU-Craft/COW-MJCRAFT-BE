@@ -37,6 +37,7 @@ public enum RecruitErrorType implements ErrorCode {
     CANNOT_DELETE_FORM_WITH_APPLICATIONS(400,"지원서가 존재하는 폼은 삭제할 수 없습니다"),
 
     RECRUITMENT_CLOSED(409, "모집이 마감되었습니다."),
+    WEAK_PASSWORD(422, "비밀번호는 8자 이상이며 영문과 숫자를 모두 포함해야 합니다."),
     DUPLICATE_STUDENT_ID(409, "이미 제출된 학번입니다."),
     DUPLICATE_QUESTION_ORDER(409, "문항 순서가 중복되었습니다.");
 

@@ -32,6 +32,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
+import com.example.cowmjucraft.global.security.PasswordPolicy;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -52,6 +53,7 @@ public class OrderCreateService {
     private final PasswordEncoder passwordEncoder;
     private final OrderViewTokenService orderViewTokenService;
     private final MailOutboxService mailOutboxService;
+    private final PasswordPolicy passwordPolicy;
 
     @Transactional
     public OrderCreateResponseDto createOrder(OrderCreateRequestDto request) {
@@ -60,6 +62,10 @@ public class OrderCreateService {
         String depositorName = normalizeRequiredText(request.depositorName(), "입금자명");
         String lookupId = normalizeRequiredText(request.lookupId(), "조회 아이디");
         String password = normalizeRequiredText(request.password(), "조회 비밀번호");
+
+        if (!passwordPolicy.isValid(password)) {
+            throw new OrderException(OrderErrorType.WEAK_PASSWORD);
+        }
 
         if (orderAuthRepository.existsByLookupId(lookupId)) {
             throw new OrderException(OrderErrorType.DUPLICATED_LOOKUP_ID);
