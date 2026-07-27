@@ -132,7 +132,7 @@ public class OrderDetailQueryService {
 
     private String normalizeRequiredText(String value, String fieldName) {
         if (value == null || value.isBlank()) {
-            throw new OrderException(OrderErrorType.REQUIRED_FIELD_MISSING, fieldName + "는 필수입니다.");
+            throw OrderException.requiredField(OrderErrorType.REQUIRED_FIELD_MISSING, fieldName);
         }
         return value.trim();
     }
