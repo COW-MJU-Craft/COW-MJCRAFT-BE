@@ -10,6 +10,7 @@ import com.example.cowmjucraft.domain.recruit.exception.RecruitException;
 import com.example.cowmjucraft.domain.recruit.repository.*;
 import com.example.cowmjucraft.global.cloud.S3PresignFacade;
 import com.example.cowmjucraft.global.security.CredentialMatcher;
+import com.example.cowmjucraft.global.security.PasswordPolicy;
 import com.example.cowmjucraft.domain.recruit.exception.RecruitErrorType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -29,6 +30,7 @@ public class ApplicationService {
     private final AnswerRepository answerRepository;
     private final PasswordEncoder passwordEncoder;
     private final CredentialMatcher credentialMatcher;
+    private final PasswordPolicy passwordPolicy;
     private final QuestionRepository questionRepository;
     private final S3PresignFacade s3PresignFacade;
     private final FormNoticeRepository formNoticeRepository;
@@ -129,6 +131,10 @@ public class ApplicationService {
             if (formQuestion.isRequired() && e.getValue() == null) {
                 throw new RecruitException(RecruitErrorType.REQUIRED_ANSWER_MISSING);
             }
+        }
+
+        if (!passwordPolicy.isValid(request.getPassword())) {
+            throw new RecruitException(RecruitErrorType.WEAK_PASSWORD);
         }
 
         String passwordHash = passwordEncoder.encode(request.getPassword());

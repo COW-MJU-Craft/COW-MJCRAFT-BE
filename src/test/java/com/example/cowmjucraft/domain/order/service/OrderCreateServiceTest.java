@@ -12,11 +12,13 @@ import com.example.cowmjucraft.domain.order.dto.request.OrderCreateRequestDto;
 import com.example.cowmjucraft.domain.order.entity.Order;
 import com.example.cowmjucraft.domain.order.entity.OrderBuyerType;
 import com.example.cowmjucraft.domain.order.entity.OrderFulfillmentMethod;
+import com.example.cowmjucraft.domain.order.exception.OrderException;
 import com.example.cowmjucraft.domain.order.repository.OrderAuthRepository;
 import com.example.cowmjucraft.domain.order.repository.OrderBuyerRepository;
 import com.example.cowmjucraft.domain.order.repository.OrderFulfillmentRepository;
 import com.example.cowmjucraft.domain.order.repository.OrderItemRepository;
 import com.example.cowmjucraft.domain.order.repository.OrderRepository;
+import com.example.cowmjucraft.global.security.PasswordPolicy;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
@@ -27,6 +29,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -66,7 +69,8 @@ class OrderCreateServiceTest {
                 projectItemRepository,
                 passwordEncoder,
                 orderViewTokenService,
-                mailOutboxService
+                mailOutboxService,
+                new PasswordPolicy()
         );
     }
 
@@ -112,6 +116,16 @@ class OrderCreateServiceTest {
         verify(orderItemRepository).saveAll(any());
     }
 
+    @Test
+    void createOrder_비밀번호가정책미달_OrderException발생() {
+        // given
+        OrderCreateRequestDto weakPasswordRequest = request(1, "1234");
+
+        // when & then
+        assertThatThrownBy(() -> orderCreateService.createOrder(weakPasswordRequest))
+                .isInstanceOf(OrderException.class);
+    }
+
     private ProjectItem groupbuyItem(Long id, int targetQty, int fundedQty) {
         ProjectItem item = new ProjectItem(
                 null,
@@ -133,9 +147,13 @@ class OrderCreateServiceTest {
     }
 
     private OrderCreateRequestDto request(int quantity) {
+        return request(quantity, "Pa$$w0rd!");
+    }
+
+    private OrderCreateRequestDto request(int quantity, String password) {
         return new OrderCreateRequestDto(
                 "guest-mju-001",
-                "Pa$$w0rd!",
+                password,
                 "홍길동",
                 true,
                 true,
