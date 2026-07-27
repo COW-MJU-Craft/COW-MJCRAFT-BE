@@ -9,7 +9,7 @@ import com.example.cowmjucraft.domain.order.repository.*;
 import java.time.LocalDateTime;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.crypto.password.PasswordEncoder;
+import com.example.cowmjucraft.global.security.CredentialMatcher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,7 +24,7 @@ public class OrderDetailQueryService {
     private final OrderFulfillmentRepository orderFulfillmentRepository;
     private final OrderRepository orderRepository;
     private final OrderViewTokenService orderViewTokenService;
-    private final PasswordEncoder passwordEncoder;
+    private final CredentialMatcher credentialMatcher;
     private final OrderCompletePageRepository orderCompletePageRepository;
 
     @Transactional(readOnly = true)
@@ -32,10 +32,11 @@ public class OrderDetailQueryService {
         String normalizedLookupId = normalizeRequiredText(lookupId, "lookupId");
         String normalizedPassword = normalizeRequiredText(password, "password");
 
-        OrderAuth orderAuth = orderAuthRepository.findByLookupId(normalizedLookupId)
-                .orElseThrow(this::invalidLookupCredentials);
+        // 조회 아이디가 없어도 해시 연산을 수행해 응답 시간으로 존재 여부가 드러나지 않게 한다.
+        OrderAuth orderAuth = orderAuthRepository.findByLookupId(normalizedLookupId).orElse(null);
+        String storedHash = orderAuth == null ? null : orderAuth.getPasswordHash();
 
-        if (!passwordEncoder.matches(normalizedPassword, orderAuth.getPasswordHash())) {
+        if (!credentialMatcher.matches(normalizedPassword, storedHash)) {
             throw invalidLookupCredentials();
         }
 

@@ -9,6 +9,7 @@ import com.example.cowmjucraft.domain.recruit.entity.*;
 import com.example.cowmjucraft.domain.recruit.exception.RecruitException;
 import com.example.cowmjucraft.domain.recruit.repository.*;
 import com.example.cowmjucraft.global.cloud.S3PresignFacade;
+import com.example.cowmjucraft.global.security.CredentialMatcher;
 import com.example.cowmjucraft.domain.recruit.exception.RecruitErrorType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -27,6 +28,7 @@ public class ApplicationService {
     private final FormQuestionRepository formQuestionRepository;
     private final AnswerRepository answerRepository;
     private final PasswordEncoder passwordEncoder;
+    private final CredentialMatcher credentialMatcher;
     private final QuestionRepository questionRepository;
     private final S3PresignFacade s3PresignFacade;
     private final FormNoticeRepository formNoticeRepository;
@@ -158,10 +160,12 @@ public class ApplicationService {
 
         Form form = findReadableForm(request.getFormId());
 
+        // 지원서가 없어도 해시 연산을 수행해 응답 시간으로 존재 여부가 드러나지 않게 한다.
         Application application = applicationRepository.findByFormAndStudentId(form, request.getStudentId())
-                .orElseThrow(() -> new RecruitException(RecruitErrorType.APPLICATION_NOT_FOUND));
+                .orElse(null);
+        String storedHash = application == null ? null : application.getPasswordHash();
 
-        if (!passwordEncoder.matches(request.getPassword(), application.getPasswordHash())) {
+        if (!credentialMatcher.matches(request.getPassword(), storedHash)) {
             throw new RecruitException(RecruitErrorType.INVALID_CREDENTIALS);
         }
 
@@ -260,10 +264,12 @@ public class ApplicationService {
 
         Form form = findWritableForm(request.getFormId());
 
+        // 지원서가 없어도 해시 연산을 수행해 응답 시간으로 존재 여부가 드러나지 않게 한다.
         Application application = applicationRepository.findByFormAndStudentId(form, request.getStudentId())
-                .orElseThrow(() -> new RecruitException(RecruitErrorType.APPLICATION_NOT_FOUND));
+                .orElse(null);
+        String storedHash = application == null ? null : application.getPasswordHash();
 
-        if (!passwordEncoder.matches(request.getPassword(), application.getPasswordHash())) {
+        if (!credentialMatcher.matches(request.getPassword(), storedHash)) {
             throw new RecruitException(RecruitErrorType.INVALID_CREDENTIALS);
         }
 
@@ -376,10 +382,12 @@ public class ApplicationService {
 
         Form form = findReadableForm(request.getFormId());
 
+        // 지원서가 없어도 해시 연산을 수행해 응답 시간으로 존재 여부가 드러나지 않게 한다.
         Application application = applicationRepository.findByFormAndStudentId(form, request.getStudentId())
-                .orElseThrow(() -> new RecruitException(RecruitErrorType.APPLICATION_NOT_FOUND));
+                .orElse(null);
+        String storedHash = application == null ? null : application.getPasswordHash();
 
-        if (!passwordEncoder.matches(request.getPassword(), application.getPasswordHash())) {
+        if (!credentialMatcher.matches(request.getPassword(), storedHash)) {
             throw new RecruitException(RecruitErrorType.INVALID_CREDENTIALS);
         }
 
