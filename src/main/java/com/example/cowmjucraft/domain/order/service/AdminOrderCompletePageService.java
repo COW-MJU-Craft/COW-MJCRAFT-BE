@@ -66,10 +66,7 @@ public class AdminOrderCompletePageService {
     private String normalizeRequiredText(String value, String fieldName) {
         String normalized = trimToNull(value);
         if (normalized == null) {
-            throw new OrderException(
-                    OrderErrorType.REQUIRED_FIELD_MISSING,
-                    fieldName + "은(는) 필수입니다."
-            );
+            throw OrderException.requiredField(OrderErrorType.REQUIRED_FIELD_MISSING, fieldName);
         }
         return normalized;
     }

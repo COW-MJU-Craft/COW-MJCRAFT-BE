@@ -58,9 +58,9 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ApiResult<?>> handleIllegalArgument(IllegalArgumentException exception) {
+        // 예외 메시지에 내부 구현 정보가 담길 수 있으므로 로그에만 남긴다.
         log.warn("잘못된 인자값: {}", exception.getMessage(), exception);
-        String message = defaultIfBlank(exception.getMessage(), CommonErrorType.INVALID_REQUEST.getMessage());
-        return json(CommonErrorType.INVALID_REQUEST, message);
+        return json(CommonErrorType.INVALID_REQUEST, CommonErrorType.INVALID_REQUEST.getMessage());
     }
 
     @ExceptionHandler(ResponseStatusException.class)
@@ -98,7 +98,13 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(DomainException.class)
     public ResponseEntity<ApiResult<?>> handleDomainException(DomainException exception) {
-        log.info("도메인 예외: [{}] {}", exception.getErrorCode(), exception.getMessage());
+        // detail은 내부 식별자를 담을 수 있으므로 로그에만 남기고 응답에는 노출하지 않는다.
+        log.info(
+                "도메인 예외: [{}] {}{}",
+                exception.getErrorCode(),
+                exception.getMessage(),
+                exception.getDetail() == null ? "" : " detail=" + exception.getDetail()
+        );
         return json(exception.getErrorCode(), exception.getMessage());
     }
 

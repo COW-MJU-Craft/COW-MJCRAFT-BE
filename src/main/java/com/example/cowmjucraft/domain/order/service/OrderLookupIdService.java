@@ -24,7 +24,7 @@ public class OrderLookupIdService {
     private String normalizeRequiredText(String value, String fieldName) {
         String normalized = trimToNull(value);
         if (normalized == null) {
-            throw new OrderException(OrderErrorType.LOOKUP_FIELD_REQUIRED, fieldName + "은(는) 필수입니다.");
+            throw OrderException.requiredField(OrderErrorType.LOOKUP_FIELD_REQUIRED, fieldName);
         }
         return normalized;
     }
