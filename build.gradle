@@ -55,6 +55,9 @@ dependencies {
 
 	implementation 'io.awspring.cloud:spring-cloud-aws-starter-s3'
 
+	// 인증 엔드포인트 요청 제한 (토큰 버킷) — 전이 의존성 없는 단일 jar
+	implementation 'com.bucket4j:bucket4j-core:8.10.1'
+
 	compileOnly 'org.projectlombok:lombok'
 	annotationProcessor 'org.projectlombok:lombok'
 
