@@ -18,6 +18,10 @@ spring:
 
 server:
   port: 8080
+  # 리버스 프록시(Coolify/Traefik) 뒤에서 실제 클라이언트 IP를 인식하기 위해 필요하다.
+  # 이 설정이 없으면 getRemoteAddr()가 프록시 IP만 반환해 IP 기반 로직이 모두 무력화된다.
+  # 프록시가 없는 환경에서는 X-Forwarded-* 헤더가 오지 않으므로 동작에 영향이 없다.
+  forward-headers-strategy: framework
 
 aws:
   region: ${AWS_REGION:ap-northeast-2}
