@@ -370,8 +370,10 @@ void createOrder_재고부족_OrderException발생() {
   fix: 주문 생성 시 재고 차감 누락 수정
   ```
   글자수 제한은 두지 않는다 — 위 형식(type + 명사형 종결)만 지키면 길이는 자연히 적정선에서 맞춰진다.
-- PR 병합 방식: **Squash and merge**. 브랜치 안의 개별 커밋은 병합 시 하나로 합쳐지므로, PR 제목이 곧 `develop`/`main`의 최종 커밋 메시지가 된다
-- **PR 제목 컨벤션**: 커밋 제목과 동일한 형식(`type: 명사형 제목`)을 따른다. Squash 병합 시 이 제목이 그대로 커밋 히스토리에 남는다
+- **PR 병합 방식**: 대상 브랜치에 따라 다르다
+  - `작업 브랜치 → develop`: **Squash and merge**. 개별 커밋이 하나로 합쳐지므로 PR 제목이 곧 최종 커밋 메시지가 된다
+  - `develop → main`: **Create a merge commit** (Squash 금지). `develop→main`을 Squash로 반복하면 `main`에 매번 이력이 끊긴 커밋이 생겨, 다음 `develop→main` PR에서 이미 동일한 파일도 "add/add" 가짜 충돌로 표시되는 문제가 반복된다. 일반 병합은 실제 이력을 보존해 이 문제가 없다
+- **PR 제목 컨벤션**: 커밋 제목과 동일한 형식(`type: 명사형 제목`)을 따른다. `develop`행 PR은 Squash 병합 시 이 제목이 그대로 커밋 히스토리에 남는다
 - PR은 `.github/pull_request_template.md` 형식 준수
 
 ---
