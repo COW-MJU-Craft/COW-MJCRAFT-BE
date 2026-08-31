@@ -1,7 +1,7 @@
 # /pr - PR 작성 및 draft PR 생성
 
 ## 역할
-현재 브랜치와 main의 차이를 분석하여 PR 설명을 작성하고,
+현재 브랜치와 대상 브랜치(base)의 차이를 분석하여 PR 설명을 작성하고,
 사용자 승인 후 브랜치 push와 draft PR 생성까지 실행한다.
 **머지는 절대 하지 않는다** — 머지는 사용자의 몫이다.
 
@@ -9,14 +9,17 @@
 
 ### 1. 브랜치 및 변경사항 파악
 
-로컬 main은 오래됐을 수 있다 — 반드시 origin/main을 기준으로 비교한다.
+**base 브랜치 결정**: 현재 브랜치가 `develop`이면 base는 `main` (develop → main 승격 PR). 그 외 모든 작업 브랜치(`feat/*`, `fix/*`, `chore/*` 등)는 base가 `develop`이다.
+
+로컬 base 브랜치는 오래됐을 수 있다 — 반드시 origin 기준으로 비교한다.
 
 ```bash
-git branch --show-current
-git fetch origin main
-git log origin/main..HEAD --oneline
-git diff origin/main...HEAD --stat
-git diff origin/main...HEAD
+CURRENT=$(git branch --show-current)
+BASE=$([ "$CURRENT" = "develop" ] && echo "main" || echo "develop")
+git fetch origin "$BASE"
+git log "origin/$BASE..HEAD" --oneline
+git diff "origin/$BASE...HEAD" --stat
+git diff "origin/$BASE...HEAD"
 ```
 
 ### 2. PR 템플릿 확인
@@ -32,6 +35,8 @@ close #이슈번호
 ```
 
 ### 3. PR 설명 작성
+
+> PR 제목 컨벤션(Squash 병합 시 이 제목이 최종 커밋 메시지가 됨) → **AGENTS.md — Git 워크플로우 섹션 참고**
 
 PR 템플릿을 기반으로 작성하되, 다음 내용을 포함한다.
 
@@ -67,8 +72,9 @@ git push -u origin <브랜치명>
 gh label create "agent:claude-code" --color "D97706" --description "Claude Code가 작성한 PR" 2>/dev/null || true
 gh label create "agent:codex" --color "6366F1" --description "Codex가 작성한 PR" 2>/dev/null || true
 
-# draft PR 생성 — 자신에 맞는 라벨 사용 (Claude Code면 agent:claude-code, Codex면 agent:codex)
-gh pr create --draft --title "<제목>" --body-file .ai-workspace/pr.md --label "agent:claude-code"
+# draft PR 생성 — base는 1단계에서 정한 $BASE(보통 develop, develop에서 실행 중이면 main)
+# 자신에 맞는 라벨 사용 (Claude Code면 agent:claude-code, Codex면 agent:codex)
+gh pr create --draft --base "$BASE" --title "<제목>" --body-file .ai-workspace/pr.md --label "agent:claude-code"
 ```
 
 생성된 PR URL을 사용자에게 보고한다.
@@ -82,6 +88,6 @@ gh pr create --draft --title "<제목>" --body-file .ai-workspace/pr.md --label 
 ## 주의사항
 - 사용자 승인 없이 push/PR 생성 금지
 - PR 머지(`gh pr merge`) 절대 금지
-- main으로의 직접 push 절대 금지
+- main·develop으로의 직접 push 절대 금지
 - 1000줄 이상 diff인 경우 전체 분석 대신 `--stat` 기반으로 요약하고 사용자에게 알림
-- main 브랜치에서 실행 중이라면 경고 후 중단
+- main 브랜치에서 실행 중이라면(= PR을 열 소스 브랜치가 main 자신인 경우) 경고 후 중단. develop에서 실행 중인 건 정상(main으로의 승격 PR)이므로 중단 대상 아님
