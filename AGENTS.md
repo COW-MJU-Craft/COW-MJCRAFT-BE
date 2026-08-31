@@ -351,13 +351,27 @@ void createOrder_재고부족_OrderException발생() {
 
 ## Git 워크플로우
 
-- 브랜치 전략: `main` ← PR로만 병합
-- 브랜치 네이밍: `feat/기능명`, `fix/버그명`, `refactor/대상`, `chore/작업명`, `docs/대상`
-- 커밋 형식: Conventional Commits (한글 제목, 50자 이내)
+- 브랜치 전략: `develop` ← 작업 브랜치를 PR로 병합 (병합 시 dev 환경에 자동 배포되어 검증 가능) → `main` ← `develop`에서 PR로 병합 (병합 시 운영 배포)
+- 브랜치 네이밍: `feat/기능명`, `fix/버그명`, `refactor/대상`, `chore/작업명`, `docs/대상` — 전부 `develop`에서 분기
+- **`develop → main` 병합 시점**: CI 통과만으로 넘기지 않는다. API 계약을 깨는 변경(예: 요청/응답 필드 변경)이 걸려있으면 **프론트엔드가 dev 환경 기준으로 연동 검증을 마친 뒤에만** 병합한다. dev 환경 자체의 설정 파일(`application-dev.yml`, `deploy-dev.yml` 등) 수정처럼 프론트 연동과 무관한 변경은 이 기준과 무관하게 필요할 때 바로 넘겨도 된다
+- 커밋 형식: Conventional Commits — `type: 한글 제목 (명사형 종결)`
+  | type | 용도 |
+  |---|---|
+  | `feat` | 새 기능 추가 |
+  | `fix` | 버그 수정 |
+  | `refactor` | 동작 변경 없는 코드 구조 개선 |
+  | `chore` | 빌드/설정/의존성 등 기타 작업 |
+  | `docs` | 문서 변경 |
+  | `test` | 테스트 추가/수정 |
+  | `ci` | CI/CD 워크플로우 변경 |
+  | `style` | 포맷팅 등 로직 변경 없는 스타일 수정 |
   ```
   feat: 프로젝트 물품 목록 조회 API 추가
   fix: 주문 생성 시 재고 차감 누락 수정
   ```
+  글자수 제한은 두지 않는다 — 위 형식(type + 명사형 종결)만 지키면 길이는 자연히 적정선에서 맞춰진다.
+- PR 병합 방식: **Squash and merge**. 브랜치 안의 개별 커밋은 병합 시 하나로 합쳐지므로, PR 제목이 곧 `develop`/`main`의 최종 커밋 메시지가 된다
+- **PR 제목 컨벤션**: 커밋 제목과 동일한 형식(`type: 명사형 제목`)을 따른다. Squash 병합 시 이 제목이 그대로 커밋 히스토리에 남는다
 - PR은 `.github/pull_request_template.md` 형식 준수
 
 ---
@@ -366,9 +380,9 @@ void createOrder_재고부족_OrderException발생() {
 
 다음 행동은 어떤 상황에서도 금지된다.
 
-1. **main 병합은 사람만** — PR 머지는 사용자가 직접 실행, 에이전트는 절대 병합하지 않는다
+1. **main·develop 병합은 사람만** — PR 머지는 사용자가 직접 실행, 에이전트는 절대 병합하지 않는다
 2. **force push 금지** — `git push --force` 절대 실행 금지
-3. **main 직접 커밋/push 금지** — main 브랜치에 직접 commit·push 금지 (서버 ruleset으로도 차단됨)
+3. **main·develop 직접 커밋/push 금지** — 두 브랜치 모두 직접 commit·push 금지 (서버 ruleset으로도 차단됨)
 4. **민감정보 커밋 금지** — API 키, 비밀번호, JWT 시크릿, DB 접속 정보, AWS 자격증명 등 커밋 금지
 5. **보안 변경 사람 리뷰 필수** — `SecurityConfig`, `JwtAuthenticationFilter`, `JwtTokenProvider` 수정 시 반드시 사람이 리뷰 후 병합
 6. **커밋 전 사용자 승인 필수** — 커밋 메시지 제안 후 승인 대기, 자동 커밋 금지
@@ -376,7 +390,7 @@ void createOrder_재고부족_OrderException발생() {
 **허용되는 것** (2026-07 개정)
 - 작업 브랜치(`feat/*`, `fix/*` 등)로의 push — 커밋이 사용자 승인을 받았다면 허용
 - `gh pr create --draft` — draft PR 생성 허용, 단 라벨(`agent:claude-code` 또는 `agent:codex`)을 붙인다
-- main은 branch ruleset(PR 필수 + CI 필수 + force push 차단)이 서버에서 보호하므로, 위 위임이 가능하다
+- main·develop 모두 branch ruleset(PR 필수 + CI 필수 + force push 차단)이 서버에서 보호하므로, 위 위임이 가능하다
 
 ---
 

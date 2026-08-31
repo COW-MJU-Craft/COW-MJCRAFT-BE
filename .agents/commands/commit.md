@@ -33,7 +33,7 @@ git diff
 
 **핵심 요약**
 ```
-<type>: <한글 제목 (50자 이내)>
+<type>: <한글 제목 (명사형 종결)>
 
 <본문 — 왜 변경했는지, 어떤 문제를 해결했는지>
 ```
@@ -60,4 +60,4 @@ git commit -m "..."
   - `application-local.yml`, `application-prod.yml`, `application.yml` (운영 설정 포함 시)
   - `.env`
   - AWS 자격증명 파일 (`~/.aws/credentials`, `accessKey`, `secretKey` 포함 파일)
-- main 브랜치에서 실행 중이라면 커밋 전 경고 후 승인 대기
+- main·develop 브랜치에서 실행 중이라면 커밋 전 경고 후 승인 대기 (두 브랜치 모두 직접 커밋 금지 대상)

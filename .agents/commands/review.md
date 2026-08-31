@@ -12,10 +12,14 @@ FAIL 항목은 수정안을 제시하고 사용자 승인을 받는다.
 
 브랜치에서 이미 커밋한 변경까지 포함해 리뷰한다 — 미커밋 diff만 보면 커밋 후 실행 시 리뷰가 빈다.
 
+**base 브랜치 결정**: 현재 브랜치가 `develop`이면 base는 `main`. 그 외 작업 브랜치는 base가 `develop`이다.
+
 ```bash
-git fetch origin main
-git diff origin/main...HEAD   # 브랜치의 커밋된 변경 전체
-git diff HEAD                 # 아직 커밋하지 않은 변경
+CURRENT=$(git branch --show-current)
+BASE=$([ "$CURRENT" = "develop" ] && echo "main" || echo "develop")
+git fetch origin "$BASE"
+git diff "origin/$BASE...HEAD"   # 브랜치의 커밋된 변경 전체
+git diff HEAD                    # 아직 커밋하지 않은 변경
 ```
 
 두 diff 모두 비어있으면 즉시 다음 메시지를 출력하고 종료한다:
