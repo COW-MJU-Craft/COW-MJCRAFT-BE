@@ -21,6 +21,8 @@ spring:
       hibernate:
         jdbc:
           time_zone: Asia/Seoul
+  transaction:
+    default-timeout: 30s
   mail:
     host: localhost
     port: 25
