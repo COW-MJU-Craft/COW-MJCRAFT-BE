@@ -8,6 +8,13 @@ spring:
     url: ${SPRING_DATASOURCE_URL}
     username: ${SPRING_DATASOURCE_USERNAME}
     password: ${SPRING_DATASOURCE_PASSWORD}
+    # 시간 단위는 ms. 락 timeout은 물리 커넥션 생성 시 MySQL 세션에 적용한다.
+    hikari:
+      maximum-pool-size: ${DB_POOL_MAX_SIZE:5}
+      minimum-idle: ${DB_POOL_MIN_IDLE:1}
+      connection-timeout: ${DB_POOL_CONNECTION_TIMEOUT_MS:5000}
+      max-lifetime: ${DB_POOL_MAX_LIFETIME_MS:1800000}
+      connection-init-sql: "SET SESSION innodb_lock_wait_timeout = ${DB_LOCK_WAIT_TIMEOUT_SECONDS:10}"
 
   jpa:
     hibernate:
