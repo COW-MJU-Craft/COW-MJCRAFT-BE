@@ -17,16 +17,22 @@ import java.util.List;
 @Service
 public class FormAdminService {
 
+    private static final Long RECRUIT_SETTINGS_ID = 1L;
+
     private final FormRepository formRepository;
     private final QuestionRepository questionRepository;
     private final FormQuestionRepository formQuestionRepository;
     private final FormNoticeRepository formNoticeRepository;
     private final ApplicationRepository applicationRepository;
+    private final RecruitSettingsRepository recruitSettingsRepository;
 
     @Transactional
     public FormCreateAdminResponse createForm(FormCreateAdminRequest request) {
 
+        RecruitSettings settings = null;
         if (request.isOpen()) {
+            settings = lockRecruitSettings();
+
             Form openForm = formRepository.findFirstByOpenTrue();
             if (openForm != null) {
                 openForm.close();
@@ -36,6 +42,10 @@ public class FormAdminService {
 
         Form form = new Form(request.getTitle(), request.isOpen());
         formRepository.save(form);
+
+        if (settings != null) {
+            settings.activate(form.getId());
+        }
 
         return new FormCreateAdminResponse(form.getId(), form.isOpen());
     }
@@ -68,6 +78,12 @@ public class FormAdminService {
 
     @Transactional
     public void openForm(Long formId) {
+        // MySQL REPEATABLE READ에서 일반 SELECT는 트랜잭션의 "첫 읽기" 시점 스냅샷을 그대로 쓴다.
+        // 락(SELECT ... FOR UPDATE)보다 먼저 일반 조회가 실행되면, 락 대기가 풀린 뒤에도
+        // 그 일반 조회 시점(대기 전)의 스냅샷을 계속 참조해 다른 트랜잭션의 커밋을 못 본다.
+        // 그래서 락 획득이 이 트랜잭션의 첫 DB 작업이어야 한다.
+        RecruitSettings settings = lockRecruitSettings();
+
         Form target = formRepository.findById(formId)
                 .orElseThrow(() -> new RecruitException(RecruitErrorType.FORM_NOT_FOUND));
 
@@ -79,6 +95,14 @@ public class FormAdminService {
 
         target.open();
         formRepository.save(target);
+        settings.activate(target.getId());
+    }
+
+    // 두 관리자가 동시에 서로 다른 폼을 열 때 forms.open과의 불일치를 막기 위해
+    // "활성 폼 전환" 트랜잭션 시작 시점에 이 행을 잠가 직렬화한다.
+    private RecruitSettings lockRecruitSettings() {
+        return recruitSettingsRepository.findByIdForUpdate(RECRUIT_SETTINGS_ID)
+                .orElseThrow(() -> new RecruitException(RecruitErrorType.RECRUIT_SETTINGS_MISSING));
     }
 
     @Transactional
@@ -207,6 +231,11 @@ public class FormAdminService {
 
         if (!formQuestion.getForm().getId().equals(formId)) {
             throw new RecruitException(RecruitErrorType.FORM_QUESTION_NOT_IN_THIS_FORM);
+        }
+
+        if (formQuestionRepository.existsByFormAndQuestionOrderAndIdNot(
+                formQuestion.getForm(), request.getQuestionOrder(), formQuestionId)) {
+            throw new RecruitException(RecruitErrorType.DUPLICATE_QUESTION_ORDER);
         }
 
         validateSectionDepartment(request.getSectionType(), request.getDepartmentType());

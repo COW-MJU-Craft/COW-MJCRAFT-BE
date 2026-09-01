@@ -33,23 +33,13 @@ public class AdminOrderCompletePageService {
         String paymentInformation = normalizeRequiredText(request.paymentInformation(), "결제 정보");
 
         OrderCompletePage orderCompletePage = orderCompletePageRepository.findFirstByOrderByIdAsc()
-                .orElse(null);
+                .orElseThrow(() -> new OrderException(OrderErrorType.ORDER_COMPLETE_PAGE_NOT_FOUND));
 
-        if (orderCompletePage == null) {
-            orderCompletePage = orderCompletePageRepository.save(
-                    new OrderCompletePage(
-                            messageTitle,
-                            messageDescription,
-                            paymentInformation
-                    )
-            );
-        } else {
-            orderCompletePage.update(
-                    messageTitle,
-                    messageDescription,
-                    paymentInformation
-            );
-        }
+        orderCompletePage.update(
+                messageTitle,
+                messageDescription,
+                paymentInformation
+        );
 
         return toResponse(orderCompletePage);
     }
