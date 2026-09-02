@@ -7,6 +7,7 @@ import com.example.cowmjucraft.domain.project.dto.request.AdminProjectUpdateRequ
 import com.example.cowmjucraft.domain.project.dto.response.AdminProjectOrderPatchResponseDto;
 import com.example.cowmjucraft.domain.project.dto.response.AdminProjectPresignPutBatchResponseDto;
 import com.example.cowmjucraft.domain.project.dto.response.AdminProjectResponseDto;
+import com.example.cowmjucraft.domain.project.entity.ProjectStatus;
 import com.example.cowmjucraft.global.response.ApiResult;
 import org.springframework.http.ResponseEntity;
 import io.swagger.v3.oas.annotations.Operation;
@@ -26,7 +27,7 @@ public interface AdminProjectControllerDocs {
 
     @Operation(
             summary = "프로젝트 전체 조회",
-            description = "프로젝트 목록을 관리자 관점으로 조회합니다."
+            description = "프로젝트 목록을 관리자 관점으로 조회합니다. status가 있으면 해당 상태만 기존 정렬 기준으로 조회합니다."
     )
     @ApiResponses({
             @ApiResponse(
@@ -35,7 +36,10 @@ public interface AdminProjectControllerDocs {
                     content = @Content(schema = @Schema(implementation = ApiResult.class))
             )
     })
-    ResponseEntity<ApiResult<List<AdminProjectResponseDto>>> getProjects();
+    ResponseEntity<ApiResult<List<AdminProjectResponseDto>>> getProjects(
+            @Parameter(description = "프로젝트 상태 필터 (PREPARING | OPEN | CLOSED)", example = "OPEN")
+            ProjectStatus status
+    );
 
     @Operation(
             summary = "프로젝트 상세 조회",

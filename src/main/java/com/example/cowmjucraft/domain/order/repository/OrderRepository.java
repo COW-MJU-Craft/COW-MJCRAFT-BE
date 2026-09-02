@@ -16,7 +16,24 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     List<Order> findAllByOrderByCreatedAtDesc();
     List<Order> findAllByStatusOrderByCreatedAtDesc(OrderStatus status);
 
+    @Query("""
+            select distinct o
+            from Order o
+            join OrderItem oi on oi.order = o
+            where oi.projectItem.project.id = :projectId
+              and (:status is null or o.status = :status)
+            order by o.createdAt desc
+            """)
+    List<Order> findAllByProjectIdAndStatusOrderByCreatedAtDesc(
+            @Param("projectId") Long projectId,
+            @Param("status") OrderStatus status
+    );
+
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select o from Order o where o.id = :orderId")
     Optional<Order> findByIdForUpdate(@Param("orderId") Long orderId);
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select o from Order o where o.id in :orderIds order by o.id asc")
+    List<Order> findAllByIdInForUpdate(@Param("orderIds") List<Long> orderIds);
 }

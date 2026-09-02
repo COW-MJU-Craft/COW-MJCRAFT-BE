@@ -15,6 +15,7 @@ import com.example.cowmjucraft.domain.project.dto.response.AdminProjectPresignPu
 import com.example.cowmjucraft.domain.project.dto.response.AdminProjectResponseDto;
 import com.example.cowmjucraft.domain.project.entity.Project;
 import com.example.cowmjucraft.domain.project.entity.ProjectCategory;
+import com.example.cowmjucraft.domain.project.entity.ProjectStatus;
 import com.example.cowmjucraft.domain.project.repository.ProjectRepository;
 import com.example.cowmjucraft.domain.project.exception.ProjectErrorType;
 import com.example.cowmjucraft.domain.project.exception.ProjectException;
@@ -136,7 +137,14 @@ public class AdminProjectService {
 
     @Transactional(readOnly = true)
     public List<AdminProjectResponseDto> getProjects() {
-        List<Project> projects = projectRepository.findAllOrderedForPublic();
+        return getProjects(null);
+    }
+
+    @Transactional(readOnly = true)
+    public List<AdminProjectResponseDto> getProjects(ProjectStatus status) {
+        List<Project> projects = status == null
+                ? projectRepository.findAllOrderedForPublic()
+                : projectRepository.findAllByStatusOrderedForPublic(status);
         Set<String> keySet = new LinkedHashSet<>();
         for (Project project : projects) {
             addIfValidKey(keySet, project.getThumbnailKey());
