@@ -101,3 +101,30 @@ jacocoTestReport {
 		html.required = true
 	}
 }
+
+// 목표치가 아니라 후퇴 방지선(래칫)이다. 현재 수치 바로 아래에 걸어두고,
+// 커버리지가 오르면 그때 기준을 올린다. 변경 코드의 품질은 CI의 diff-cover
+// 70% 게이트가 담당하고, 이 규칙은 전체 수치가 내려가는 것만 막는다.
+// diff-cover가 보지 못하는 BRANCH 후퇴를 잡는 것이 주 목적이다.
+//
+// 기준선 갱신 이력
+// - 2026-09-02: LINE 28.47% / BRANCH 15.21% 시점에 최초 설정
+jacocoTestCoverageVerification {
+	dependsOn jacocoTestReport
+
+	violationRules {
+		rule {
+			limit {
+				counter = 'LINE'
+				value = 'COVEREDRATIO'
+				minimum = 0.27
+			}
+
+			limit {
+				counter = 'BRANCH'
+				value = 'COVEREDRATIO'
+				minimum = 0.14
+			}
+		}
+	}
+}
