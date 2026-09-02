@@ -1,3 +1,10 @@
+> ✅ **완료 (2026-09-02 확인)** — Phase 1~5는 전부 병합·적용됐다. 검증 체크리스트 7개 중 6개는
+> 현재 레포 상태에서 충족을 확인했고, **CODEOWNERS 항목 1개만 미완료**로 남아 있다(아래 § 검증 체크리스트 참조).
+> 기록용 아카이브다 — 새 작업의 근거로 삼지 말 것. 영구 규칙은 AGENTS.md에 있다.
+>
+> 확인: 2026-09-02 · 브랜치: `docs/review-doc-corrections` · 기준 HEAD: `38fde93`
+> 관련: [`agent-harness-handoff.md`](agent-harness-handoff.md)(✅ 2026-07-11), [`cicd-refactoring-plan.md`](cicd-refactoring-plan.md)(✅ 2026-07-12)
+
 # AI 에이전트 하네스 통합 — 최종 구현 계획
 
 Claude Code와 Codex가 **하나의 설정 소스**를 공유하고, 문서로만 존재하던 규칙을 **도구로 강제**하며, 서버 방어선 확보 후 에이전트에게 **push/draft PR까지 위임**하는 계획.
@@ -114,13 +121,15 @@ cow-mju-craft/
 
 ## 검증 체크리스트
 
-- [ ] Claude Code: CLAUDE.md import로 AGENTS.md 인식, `/plan` 등 커맨드 동작
-- [ ] Codex: AGENTS.md + 커맨드 파일 읽기 동작
-- [ ] main에서 `git commit` → pre-commit 차단 / main으로 push → branch protection 차단
-- [ ] 시크릿 포함 커밋 → gitleaks 차단
-- [ ] 테스트 없는 PR → patch coverage 게이트 실패
-- [ ] 보안 파일 수정 PR → CODEOWNERS 리뷰 요구
-- [ ] fresh clone에서 심링크 정상
+> 2026-09-02 기준 `38fde93`에서 항목별로 실제 상태를 대조한 결과다.
+
+- [x] Claude Code: CLAUDE.md import로 AGENTS.md 인식, `/plan` 등 커맨드 동작 — `CLAUDE.md`가 `@AGENTS.md` 한 줄, `.agents/commands/`에 6개 커맨드
+- [x] Codex: AGENTS.md + 커맨드 파일 읽기 동작 — `.codex/commands` → `.agents/commands` 심링크
+- [x] main에서 `git commit` → pre-commit 차단 / main으로 push → branch protection 차단 — `scripts/setup-hooks.sh` + `protect-main` ruleset(deletion·non-fast-forward·PR 필수)
+- [x] 시크릿 포함 커밋 → gitleaks 차단 — `secret-scan`이 `protect-main` 필수 상태 체크
+- [x] 테스트 없는 PR → patch coverage 게이트 실패 — `.github/workflows/ci.yml`의 diff-cover 70% 게이트
+- [ ] 보안 파일 수정 PR → CODEOWNERS 리뷰 요구 — **미완료**. `.github/CODEOWNERS`가 없어 AGENTS.md 절대 규칙 5(보안 파일 사람 리뷰 필수)가 도구로 강제되지 않는다. 더구나 `protect-main`의 `required_approving_review_count`가 0이라, CODEOWNERS만 추가해도 ruleset을 함께 고치지 않으면 셀프 머지가 그대로 가능하다 — 두 가지를 같이 처리해야 한다
+- [x] fresh clone에서 심링크 정상 — `.claude/commands`·`.codex/commands` 모두 mode `120000`으로 커밋됨
 
 ---
 
