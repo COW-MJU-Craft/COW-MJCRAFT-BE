@@ -2,6 +2,7 @@ package com.example.cowmjucraft.domain.introduce.dto.request;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 
 import java.util.List;
 
@@ -18,6 +19,7 @@ public record AdminIntroduceMainUpsertRequestDto(
         @Schema(description = "한 줄 요약", example = "명지공방은 학생들이 직접 만드는 공방 브랜드입니다.", nullable = true)
         String summary,
 
+        @Size(max = 10, message = "heroLogoKeys는 10개를 초과할 수 없습니다.")
         @Schema(
                 description = "메인 히어로 로고 S3 object key 목록",
                 example = "[\"uploads/introduce/hero-logos/uuid-logo-1.png\", \"uploads/introduce/hero-logos/uuid-logo-2.png\"]",
