@@ -22,6 +22,8 @@ public interface FormQuestionRepository extends JpaRepository<FormQuestion, Long
 
     boolean existsByFormAndQuestionOrder(Form form, int questionOrder);
 
+    boolean existsByFormAndQuestionOrderAndIdNot(Form form, int questionOrder, Long id);
+
     @Query("select fq.question.id from FormQuestion fq where fq.form.id = :formId")
     List<Long> findQuestionIdsByFormId(@Param("formId") Long formId);
 
