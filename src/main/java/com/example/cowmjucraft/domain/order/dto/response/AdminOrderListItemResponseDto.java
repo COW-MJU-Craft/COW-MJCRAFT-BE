@@ -17,6 +17,9 @@ public record AdminOrderListItemResponseDto(
         @Schema(description = "최종 결제 금액", example = "24000")
         int finalAmount,
 
+        @Schema(description = "배송비", example = "3500")
+        int shippingFee,
+
         @Schema(description = "입금자명", example = "홍길동")
         String depositorName,
 

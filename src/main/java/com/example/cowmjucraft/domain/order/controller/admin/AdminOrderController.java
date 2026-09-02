@@ -2,10 +2,12 @@ package com.example.cowmjucraft.domain.order.controller.admin;
 
 import com.example.cowmjucraft.domain.order.dto.request.AdminOrderCancelRequestDto;
 import com.example.cowmjucraft.domain.order.dto.request.AdminOrderCompletePageUpsertRequestDto;
+import com.example.cowmjucraft.domain.order.dto.request.AdminOrderPolicyUpdateRequestDto;
 import com.example.cowmjucraft.domain.order.dto.response.*;
 import com.example.cowmjucraft.domain.order.entity.OrderStatus;
 import com.example.cowmjucraft.domain.order.service.AdminOrderCompletePageService;
 import com.example.cowmjucraft.domain.order.service.AdminOrderPaymentService;
+import com.example.cowmjucraft.domain.order.service.AdminOrderPolicyService;
 import com.example.cowmjucraft.domain.order.service.AdminOrderQueryService;
 import com.example.cowmjucraft.domain.order.service.AdminOrderRefundService;
 import com.example.cowmjucraft.global.response.ApiResponse;
@@ -26,6 +28,7 @@ public class AdminOrderController implements AdminOrderControllerDocs {
     private final AdminOrderPaymentService adminOrderPaymentService;
     private final AdminOrderRefundService adminOrderRefundService;
     private final AdminOrderCompletePageService adminOrderCompletePageService;
+    private final AdminOrderPolicyService adminOrderPolicyService;
 
     @GetMapping("/orders")
     @Override
@@ -58,6 +61,23 @@ public class AdminOrderController implements AdminOrderControllerDocs {
         return ApiResponse.of(
                 SuccessType.SUCCESS,
                 adminOrderCompletePageService.upsertOrderCompletePage(request)
+        );
+    }
+
+    @GetMapping("/orders/policy")
+    @Override
+    public ResponseEntity<ApiResult<AdminOrderPolicyResponseDto>> getOrderPolicy() {
+        return ApiResponse.of(SuccessType.SUCCESS, adminOrderPolicyService.getOrderPolicy());
+    }
+
+    @PutMapping("/orders/policy")
+    @Override
+    public ResponseEntity<ApiResult<AdminOrderPolicyResponseDto>> updateOrderPolicy(
+            @Valid @RequestBody AdminOrderPolicyUpdateRequestDto request
+    ) {
+        return ApiResponse.of(
+                SuccessType.SUCCESS,
+                adminOrderPolicyService.updateOrderPolicy(request)
         );
     }
 

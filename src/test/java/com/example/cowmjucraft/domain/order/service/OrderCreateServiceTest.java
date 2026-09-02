@@ -12,11 +12,13 @@ import com.example.cowmjucraft.domain.order.dto.request.OrderCreateRequestDto;
 import com.example.cowmjucraft.domain.order.entity.Order;
 import com.example.cowmjucraft.domain.order.entity.OrderBuyerType;
 import com.example.cowmjucraft.domain.order.entity.OrderFulfillmentMethod;
+import com.example.cowmjucraft.domain.order.entity.OrderPolicy;
 import com.example.cowmjucraft.domain.order.exception.OrderException;
 import com.example.cowmjucraft.domain.order.repository.OrderAuthRepository;
 import com.example.cowmjucraft.domain.order.repository.OrderBuyerRepository;
 import com.example.cowmjucraft.domain.order.repository.OrderFulfillmentRepository;
 import com.example.cowmjucraft.domain.order.repository.OrderItemRepository;
+import com.example.cowmjucraft.domain.order.repository.OrderPolicyRepository;
 import com.example.cowmjucraft.domain.order.repository.OrderRepository;
 import com.example.cowmjucraft.global.security.PasswordPolicy;
 import java.util.List;
@@ -29,8 +31,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -55,6 +59,8 @@ class OrderCreateServiceTest {
     private OrderViewTokenService orderViewTokenService;
     @Mock
     private MailOutboxService mailOutboxService;
+    @Mock
+    private OrderPolicyRepository orderPolicyRepository;
 
     private OrderCreateService orderCreateService;
 
@@ -70,7 +76,8 @@ class OrderCreateServiceTest {
                 passwordEncoder,
                 orderViewTokenService,
                 mailOutboxService,
-                new PasswordPolicy()
+                new PasswordPolicy(),
+                orderPolicyRepository
         );
     }
 
@@ -126,6 +133,55 @@ class OrderCreateServiceTest {
                 .isInstanceOf(OrderException.class);
     }
 
+    @Test
+    void createOrder_택배선택시_배송비자동추가() {
+        // given
+        ProjectItem item = groupbuyItem(1L, 100, 40);
+        when(orderAuthRepository.existsByLookupId("guest-mju-001")).thenReturn(false);
+        when(projectItemRepository.findById(1L)).thenReturn(Optional.of(item));
+        when(orderRepository.existsByOrderNo(any())).thenReturn(false);
+        when(orderPolicyRepository.findFirstByOrderByIdAsc())
+                .thenReturn(Optional.of(new OrderPolicy(3500)));
+        when(orderRepository.save(any(Order.class))).thenAnswer(invocation -> {
+            Order order = invocation.getArgument(0);
+            ReflectionTestUtils.setField(order, "id", 10L);
+            return order;
+        });
+        when(passwordEncoder.encode("Pa$$w0rd!")).thenReturn("encoded-password");
+        when(orderViewTokenService.issueNewToken(any(Order.class), any())).thenReturn("raw-token");
+        when(orderViewTokenService.buildOrderViewUrl("raw-token")).thenReturn("https://example.com/orders/view?token=raw-token");
+
+        // when
+        var response = orderCreateService.createOrder(deliveryRequest(1));
+
+        // then
+        assertThat(response.shippingFee()).isEqualTo(3500);
+    }
+
+    @Test
+    void createOrder_현장수령시_배송비0원_정책조회안함() {
+        // given
+        ProjectItem item = groupbuyItem(1L, 100, 40);
+        when(orderAuthRepository.existsByLookupId("guest-mju-001")).thenReturn(false);
+        when(projectItemRepository.findById(1L)).thenReturn(Optional.of(item));
+        when(orderRepository.existsByOrderNo(any())).thenReturn(false);
+        when(orderRepository.save(any(Order.class))).thenAnswer(invocation -> {
+            Order order = invocation.getArgument(0);
+            ReflectionTestUtils.setField(order, "id", 10L);
+            return order;
+        });
+        when(passwordEncoder.encode("Pa$$w0rd!")).thenReturn("encoded-password");
+        when(orderViewTokenService.issueNewToken(any(Order.class), any())).thenReturn("raw-token");
+        when(orderViewTokenService.buildOrderViewUrl("raw-token")).thenReturn("https://example.com/orders/view?token=raw-token");
+
+        // when
+        var response = orderCreateService.createOrder(request(1));
+
+        // then
+        assertThat(response.shippingFee()).isEqualTo(0);
+        verify(orderPolicyRepository, never()).findFirstByOrderByIdAsc();
+    }
+
     private ProjectItem groupbuyItem(Long id, int targetQty, int fundedQty) {
         ProjectItem item = new ProjectItem(
                 null,
@@ -179,6 +235,40 @@ class OrderCreateServiceTest {
                         null,
                         null,
                         null,
+                        null
+                )
+        );
+    }
+
+    private OrderCreateRequestDto deliveryRequest(int quantity) {
+        return new OrderCreateRequestDto(
+                "guest-mju-001",
+                "Pa$$w0rd!",
+                "홍길동",
+                true,
+                true,
+                true,
+                List.of(new OrderCreateItemRequestDto(1L, quantity)),
+                new OrderCreateBuyerRequestDto(
+                        OrderBuyerType.STUDENT,
+                        "SEOUL",
+                        "홍길동",
+                        "컴퓨터공학과",
+                        "60123456",
+                        "010-1234-5678",
+                        "국민은행",
+                        "123456-78-901234",
+                        "instagram",
+                        "hong@example.com"
+                ),
+                new OrderCreateFulfillmentRequestDto(
+                        OrderFulfillmentMethod.DELIVERY,
+                        "홍길동",
+                        "010-1234-5678",
+                        true,
+                        "04524",
+                        "서울시 중구 세종대로 110",
+                        "101동 1001호",
                         null
                 )
         );
