@@ -124,7 +124,8 @@ public class OrderDetailQueryService {
                         fulfillment.getAddressLine1(),
                         fulfillment.getAddressLine2(),
                         fulfillment.getPostalCode(),
-                        fulfillment.getDeliveryMemo()
+                        fulfillment.getDeliveryMemo(),
+                        fulfillment.getTrackingInformation()
                 ),
                 paymentInformation,
                 items

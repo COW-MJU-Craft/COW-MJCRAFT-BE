@@ -85,6 +85,22 @@ class MySqlMigrationVerificationTest {
     }
 
     @Test
+    void 운송장_마이그레이션_운송장정보컬럼이반영된다() {
+        Integer trackingInformationLength = jdbcTemplate.queryForObject(
+                """
+                        SELECT CHARACTER_MAXIMUM_LENGTH
+                        FROM INFORMATION_SCHEMA.COLUMNS
+                        WHERE TABLE_SCHEMA = DATABASE()
+                          AND TABLE_NAME = 'order_fulfillment'
+                          AND COLUMN_NAME = 'tracking_information'
+                        """,
+                Integer.class
+        );
+
+        assertThat(trackingInformationLength).isEqualTo(500);
+    }
+
+    @Test
     void 마이그레이션된_스키마에서_핵심_리포지토리가_동작한다() {
         Project project = new Project(
                 "테스트 프로젝트",
