@@ -15,6 +15,7 @@ import com.example.cowmjucraft.domain.order.entity.OrderBuyer;
 import com.example.cowmjucraft.domain.order.entity.OrderFulfillment;
 import com.example.cowmjucraft.domain.order.entity.OrderFulfillmentMethod;
 import com.example.cowmjucraft.domain.order.entity.OrderItem;
+import com.example.cowmjucraft.domain.order.entity.OrderPolicy;
 import com.example.cowmjucraft.domain.order.entity.OrderStatus;
 import com.example.cowmjucraft.domain.order.exception.OrderErrorType;
 import com.example.cowmjucraft.domain.order.exception.OrderException;
@@ -22,6 +23,7 @@ import com.example.cowmjucraft.domain.order.repository.OrderAuthRepository;
 import com.example.cowmjucraft.domain.order.repository.OrderBuyerRepository;
 import com.example.cowmjucraft.domain.order.repository.OrderFulfillmentRepository;
 import com.example.cowmjucraft.domain.order.repository.OrderItemRepository;
+import com.example.cowmjucraft.domain.order.repository.OrderPolicyRepository;
 import com.example.cowmjucraft.domain.order.repository.OrderRepository;
 import java.security.SecureRandom;
 import java.time.LocalDate;
@@ -54,6 +56,7 @@ public class OrderCreateService {
     private final OrderViewTokenService orderViewTokenService;
     private final MailOutboxService mailOutboxService;
     private final PasswordPolicy passwordPolicy;
+    private final OrderPolicyRepository orderPolicyRepository;
 
     @Transactional
     public OrderCreateResponseDto createOrder(OrderCreateRequestDto request) {
@@ -104,7 +107,10 @@ public class OrderCreateService {
             lines.add(new ResolvedOrderLine(projectItem, quantity, unitPrice, lineAmount));
         }
 
-        int shippingFee = 0;
+        OrderCreateFulfillmentRequestDto fulfillment = request.fulfillment();
+        int shippingFee = fulfillment.method() == OrderFulfillmentMethod.DELIVERY
+                ? getDefaultShippingFee()
+                : 0;
         int finalAmount;
         try {
             finalAmount = Math.addExact(totalAmount, shippingFee);
@@ -162,7 +168,6 @@ public class OrderCreateService {
                 normalizeRequiredText(buyer.email(), "이메일")
         ));
 
-        OrderCreateFulfillmentRequestDto fulfillment = request.fulfillment();
         String postalCode = trimToNull(fulfillment.postalCode());
         String addressLine1 = trimToNull(fulfillment.addressLine1());
         String addressLine2 = trimToNull(fulfillment.addressLine2());
@@ -258,6 +263,12 @@ public class OrderCreateService {
         }
 
         throw new OrderException(OrderErrorType.SALE_TYPE_NOT_ORDERABLE, "projectItemId=" + projectItem.getId());
+    }
+
+    private int getDefaultShippingFee() {
+        OrderPolicy orderPolicy = orderPolicyRepository.findFirstByOrderByIdAsc()
+                .orElseThrow(() -> new OrderException(OrderErrorType.ORDER_POLICY_NOT_FOUND));
+        return orderPolicy.getDefaultShippingFee();
     }
 
     private String generateOrderNo(LocalDateTime now) {
