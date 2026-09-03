@@ -17,6 +17,7 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.containers.MySQLContainer;
@@ -58,9 +59,45 @@ class MySqlMigrationVerificationTest {
     @Autowired
     private MailOutboxService mailOutboxService;
 
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
+
     @Test
     void 마이그레이션_적용_후_엔티티와_스키마가_일치한다() {
         // context 기동 성공 = flyway 전체 적용 + hibernate validate 통과
+    }
+
+    @Test
+    void 주문상태_마이그레이션_신규상태가반영된다() {
+        String orderStatusColumnType = jdbcTemplate.queryForObject(
+                """
+                        SELECT COLUMN_TYPE
+                        FROM INFORMATION_SCHEMA.COLUMNS
+                        WHERE TABLE_SCHEMA = DATABASE()
+                          AND TABLE_NAME = 'orders'
+                          AND COLUMN_NAME = 'status'
+                """,
+                String.class
+        );
+
+        assertThat(orderStatusColumnType)
+                .contains("IN_PRODUCTION", "READY_TO_SHIP", "DELIVERED");
+    }
+
+    @Test
+    void 운송장_마이그레이션_운송장정보컬럼이반영된다() {
+        Integer trackingInformationLength = jdbcTemplate.queryForObject(
+                """
+                        SELECT CHARACTER_MAXIMUM_LENGTH
+                        FROM INFORMATION_SCHEMA.COLUMNS
+                        WHERE TABLE_SCHEMA = DATABASE()
+                          AND TABLE_NAME = 'order_fulfillment'
+                          AND COLUMN_NAME = 'tracking_information'
+                        """,
+                Integer.class
+        );
+
+        assertThat(trackingInformationLength).isEqualTo(500);
     }
 
     @Test

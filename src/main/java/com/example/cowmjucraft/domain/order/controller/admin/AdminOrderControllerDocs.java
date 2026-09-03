@@ -31,7 +31,7 @@ public interface AdminOrderControllerDocs {
             @ApiResponse(responseCode = "400", description = "status 값이 유효하지 않음")
     })
     ResponseEntity<ApiResult<List<AdminOrderListItemResponseDto>>> getOrders(
-            @Parameter(description = "주문 상태 필터 (PENDING_DEPOSIT | PAID | CANCELED | REFUND_REQUESTED | REFUNDED)", example = "PENDING_DEPOSIT")
+            @Parameter(description = "주문 상태 필터 (PENDING_DEPOSIT | PAID | IN_PRODUCTION | READY_TO_SHIP | DELIVERED | CANCELED | REFUND_REQUESTED | REFUNDED)", example = "PENDING_DEPOSIT")
             OrderStatus status
     );
 

@@ -55,6 +55,9 @@ public class OrderFulfillment {
     @Column(name = "delivery_memo", length = 500)
     private String deliveryMemo;
 
+    @Column(name = "tracking_information", length = 500)
+    private String trackingInformation;
+
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -79,5 +82,9 @@ public class OrderFulfillment {
         this.addressLine1 = addressLine1;
         this.addressLine2 = addressLine2;
         this.deliveryMemo = deliveryMemo;
+    }
+
+    public void updateTrackingInformation(String trackingInformation) {
+        this.trackingInformation = trackingInformation;
     }
 }

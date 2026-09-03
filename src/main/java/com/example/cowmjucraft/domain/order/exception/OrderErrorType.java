@@ -26,9 +26,11 @@ public enum OrderErrorType implements ErrorCode {
     ALREADY_STOCK_DEDUCTED(409, "이미 재고 차감이 완료된 주문입니다."),
     STOCK_INFO_MISSING(409, "상품 재고 정보가 없어 결제를 진행할 수 없습니다."),
     INVALID_STATUS_TRANSITION(409, "주문 상태 전이가 허용되지 않습니다."),
+    ORDER_STATUS_MISMATCH(409, "선택한 주문들의 현재 상태가 서로 다릅니다."),
 
     VIEW_TOKEN_REQUIRED(400, "조회 토큰이 필요합니다."),
     ORDER_ITEMS_REQUIRED(400, "주문 상품은 1개 이상이어야 합니다."),
+    ORDER_IDS_REQUIRED(400, "변경할 주문을 1개 이상 선택해야 합니다."),
     ORDER_ITEMS_EMPTY(400, "주문 항목이 없어 결제 확정을 진행할 수 없습니다."),
     INVALID_ORDER_ITEM(400, "상품 정보가 올바르지 않습니다."),
     QUANTITY_MUST_BE_POSITIVE(400, "주문 수량은 1개 이상이어야 합니다."),

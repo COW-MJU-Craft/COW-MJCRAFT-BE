@@ -112,7 +112,10 @@ public record OrderDetailResponseDto(
             String postalCode,
 
             @Schema(description = "배송 메모", example = "부재 시 문 앞에 놓아주세요")
-            String deliveryMemo
+            String deliveryMemo,
+
+            @Schema(description = "운송장 정보", example = "CJ대한통운 1234-5678-9012", nullable = true)
+            String trackingInformation
     ) {
     }
 
