@@ -125,6 +125,7 @@ public class AdminProjectOrderService {
                             order.getOrderNo(),
                             order.getStatus().name(),
                             order.getFinalAmount(),
+                            order.getShippingFee(),
                             order.getDepositorName(),
                             buyer == null ? null : buyer.getName(),
                             buyer == null ? null : buyer.getPhone(),

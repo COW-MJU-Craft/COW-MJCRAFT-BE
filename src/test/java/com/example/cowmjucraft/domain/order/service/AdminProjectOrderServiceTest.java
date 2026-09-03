@@ -92,6 +92,7 @@ class AdminProjectOrderServiceTest {
         assertThat(response).singleElement().satisfies(item -> {
             assertThat(item.orderId()).isEqualTo(10L);
             assertThat(item.status()).isEqualTo("IN_PRODUCTION");
+            assertThat(item.shippingFee()).isZero();
             assertThat(item.buyerName()).isNull();
         });
     }

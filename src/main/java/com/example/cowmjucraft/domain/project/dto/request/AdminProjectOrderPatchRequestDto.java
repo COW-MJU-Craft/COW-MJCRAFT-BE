@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import java.util.List;
 
 @Schema(description = "프로젝트 고정/정렬 일괄 변경 요청")
@@ -12,6 +13,7 @@ public record AdminProjectOrderPatchRequestDto(
         @NotNull
         @NotEmpty
         @Valid
+        @Size(max = 200, message = "items는 200개를 초과할 수 없습니다.")
         @Schema(description = "정렬 변경 항목 목록 (빈 리스트 불가)")
         List<ItemDto> items
 ) {

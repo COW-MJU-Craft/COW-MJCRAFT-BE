@@ -1,6 +1,7 @@
 package com.example.cowmjucraft.domain.recruit.dto.client.request;
 
 import com.example.cowmjucraft.domain.recruit.entity.DepartmentType;
+import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -16,6 +17,7 @@ public class ApplicationCreateRequest {
     private DepartmentType firstDepartment;
     private DepartmentType secondDepartment;
 
+    @Size(max = 100, message = "answers는 100개를 초과할 수 없습니다.")
     private List<AnswerItemRequest> answers;
 
     @Getter

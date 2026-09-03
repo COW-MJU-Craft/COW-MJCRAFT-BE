@@ -40,3 +40,6 @@ out/
 ### AI Workspace ###
 .ai-workspace/
 .claude/settings.local.json
+
+### 내부 참고용 (커밋 금지) ###
+V2_SPEC.md
