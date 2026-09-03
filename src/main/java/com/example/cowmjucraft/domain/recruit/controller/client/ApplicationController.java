@@ -10,6 +10,7 @@ import com.example.cowmjucraft.global.cloud.S3PresignFacade;
 import com.example.cowmjucraft.global.response.ApiResponse;
 import com.example.cowmjucraft.global.response.ApiResult;
 import com.example.cowmjucraft.global.response.type.SuccessType;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -26,7 +27,7 @@ public class ApplicationController implements ApplicationControllerDocs {
     @Override
     @PostMapping("/application")
     public ResponseEntity<ApiResult<ApplicationCreateResponse>> createApplication(
-            @RequestBody ApplicationCreateRequest request
+            @Valid @RequestBody ApplicationCreateRequest request
     ) {
         return ApiResponse.of(
                 SuccessType.CREATED,
@@ -48,7 +49,7 @@ public class ApplicationController implements ApplicationControllerDocs {
     @Override
     @PutMapping("/application")
     public ResponseEntity<ApiResult<ApplicationUpdateResponse>> updateApplication(
-            @RequestBody ApplicationUpdateRequest request
+            @Valid @RequestBody ApplicationUpdateRequest request
     ) {
         return ApiResponse.of(
                 SuccessType.SUCCESS,

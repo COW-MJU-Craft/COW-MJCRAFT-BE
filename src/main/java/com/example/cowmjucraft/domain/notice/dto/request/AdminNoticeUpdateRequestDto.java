@@ -17,6 +17,7 @@ public record AdminNoticeUpdateRequestDto(
         @Schema(description = "공지 내용", example = "설 연휴 기간 동안 배송이 중단됩니다.")
         String content,
 
+        @Size(max = 20, message = "imageKeys는 20개를 초과할 수 없습니다.")
         @Schema(description = "공지 이미지 S3 object key 목록", example = "[\"uploads/notices/images/uuid-notice.png\"]")
         List<@NotBlank @Size(max = 255) String> imageKeys
 ) {
