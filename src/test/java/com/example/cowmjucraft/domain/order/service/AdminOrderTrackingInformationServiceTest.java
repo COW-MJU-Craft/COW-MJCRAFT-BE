@@ -1,6 +1,7 @@
 package com.example.cowmjucraft.domain.order.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static com.example.cowmjucraft.domain.order.OrderTestFixtures.project;
 import static org.mockito.BDDMockito.given;
 
 import com.example.cowmjucraft.domain.order.dto.response.AdminOrderTrackingInformationResponseDto;
@@ -9,10 +10,9 @@ import com.example.cowmjucraft.domain.order.entity.OrderFulfillment;
 import com.example.cowmjucraft.domain.order.entity.OrderFulfillmentMethod;
 import com.example.cowmjucraft.domain.order.entity.OrderStatus;
 import com.example.cowmjucraft.domain.order.repository.OrderFulfillmentRepository;
-import com.example.cowmjucraft.domain.order.repository.OrderItemRepository;
+import com.example.cowmjucraft.domain.order.repository.OrderRepository;
 import com.example.cowmjucraft.domain.project.repository.ProjectRepository;
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -27,7 +27,7 @@ class AdminOrderTrackingInformationServiceTest {
     @Mock
     private ProjectRepository projectRepository;
     @Mock
-    private OrderItemRepository orderItemRepository;
+    private OrderRepository orderRepository;
     @Mock
     private OrderFulfillmentRepository orderFulfillmentRepository;
 
@@ -37,7 +37,7 @@ class AdminOrderTrackingInformationServiceTest {
     void setUp() {
         service = new AdminOrderTrackingInformationService(
                 projectRepository,
-                orderItemRepository,
+                orderRepository,
                 orderFulfillmentRepository
         );
     }
@@ -77,8 +77,7 @@ class AdminOrderTrackingInformationServiceTest {
 
     private void prepareUpdate(OrderFulfillment fulfillment) {
         given(projectRepository.existsById(1L)).willReturn(true);
-        given(orderItemRepository.findOrderIdsByProjectIdAndOrderIdIn(1L, List.of(10L)))
-                .willReturn(List.of(10L));
+        given(orderRepository.existsByIdAndRepresentativeProjectId(10L, 1L)).willReturn(true);
         given(orderFulfillmentRepository.findById(10L)).willReturn(Optional.of(fulfillment));
     }
 
@@ -86,6 +85,8 @@ class AdminOrderTrackingInformationServiceTest {
         LocalDateTime now = LocalDateTime.now();
         Order order = new Order(
                 "ORD-" + id,
+                project(1L),
+                1L,
                 status,
                 10000,
                 0,

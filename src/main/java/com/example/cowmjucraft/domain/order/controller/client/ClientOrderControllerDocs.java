@@ -29,6 +29,7 @@ public interface ClientOrderControllerDocs {
                     - 입금자명(depositorName)은 필수입니다.
                     - 입금 기한(depositDeadline)은 익일 23:59:59로 설정됩니다.
                     - 재고 차감은 주문 생성 시점이 아니라 입금 확인(PAID) 시점에만 수행됩니다.
+                    - 첫 번째 상품의 프로젝트를 대표 프로젝트로 정하고 프로젝트별 주문 순번을 발급합니다.
                     - 응답의 viewToken은 이메일 링크 조회용 원본 토큰이며 DB에는 해시만 저장됩니다.
                     """,
             requestBody = @RequestBody(
@@ -95,7 +96,9 @@ public interface ClientOrderControllerDocs {
                                               "message": "성공적으로 생성하였습니다.",
                                               "data": {
                                                 "orderId": 1,
-                                                "orderNo": "ORD-20260207190000-123456",
+                                                "orderNo": "P10-12-09041530-482731",
+                                                "representativeProjectId": 10,
+                                                "projectOrderNo": 12,
                                                 "status": "PENDING_DEPOSIT",
                                                 "totalAmount": 24000,
                                                 "shippingFee": 0,
@@ -182,7 +185,9 @@ public interface ClientOrderControllerDocs {
                                               "message": "요청에 성공하였습니다.",
                                               "data": {
                                                 "order": {
-                                                  "orderNo": "ORD-20260207190000-123456",
+                                                  "orderNo": "P10-12-09041530-482731",
+                                                  "representativeProjectId": 10,
+                                                  "projectOrderNo": 12,
                                                   "status": "PENDING_DEPOSIT",
                                                   "totalAmount": 24000,
                                                   "shippingFee": 0,

@@ -13,17 +13,6 @@ public interface OrderItemRepository extends JpaRepository<OrderItem, Long> {
     List<OrderItem> findAllByOrderIdOrderByProjectItemIdAsc(Long orderId);
 
     @Query("""
-            select distinct oi.order.id
-            from OrderItem oi
-            where oi.projectItem.project.id = :projectId
-              and oi.order.id in :orderIds
-            """)
-    List<Long> findOrderIdsByProjectIdAndOrderIdIn(
-            @Param("projectId") Long projectId,
-            @Param("orderIds") Collection<Long> orderIds
-    );
-
-    @Query("""
             select count(distinct oi.order.id) as orderCount,
                    coalesce(sum(oi.lineAmount), 0) as totalOrderAmount
             from OrderItem oi

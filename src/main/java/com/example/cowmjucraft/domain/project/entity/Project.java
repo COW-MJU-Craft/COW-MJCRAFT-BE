@@ -70,6 +70,9 @@ public class Project extends BaseTimeEntity {
     @Column
     private Integer manualOrder;
 
+    @Column(name = "last_order_no", nullable = false)
+    private long lastOrderNo;
+
     public Project(
             String title,
             String summary,
@@ -119,6 +122,11 @@ public class Project extends BaseTimeEntity {
 
     public void applyManualOrder(Integer manualOrder) {
         this.manualOrder = manualOrder;
+    }
+
+    public long issueNextOrderNo() {
+        this.lastOrderNo = Math.incrementExact(this.lastOrderNo);
+        return this.lastOrderNo;
     }
 
     private void replaceImageKeys(List<String> imageKeys) {

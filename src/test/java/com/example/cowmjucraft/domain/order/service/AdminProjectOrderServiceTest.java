@@ -2,6 +2,7 @@ package com.example.cowmjucraft.domain.order.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static com.example.cowmjucraft.domain.order.OrderTestFixtures.project;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -78,7 +79,10 @@ class AdminProjectOrderServiceTest {
         // given
         Order order = order(10L, OrderStatus.IN_PRODUCTION);
         given(projectRepository.existsById(1L)).willReturn(true);
-        given(orderRepository.findAllByProjectIdAndStatusOrderByCreatedAtDesc(1L, OrderStatus.IN_PRODUCTION))
+        given(orderRepository.findAllByRepresentativeProjectIdAndStatusOrderByCreatedAtDesc(
+                1L,
+                OrderStatus.IN_PRODUCTION
+        ))
                 .willReturn(List.of(order));
         given(orderBuyerRepository.findAllByOrderIdIn(List.of(10L))).willReturn(List.of());
 
@@ -168,13 +172,14 @@ class AdminProjectOrderServiceTest {
     private void prepareAdvance(List<Long> orderIds, List<Order> orders) {
         given(projectRepository.existsById(1L)).willReturn(true);
         given(orderRepository.findAllByIdInForUpdate(orderIds)).willReturn(orders);
-        given(orderItemRepository.findOrderIdsByProjectIdAndOrderIdIn(1L, orderIds)).willReturn(orderIds);
     }
 
     private Order order(Long id, OrderStatus status) {
         LocalDateTime now = LocalDateTime.now();
         Order order = new Order(
                 "ORD-" + id,
+                project(1L),
+                1L,
                 status,
                 10000,
                 0,

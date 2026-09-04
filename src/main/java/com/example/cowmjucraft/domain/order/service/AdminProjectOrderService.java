@@ -19,7 +19,6 @@ import com.example.cowmjucraft.domain.project.repository.ProjectRepository;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumSet;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -50,7 +49,8 @@ public class AdminProjectOrderService {
     @Transactional(readOnly = true)
     public List<AdminOrderListItemResponseDto> getOrders(Long projectId, OrderStatus status) {
         validateProjectExists(projectId);
-        List<Order> orders = orderRepository.findAllByProjectIdAndStatusOrderByCreatedAtDesc(projectId, status);
+        List<Order> orders = orderRepository
+                .findAllByRepresentativeProjectIdAndStatusOrderByCreatedAtDesc(projectId, status);
         return toListResponses(orders);
     }
 
@@ -83,7 +83,7 @@ public class AdminProjectOrderService {
             throw new OrderException(OrderErrorType.ORDER_NOT_FOUND, "orderIds=" + orderIds);
         }
 
-        validateOrdersBelongToProject(projectId, orderIds);
+        validateOrdersBelongToProject(projectId, orders);
         OrderStatus currentStatus = orders.getFirst().getStatus();
         boolean sameStatus = orders.stream().allMatch(order -> order.getStatus() == currentStatus);
         if (!sameStatus) {
@@ -123,6 +123,8 @@ public class AdminProjectOrderService {
                     return new AdminOrderListItemResponseDto(
                             order.getId(),
                             order.getOrderNo(),
+                            order.getRepresentativeProject().getId(),
+                            order.getProjectOrderNo(),
                             order.getStatus().name(),
                             order.getFinalAmount(),
                             order.getShippingFee(),
@@ -146,14 +148,13 @@ public class AdminProjectOrderService {
                 .toList();
     }
 
-    private void validateOrdersBelongToProject(Long projectId, List<Long> orderIds) {
-        Set<Long> projectOrderIds = new HashSet<>(
-                orderItemRepository.findOrderIdsByProjectIdAndOrderIdIn(projectId, orderIds)
-        );
-        if (!projectOrderIds.containsAll(orderIds)) {
+    private void validateOrdersBelongToProject(Long projectId, List<Order> orders) {
+        boolean allBelongToProject = orders.stream()
+                .allMatch(order -> order.getRepresentativeProject().getId().equals(projectId));
+        if (!allBelongToProject) {
             throw new OrderException(
                     OrderErrorType.ORDER_NOT_FOUND,
-                    "projectId=" + projectId + ", orderIds=" + orderIds
+                    "projectId=" + projectId + ", orderIds=" + orders.stream().map(Order::getId).toList()
             );
         }
     }

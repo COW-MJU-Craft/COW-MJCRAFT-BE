@@ -21,7 +21,7 @@ import org.springframework.http.ResponseEntity;
 @Tag(name = "Order - Admin", description = "주문 관리자 API")
 public interface AdminProjectOrderControllerDocs {
 
-    @Operation(summary = "프로젝트별 주문 목록 조회", description = "프로젝트 상품이 포함된 주문을 기존 최신순과 상태 필터 기준으로 조회합니다.")
+    @Operation(summary = "프로젝트별 주문 목록 조회", description = "해당 프로젝트가 대표 프로젝트인 주문을 최신순과 상태 필터 기준으로 조회합니다.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "조회 성공", content = @Content(schema = @Schema(implementation = ApiResult.class))),
             @ApiResponse(responseCode = "404", description = "프로젝트를 찾을 수 없음")

@@ -17,6 +17,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static com.example.cowmjucraft.domain.order.OrderTestFixtures.project;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
@@ -77,6 +78,8 @@ class AdminOrderRefundServiceTest {
     private Order order() {
         Order order = new Order(
                 "ORD-001",
+                project(1L),
+                1L,
                 OrderStatus.REFUND_REQUESTED,
                 10_000,
                 0,
