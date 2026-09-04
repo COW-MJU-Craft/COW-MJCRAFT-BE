@@ -20,6 +20,8 @@ import com.example.cowmjucraft.domain.order.repository.OrderFulfillmentRepositor
 import com.example.cowmjucraft.domain.order.repository.OrderItemRepository;
 import com.example.cowmjucraft.domain.order.repository.OrderPolicyRepository;
 import com.example.cowmjucraft.domain.order.repository.OrderRepository;
+import com.example.cowmjucraft.domain.project.entity.Project;
+import com.example.cowmjucraft.domain.project.repository.ProjectRepository;
 import com.example.cowmjucraft.global.security.PasswordPolicy;
 import java.util.List;
 import java.util.Optional;
@@ -37,6 +39,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static com.example.cowmjucraft.domain.order.OrderTestFixtures.project;
 
 @ExtendWith(MockitoExtension.class)
 class OrderCreateServiceTest {
@@ -61,11 +64,17 @@ class OrderCreateServiceTest {
     private MailOutboxService mailOutboxService;
     @Mock
     private OrderPolicyRepository orderPolicyRepository;
+    @Mock
+    private ProjectRepository projectRepository;
 
     private OrderCreateService orderCreateService;
+    private Project representativeProject;
 
     @BeforeEach
     void setUp() {
+        representativeProject = project(10L);
+        org.mockito.Mockito.lenient().when(projectRepository.findByIdForUpdate(10L))
+                .thenReturn(Optional.of(representativeProject));
         orderCreateService = new OrderCreateService(
                 orderRepository,
                 orderItemRepository,
@@ -77,7 +86,8 @@ class OrderCreateServiceTest {
                 orderViewTokenService,
                 mailOutboxService,
                 new PasswordPolicy(),
-                orderPolicyRepository
+                orderPolicyRepository,
+                projectRepository
         );
     }
 
@@ -86,7 +96,6 @@ class OrderCreateServiceTest {
         ProjectItem item = groupbuyItem(1L, 100, 40);
         when(orderAuthRepository.existsByLookupId("guest-mju-001")).thenReturn(false);
         when(projectItemRepository.findById(1L)).thenReturn(Optional.of(item));
-        when(orderRepository.existsByOrderNo(any())).thenReturn(false);
         when(orderRepository.save(any(Order.class))).thenAnswer(invocation -> {
             Order order = invocation.getArgument(0);
             ReflectionTestUtils.setField(order, "id", 10L);
@@ -96,8 +105,11 @@ class OrderCreateServiceTest {
         when(orderViewTokenService.issueNewToken(any(Order.class), any())).thenReturn("raw-token");
         when(orderViewTokenService.buildOrderViewUrl("raw-token")).thenReturn("https://example.com/orders/view?token=raw-token");
 
-        orderCreateService.createOrder(request(60));
+        var response = orderCreateService.createOrder(request(60));
 
+        assertThat(response.representativeProjectId()).isEqualTo(10L);
+        assertThat(response.projectOrderNo()).isEqualTo(1L);
+        assertThat(response.orderNo()).matches("P10-1-\\d{8}-\\d{6}");
         verify(orderItemRepository).saveAll(any());
         verify(mailOutboxService).enqueueOrderViewLink(
                 any(), any(), any(), any(), any(), any());
@@ -108,7 +120,6 @@ class OrderCreateServiceTest {
         ProjectItem item = groupbuyItem(1L, 100, 40);
         when(orderAuthRepository.existsByLookupId("guest-mju-001")).thenReturn(false);
         when(projectItemRepository.findById(1L)).thenReturn(Optional.of(item));
-        when(orderRepository.existsByOrderNo(any())).thenReturn(false);
         when(orderRepository.save(any(Order.class))).thenAnswer(invocation -> {
             Order order = invocation.getArgument(0);
             ReflectionTestUtils.setField(order, "id", 10L);
@@ -139,7 +150,6 @@ class OrderCreateServiceTest {
         ProjectItem item = groupbuyItem(1L, 100, 40);
         when(orderAuthRepository.existsByLookupId("guest-mju-001")).thenReturn(false);
         when(projectItemRepository.findById(1L)).thenReturn(Optional.of(item));
-        when(orderRepository.existsByOrderNo(any())).thenReturn(false);
         when(orderPolicyRepository.findFirstByOrderByIdAsc())
                 .thenReturn(Optional.of(new OrderPolicy(3500)));
         when(orderRepository.save(any(Order.class))).thenAnswer(invocation -> {
@@ -164,7 +174,6 @@ class OrderCreateServiceTest {
         ProjectItem item = groupbuyItem(1L, 100, 40);
         when(orderAuthRepository.existsByLookupId("guest-mju-001")).thenReturn(false);
         when(projectItemRepository.findById(1L)).thenReturn(Optional.of(item));
-        when(orderRepository.existsByOrderNo(any())).thenReturn(false);
         when(orderRepository.save(any(Order.class))).thenAnswer(invocation -> {
             Order order = invocation.getArgument(0);
             ReflectionTestUtils.setField(order, "id", 10L);
@@ -182,9 +191,59 @@ class OrderCreateServiceTest {
         verify(orderPolicyRepository, never()).findFirstByOrderByIdAsc();
     }
 
+    @Test
+    void createOrder_여러프로젝트상품_첫상품프로젝트로주문번호발급() {
+        // given
+        Project firstProject = project(20L);
+        Project secondProject = project(30L);
+        ProjectItem firstItem = groupbuyItem(2L, firstProject, 100, 0);
+        ProjectItem secondItem = groupbuyItem(3L, secondProject, 100, 0);
+        OrderCreateRequestDto baseRequest = request(1);
+        OrderCreateRequestDto multiProjectRequest = new OrderCreateRequestDto(
+                baseRequest.lookupId(),
+                baseRequest.password(),
+                baseRequest.depositorName(),
+                baseRequest.privacyAgreed(),
+                baseRequest.refundAgreed(),
+                baseRequest.cancelRiskAgreed(),
+                List.of(
+                        new OrderCreateItemRequestDto(2L, 1),
+                        new OrderCreateItemRequestDto(3L, 1)
+                ),
+                baseRequest.buyer(),
+                baseRequest.fulfillment()
+        );
+        when(orderAuthRepository.existsByLookupId("guest-mju-001")).thenReturn(false);
+        when(projectItemRepository.findById(2L)).thenReturn(Optional.of(firstItem));
+        when(projectItemRepository.findById(3L)).thenReturn(Optional.of(secondItem));
+        when(projectRepository.findByIdForUpdate(20L)).thenReturn(Optional.of(firstProject));
+        when(orderRepository.save(any(Order.class))).thenAnswer(invocation -> {
+            Order order = invocation.getArgument(0);
+            ReflectionTestUtils.setField(order, "id", 10L);
+            return order;
+        });
+        when(passwordEncoder.encode("Pa$$w0rd!")).thenReturn("encoded-password");
+        when(orderViewTokenService.issueNewToken(any(Order.class), any())).thenReturn("raw-token");
+        when(orderViewTokenService.buildOrderViewUrl("raw-token"))
+                .thenReturn("https://example.com/orders/view?token=raw-token");
+
+        // when
+        var response = orderCreateService.createOrder(multiProjectRequest);
+
+        // then
+        assertThat(response.representativeProjectId()).isEqualTo(20L);
+        assertThat(response.projectOrderNo()).isEqualTo(1L);
+        assertThat(response.orderNo()).matches("P20-1-\\d{8}-\\d{6}");
+        assertThat(secondProject.getLastOrderNo()).isZero();
+    }
+
     private ProjectItem groupbuyItem(Long id, int targetQty, int fundedQty) {
+        return groupbuyItem(id, representativeProject, targetQty, fundedQty);
+    }
+
+    private ProjectItem groupbuyItem(Long id, Project project, int targetQty, int fundedQty) {
         ProjectItem item = new ProjectItem(
-                null,
+                project,
                 "공동구매 상품",
                 "summary",
                 "description",

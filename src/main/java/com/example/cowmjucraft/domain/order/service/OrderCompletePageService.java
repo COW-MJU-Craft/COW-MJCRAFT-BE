@@ -36,6 +36,8 @@ public class OrderCompletePageService {
                 orderCompletePage.getPaymentInformation(),
                 new OrderCompletePageResponseDto.OrderInfo(
                         order.getOrderNo(),
+                        order.getRepresentativeProject().getId(),
+                        order.getProjectOrderNo(),
                         order.getStatus().name(),
                         order.getTotalAmount(),
                         order.getShippingFee(),

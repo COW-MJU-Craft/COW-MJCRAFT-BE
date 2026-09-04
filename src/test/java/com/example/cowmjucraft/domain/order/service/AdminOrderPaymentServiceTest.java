@@ -25,6 +25,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static com.example.cowmjucraft.domain.order.OrderTestFixtures.project;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.verify;
@@ -106,6 +107,8 @@ class AdminOrderPaymentServiceTest {
     private Order order() {
         Order order = new Order(
                 "ORD-20260505120000-123456",
+                project(1L),
+                1L,
                 OrderStatus.PENDING_DEPOSIT,
                 30_000,
                 0,

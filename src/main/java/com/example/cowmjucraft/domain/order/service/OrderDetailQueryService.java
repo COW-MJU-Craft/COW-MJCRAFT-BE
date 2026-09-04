@@ -94,6 +94,8 @@ public class OrderDetailQueryService {
         return new OrderDetailResponseDto(
                 new OrderDetailResponseDto.OrderInfo(
                         order.getOrderNo(),
+                        order.getRepresentativeProject().getId(),
+                        order.getProjectOrderNo(),
                         order.getStatus().name(),
                         order.getTotalAmount(),
                         order.getShippingFee(),

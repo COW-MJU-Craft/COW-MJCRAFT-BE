@@ -12,19 +12,19 @@ import org.springframework.data.repository.query.Param;
 
 public interface OrderRepository extends JpaRepository<Order, Long> {
 
-    boolean existsByOrderNo(String orderNo);
+    boolean existsByRepresentativeProjectId(Long projectId);
+    boolean existsByIdAndRepresentativeProjectId(Long orderId, Long projectId);
     List<Order> findAllByOrderByCreatedAtDesc();
     List<Order> findAllByStatusOrderByCreatedAtDesc(OrderStatus status);
 
     @Query("""
-            select distinct o
+            select o
             from Order o
-            join OrderItem oi on oi.order = o
-            where oi.projectItem.project.id = :projectId
+            where o.representativeProject.id = :projectId
               and (:status is null or o.status = :status)
             order by o.createdAt desc
             """)
-    List<Order> findAllByProjectIdAndStatusOrderByCreatedAtDesc(
+    List<Order> findAllByRepresentativeProjectIdAndStatusOrderByCreatedAtDesc(
             @Param("projectId") Long projectId,
             @Param("status") OrderStatus status
     );

@@ -25,6 +25,10 @@ import com.example.cowmjucraft.domain.order.repository.OrderFulfillmentRepositor
 import com.example.cowmjucraft.domain.order.repository.OrderItemRepository;
 import com.example.cowmjucraft.domain.order.repository.OrderPolicyRepository;
 import com.example.cowmjucraft.domain.order.repository.OrderRepository;
+import com.example.cowmjucraft.domain.project.entity.Project;
+import com.example.cowmjucraft.domain.project.exception.ProjectErrorType;
+import com.example.cowmjucraft.domain.project.exception.ProjectException;
+import com.example.cowmjucraft.domain.project.repository.ProjectRepository;
 import java.security.SecureRandom;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -32,6 +36,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import com.example.cowmjucraft.global.security.PasswordPolicy;
@@ -44,7 +49,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class OrderCreateService {
 
     private static final SecureRandom SECURE_RANDOM = new SecureRandom();
-    private static final DateTimeFormatter ORDER_NO_TIME_FORMAT = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
+    private static final DateTimeFormatter ORDER_NO_TIME_FORMAT = DateTimeFormatter.ofPattern("MMddHHmm");
 
     private final OrderRepository orderRepository;
     private final OrderItemRepository orderItemRepository;
@@ -57,6 +62,7 @@ public class OrderCreateService {
     private final MailOutboxService mailOutboxService;
     private final PasswordPolicy passwordPolicy;
     private final OrderPolicyRepository orderPolicyRepository;
+    private final ProjectRepository projectRepository;
 
     @Transactional
     public OrderCreateResponseDto createOrder(OrderCreateRequestDto request) {
@@ -120,11 +126,20 @@ public class OrderCreateService {
 
         LocalDateTime now = LocalDateTime.now();
         LocalDate today = now.toLocalDate();
+        Long representativeProjectId = lines.getFirst().projectItem().getProject().getId();
+        Project representativeProject = projectRepository.findByIdForUpdate(representativeProjectId)
+                .orElseThrow(() -> new ProjectException(
+                        ProjectErrorType.PROJECT_NOT_FOUND,
+                        "projectId=" + representativeProjectId
+                ));
+        long projectOrderNo = representativeProject.issueNextOrderNo();
         boolean privacyAgreed = true;
         boolean refundAgreed = true;
         boolean cancelRiskAgreed = true;
         Order order = new Order(
-                generateOrderNo(now),
+                generateOrderNo(representativeProjectId, projectOrderNo, now),
+                representativeProject,
+                projectOrderNo,
                 OrderStatus.PENDING_DEPOSIT,
                 totalAmount,
                 shippingFee,
@@ -209,6 +224,8 @@ public class OrderCreateService {
         return new OrderCreateResponseDto(
                 savedOrder.getId(),
                 savedOrder.getOrderNo(),
+                savedOrder.getRepresentativeProject().getId(),
+                savedOrder.getProjectOrderNo(),
                 savedOrder.getStatus().name(),
                 savedOrder.getTotalAmount(),
                 savedOrder.getShippingFee(),
@@ -271,15 +288,11 @@ public class OrderCreateService {
         return orderPolicy.getDefaultShippingFee();
     }
 
-    private String generateOrderNo(LocalDateTime now) {
-        for (int i = 0; i < 20; i++) {
-            String candidate = "ORD-" + now.format(ORDER_NO_TIME_FORMAT)
-                    + "-" + String.format("%06d", SECURE_RANDOM.nextInt(1_000_000));
-            if (!orderRepository.existsByOrderNo(candidate)) {
-                return candidate;
-            }
-        }
-        throw new OrderException(OrderErrorType.ORDER_NO_GENERATION_FAILED);
+    private String generateOrderNo(Long projectId, long projectOrderNo, LocalDateTime now) {
+        return "P" + projectId
+                + "-" + projectOrderNo
+                + "-" + now.format(ORDER_NO_TIME_FORMAT)
+                + "-" + String.format(Locale.ROOT, "%06d", SECURE_RANDOM.nextInt(1_000_000));
     }
 
     private String normalizeRequiredText(String value, String fieldName) {

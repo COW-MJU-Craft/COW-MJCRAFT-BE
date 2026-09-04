@@ -38,24 +38,27 @@ class ProjectOrderQueryRepositoryTest {
     private ProjectRepository projectRepository;
 
     @Test
-    void findAllByProjectIdAndStatusOrderByCreatedAtDesc_혼합프로젝트주문_중복없이조회() {
+    void findAllByRepresentativeProjectIdAndStatusOrderByCreatedAtDesc_대표프로젝트주문만조회() {
         // given
         TestData data = persistTestData();
 
         // when
-        List<Order> all = orderRepository.findAllByProjectIdAndStatusOrderByCreatedAtDesc(
+        List<Order> all = orderRepository.findAllByRepresentativeProjectIdAndStatusOrderByCreatedAtDesc(
                 data.firstProject().getId(),
                 null
         );
-        List<Order> paid = orderRepository.findAllByProjectIdAndStatusOrderByCreatedAtDesc(
+        List<Order> paid = orderRepository.findAllByRepresentativeProjectIdAndStatusOrderByCreatedAtDesc(
                 data.firstProject().getId(),
                 OrderStatus.PAID
         );
+        List<Order> nonRepresentativeProjectOrders = orderRepository
+                .findAllByRepresentativeProjectIdAndStatusOrderByCreatedAtDesc(data.secondProject().getId(), null);
 
         // then
         assertThat(all).extracting(Order::getId)
                 .containsExactlyInAnyOrder(data.paidOrder().getId(), data.pendingOrder().getId());
         assertThat(paid).extracting(Order::getId).containsExactly(data.paidOrder().getId());
+        assertThat(nonRepresentativeProjectOrders).isEmpty();
     }
 
     @Test
@@ -99,8 +102,8 @@ class ProjectOrderQueryRepositoryTest {
         ProjectItem firstAdditionalItem = item(firstProject, "첫 번째 프로젝트 추가 상품", 5000);
         ProjectItem secondItem = item(secondProject, "두 번째 상품", 20000);
 
-        Order paidOrder = order("ORD-PAID", OrderStatus.PAID, 35000);
-        Order pendingOrder = order("ORD-PENDING", OrderStatus.PENDING_DEPOSIT, 5000);
+        Order paidOrder = order("ORD-PAID", firstProject, 1L, OrderStatus.PAID, 35000);
+        Order pendingOrder = order("ORD-PENDING", firstProject, 2L, OrderStatus.PENDING_DEPOSIT, 5000);
 
         entityManager.persist(new OrderItem(paidOrder, firstItem, 1, 10000, 10000, firstItem.getName()));
         entityManager.persist(new OrderItem(
@@ -116,7 +119,7 @@ class ProjectOrderQueryRepositoryTest {
         entityManager.flush();
         entityManager.clear();
 
-        return new TestData(firstProject, paidOrder, pendingOrder);
+        return new TestData(firstProject, secondProject, paidOrder, pendingOrder);
     }
 
     private Project project(String title, ProjectStatus status) {
@@ -154,10 +157,18 @@ class ProjectOrderQueryRepositoryTest {
         return item;
     }
 
-    private Order order(String orderNo, OrderStatus status, int finalAmount) {
+    private Order order(
+            String orderNo,
+            Project representativeProject,
+            long projectOrderNo,
+            OrderStatus status,
+            int finalAmount
+    ) {
         LocalDateTime now = LocalDateTime.now();
         Order order = new Order(
                 orderNo,
+                representativeProject,
+                projectOrderNo,
                 status,
                 finalAmount,
                 0,
@@ -175,6 +186,6 @@ class ProjectOrderQueryRepositoryTest {
         return order;
     }
 
-    private record TestData(Project firstProject, Order paidOrder, Order pendingOrder) {
+    private record TestData(Project firstProject, Project secondProject, Order paidOrder, Order pendingOrder) {
     }
 }

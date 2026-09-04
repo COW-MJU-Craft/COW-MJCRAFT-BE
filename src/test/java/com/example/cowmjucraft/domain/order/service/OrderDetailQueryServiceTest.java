@@ -1,6 +1,7 @@
 package com.example.cowmjucraft.domain.order.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static com.example.cowmjucraft.domain.order.OrderTestFixtures.project;
 import static org.mockito.BDDMockito.given;
 
 import com.example.cowmjucraft.domain.order.dto.response.OrderDetailResponseDto;
@@ -66,6 +67,8 @@ class OrderDetailQueryServiceTest {
         // given
         given(orderRepository.findById(10L)).willReturn(Optional.of(order));
         given(order.getId()).willReturn(10L);
+        given(order.getRepresentativeProject()).willReturn(project(1L));
+        given(order.getProjectOrderNo()).willReturn(1L);
         given(order.getStatus()).willReturn(OrderStatus.READY_TO_SHIP);
         given(orderBuyerRepository.findById(10L)).willReturn(Optional.of(buyer));
         given(buyer.getBuyerType()).willReturn(OrderBuyerType.STUDENT);

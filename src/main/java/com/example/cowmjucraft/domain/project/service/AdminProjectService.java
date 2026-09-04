@@ -5,6 +5,7 @@ import com.example.cowmjucraft.domain.item.entity.ProjectItem;
 import com.example.cowmjucraft.domain.item.repository.ItemImageRepository;
 import com.example.cowmjucraft.domain.item.repository.ProjectItemRepository;
 import com.example.cowmjucraft.domain.order.repository.OrderItemRepository;
+import com.example.cowmjucraft.domain.order.repository.OrderRepository;
 import com.example.cowmjucraft.domain.payout.repository.PayoutRepository;
 import com.example.cowmjucraft.domain.project.dto.request.AdminProjectCreateRequestDto;
 import com.example.cowmjucraft.domain.project.dto.request.AdminProjectOrderPatchRequestDto;
@@ -40,6 +41,7 @@ public class AdminProjectService {
     private final ProjectItemRepository projectItemRepository;
     private final ItemImageRepository itemImageRepository;
     private final OrderItemRepository orderItemRepository;
+    private final OrderRepository orderRepository;
     private final PayoutRepository payoutRepository;
     private final S3PresignFacade s3PresignFacade;
 
@@ -48,6 +50,7 @@ public class AdminProjectService {
             ProjectItemRepository projectItemRepository,
             ItemImageRepository itemImageRepository,
             OrderItemRepository orderItemRepository,
+            OrderRepository orderRepository,
             PayoutRepository payoutRepository,
             S3PresignFacade s3PresignFacade
     ) {
@@ -55,6 +58,7 @@ public class AdminProjectService {
         this.projectItemRepository = projectItemRepository;
         this.itemImageRepository = itemImageRepository;
         this.orderItemRepository = orderItemRepository;
+        this.orderRepository = orderRepository;
         this.payoutRepository = payoutRepository;
         this.s3PresignFacade = s3PresignFacade;
     }
@@ -96,6 +100,10 @@ public class AdminProjectService {
     @Transactional
     public void delete(Long projectId) {
         Project project = findProject(projectId);
+
+        if (orderRepository.existsByRepresentativeProjectId(projectId)) {
+            throw new ProjectException(ProjectErrorType.PROJECT_DELETE_CONFLICT, "projectId=" + projectId);
+        }
 
         List<ProjectItem> items = projectItemRepository.findByProjectId(projectId);
         List<Long> itemIds = items.stream().map(ProjectItem::getId).toList();

@@ -5,11 +5,10 @@ import com.example.cowmjucraft.domain.order.entity.OrderFulfillment;
 import com.example.cowmjucraft.domain.order.exception.OrderErrorType;
 import com.example.cowmjucraft.domain.order.exception.OrderException;
 import com.example.cowmjucraft.domain.order.repository.OrderFulfillmentRepository;
-import com.example.cowmjucraft.domain.order.repository.OrderItemRepository;
+import com.example.cowmjucraft.domain.order.repository.OrderRepository;
 import com.example.cowmjucraft.domain.project.exception.ProjectErrorType;
 import com.example.cowmjucraft.domain.project.exception.ProjectException;
 import com.example.cowmjucraft.domain.project.repository.ProjectRepository;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,7 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class AdminOrderTrackingInformationService {
 
     private final ProjectRepository projectRepository;
-    private final OrderItemRepository orderItemRepository;
+    private final OrderRepository orderRepository;
     private final OrderFulfillmentRepository orderFulfillmentRepository;
 
     @Transactional
@@ -40,11 +39,7 @@ public class AdminOrderTrackingInformationService {
     }
 
     private void validateOrderBelongsToProject(Long projectId, Long orderId) {
-        List<Long> projectOrderIds = orderItemRepository.findOrderIdsByProjectIdAndOrderIdIn(
-                projectId,
-                List.of(orderId)
-        );
-        if (!projectOrderIds.contains(orderId)) {
+        if (!orderRepository.existsByIdAndRepresentativeProjectId(orderId, projectId)) {
             throw new OrderException(
                     OrderErrorType.ORDER_NOT_FOUND,
                     "projectId=" + projectId + ", orderId=" + orderId
