@@ -24,11 +24,16 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/admin")
 public class AdminOrderExportController implements AdminOrderExportControllerDocs {
 
-    private static final MediaType CSV_MEDIA_TYPE = MediaType.parseMediaType("text/csv;charset=UTF-8");
+    private static final MediaType EXCEL_MEDIA_TYPE = MediaType.parseMediaType(
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    );
 
     private final AdminOrderExportService adminOrderExportService;
 
-    @GetMapping(value = "/projects/{projectId}/orders/export", produces = "text/csv")
+    @GetMapping(
+            value = "/projects/{projectId}/orders/export",
+            produces = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
     @Override
     public ResponseEntity<byte[]> exportProjectOrders(
             @PathVariable Long projectId,
@@ -49,7 +54,10 @@ public class AdminOrderExportController implements AdminOrderExportControllerDoc
         return fileResponse(export);
     }
 
-    @GetMapping(value = "/orders/export", produces = "text/csv")
+    @GetMapping(
+            value = "/orders/export",
+            produces = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
     @Override
     public ResponseEntity<byte[]> exportOrdersByDate(
             @RequestParam(required = false)
@@ -70,7 +78,7 @@ public class AdminOrderExportController implements AdminOrderExportControllerDoc
 
     private ResponseEntity<byte[]> fileResponse(AdminOrderExportResponseDto export) {
         HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(CSV_MEDIA_TYPE);
+        headers.setContentType(EXCEL_MEDIA_TYPE);
         headers.setContentDisposition(ContentDisposition.attachment()
                 .filename(export.filename(), StandardCharsets.UTF_8)
                 .build());

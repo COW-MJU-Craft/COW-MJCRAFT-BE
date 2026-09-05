@@ -15,7 +15,6 @@ import com.example.cowmjucraft.domain.order.exception.OrderErrorType;
 import com.example.cowmjucraft.domain.order.exception.OrderException;
 import com.example.cowmjucraft.domain.order.service.AdminOrderExportService;
 import com.example.cowmjucraft.global.exception.GlobalExceptionHandler;
-import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -42,18 +41,18 @@ class AdminOrderExportControllerTest {
     }
 
     @Test
-    void exportProjectOrders_필터입력_CSV다운로드응답반환() throws Exception {
+    void exportProjectOrders_필터입력_XLSX다운로드응답반환() throws Exception {
         // given
         LocalDate startDate = LocalDate.of(2026, 9, 1);
         LocalDate endDate = LocalDate.of(2026, 9, 5);
-        byte[] csv = "CSV 내용".getBytes(StandardCharsets.UTF_8);
+        byte[] xlsx = new byte[]{1, 2, 3};
         given(adminOrderExportService.exportProjectOrders(
                 1L,
                 startDate,
                 endDate,
                 OrderStatus.PAID,
                 OrderFulfillmentMethod.DELIVERY
-        )).willReturn(new AdminOrderExportResponseDto("가을 프로젝트_주문목록.csv", csv));
+        )).willReturn(new AdminOrderExportResponseDto("가을 프로젝트_주문목록.xlsx", xlsx));
 
         // when & then
         mockMvc.perform(get("/api/admin/projects/1/orders/export")
@@ -62,8 +61,8 @@ class AdminOrderExportControllerTest {
                         .queryParam("status", "PAID")
                         .queryParam("fulfillmentMethod", "DELIVERY"))
                 .andExpect(status().isOk())
-                .andExpect(content().bytes(csv))
-                .andExpect(content().contentType("text/csv;charset=UTF-8"))
+                .andExpect(content().bytes(xlsx))
+                .andExpect(content().contentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
                 .andExpect(header().string(HttpHeaders.CONTENT_DISPOSITION, containsString("attachment")))
                 .andExpect(header().string(HttpHeaders.CACHE_CONTROL, "no-store"));
         verify(adminOrderExportService).exportProjectOrders(
@@ -76,19 +75,19 @@ class AdminOrderExportControllerTest {
     }
 
     @Test
-    void exportOrdersByDate_날짜입력_CSV다운로드응답반환() throws Exception {
+    void exportOrdersByDate_날짜입력_XLSX다운로드응답반환() throws Exception {
         // given
         LocalDate date = LocalDate.of(2026, 9, 5);
-        byte[] csv = "CSV 내용".getBytes(StandardCharsets.UTF_8);
+        byte[] xlsx = new byte[]{1, 2, 3};
         given(adminOrderExportService.exportOrdersByDate(date, date, null, null))
-                .willReturn(new AdminOrderExportResponseDto("주문목록_20260905-20260905.csv", csv));
+                .willReturn(new AdminOrderExportResponseDto("주문목록_20260905-20260905.xlsx", xlsx));
 
         // when & then
         mockMvc.perform(get("/api/admin/orders/export")
                         .queryParam("startDate", "2026-09-05")
                         .queryParam("endDate", "2026-09-05"))
                 .andExpect(status().isOk())
-                .andExpect(content().bytes(csv));
+                .andExpect(content().bytes(xlsx));
         verify(adminOrderExportService).exportOrdersByDate(date, date, null, null);
     }
 

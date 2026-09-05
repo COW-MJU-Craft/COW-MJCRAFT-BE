@@ -17,7 +17,8 @@ import com.example.cowmjucraft.domain.project.entity.Project;
 import com.example.cowmjucraft.domain.project.exception.ProjectErrorType;
 import com.example.cowmjucraft.domain.project.exception.ProjectException;
 import com.example.cowmjucraft.domain.project.repository.ProjectRepository;
-import java.nio.charset.StandardCharsets;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.time.DateTimeException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -28,6 +29,13 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellStyle;
+import org.apache.poi.ss.usermodel.Font;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -38,7 +46,7 @@ public class AdminOrderExportService {
     private static final DateTimeFormatter ORDER_DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
     private static final DateTimeFormatter FILE_DATE_FORMATTER = DateTimeFormatter.BASIC_ISO_DATE;
     private static final String ITEM_SEPARATOR = " | ";
-    private static final String[] CSV_HEADERS = {
+    private static final String[] EXCEL_HEADERS = {
             "주문일자",
             "주문번호",
             "주문상태",
@@ -87,7 +95,7 @@ public class AdminOrderExportService {
             OrderFulfillmentMethod fulfillmentMethod
     ) {
         ExportPeriod period = resolvePeriod(startDate, endDate, true);
-        String filename = "주문목록_" + period.fileDateRange() + ".csv";
+        String filename = "주문목록_" + period.fileDateRange() + ".xlsx";
         return export(null, period, status, fulfillmentMethod, filename);
     }
 
@@ -109,7 +117,7 @@ public class AdminOrderExportService {
         );
 
         if (orders.isEmpty()) {
-            return new AdminOrderExportResponseDto(filename, createCsv(orders, Map.of(), Map.of(), Map.of()));
+            return new AdminOrderExportResponseDto(filename, createExcel(orders, Map.of(), Map.of(), Map.of()));
         }
 
         List<Long> orderIds = orders.stream().map(Order::getId).toList();
@@ -125,51 +133,81 @@ public class AdminOrderExportService {
                         Collectors.toList()
                 ));
 
-        return new AdminOrderExportResponseDto(filename, createCsv(orders, buyers, fulfillments, items));
+        return new AdminOrderExportResponseDto(filename, createExcel(orders, buyers, fulfillments, items));
     }
 
-    private byte[] createCsv(
+    private byte[] createExcel(
             List<Order> orders,
             Map<Long, OrderBuyer> buyers,
             Map<Long, OrderFulfillment> fulfillments,
             Map<Long, List<OrderItem>> itemsByOrderId
     ) {
-        StringBuilder csv = new StringBuilder("\uFEFF");
-        appendRow(csv, CSV_HEADERS);
+        try (Workbook workbook = new XSSFWorkbook();
+             ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
+            Sheet sheet = workbook.createSheet("주문목록");
+            sheet.createFreezePane(0, 1);
 
-        for (Order order : orders) {
-            Long orderId = order.getId();
-            OrderBuyer buyer = getBuyer(orderId, buyers);
-            OrderFulfillment fulfillment = getFulfillment(orderId, fulfillments);
-            List<OrderItem> items = itemsByOrderId.getOrDefault(orderId, Collections.emptyList());
+            CellStyle headerStyle = workbook.createCellStyle();
+            Font headerFont = workbook.createFont();
+            headerFont.setBold(true);
+            headerStyle.setFont(headerFont);
 
-            String itemNames = items.stream()
-                    .map(OrderItem::getItemNameSnapshot)
-                    .collect(Collectors.joining(ITEM_SEPARATOR));
-            String itemQuantities = items.stream()
-                    .map(item -> Integer.toString(item.getQuantity()))
-                    .collect(Collectors.joining(ITEM_SEPARATOR));
+            Row headerRow = sheet.createRow(0);
+            for (int index = 0; index < EXCEL_HEADERS.length; index++) {
+                Cell cell = headerRow.createCell(index);
+                cell.setCellValue(EXCEL_HEADERS[index]);
+                cell.setCellStyle(headerStyle);
+                sheet.setColumnWidth(index, 18 * 256);
+            }
 
-            appendRow(
-                    csv,
-                    order.getCreatedAt().format(ORDER_DATE_FORMATTER),
-                    order.getOrderNo(),
-                    order.getStatus().name(),
-                    buyer.getName(),
-                    buyer.getDepartmentOrMajor(),
-                    buyer.getStudentNo(),
-                    buyer.getPhone(),
-                    Integer.toString(order.getFinalAmount()),
-                    itemNames,
-                    itemQuantities,
-                    fulfillment.getMethod().name(),
-                    buildAddress(fulfillment),
-                    buyer.getRefundBank(),
-                    buyer.getRefundAccount()
-            );
+            int rowIndex = 1;
+            for (Order order : orders) {
+                appendOrderRow(sheet.createRow(rowIndex++), order, buyers, fulfillments, itemsByOrderId);
+            }
+
+            workbook.write(outputStream);
+            return outputStream.toByteArray();
+        } catch (IOException exception) {
+            throw new OrderException(OrderErrorType.EXPORT_FILE_CREATE_FAILED, exception.getMessage());
         }
+    }
 
-        return csv.toString().getBytes(StandardCharsets.UTF_8);
+    private void appendOrderRow(
+            Row row,
+            Order order,
+            Map<Long, OrderBuyer> buyers,
+            Map<Long, OrderFulfillment> fulfillments,
+            Map<Long, List<OrderItem>> itemsByOrderId
+    ) {
+        Long orderId = order.getId();
+        OrderBuyer buyer = getBuyer(orderId, buyers);
+        OrderFulfillment fulfillment = getFulfillment(orderId, fulfillments);
+        List<OrderItem> items = itemsByOrderId.getOrDefault(orderId, Collections.emptyList());
+
+        String itemNames = items.stream()
+                .map(OrderItem::getItemNameSnapshot)
+                .collect(Collectors.joining(ITEM_SEPARATOR));
+        String itemQuantities = items.stream()
+                .map(item -> Integer.toString(item.getQuantity()))
+                .collect(Collectors.joining(ITEM_SEPARATOR));
+
+        appendTextCells(
+                row,
+                order.getCreatedAt().format(ORDER_DATE_FORMATTER),
+                order.getOrderNo(),
+                order.getStatus().name(),
+                buyer.getName(),
+                buyer.getDepartmentOrMajor(),
+                buyer.getStudentNo(),
+                buyer.getPhone(),
+                Integer.toString(order.getFinalAmount()),
+                itemNames,
+                itemQuantities,
+                fulfillment.getMethod().name(),
+                buildAddress(fulfillment),
+                buyer.getRefundBank(),
+                buyer.getRefundAccount()
+        );
     }
 
     private OrderBuyer getBuyer(Long orderId, Map<Long, OrderBuyer> buyers) {
@@ -201,28 +239,10 @@ public class AdminOrderExportService {
                 .collect(Collectors.joining(" "));
     }
 
-    private void appendRow(StringBuilder csv, String... values) {
+    private void appendTextCells(Row row, String... values) {
         for (int index = 0; index < values.length; index++) {
-            if (index > 0) {
-                csv.append(',');
-            }
-            String value = protectFromSpreadsheetFormula(valueOrEmpty(values[index]));
-            csv.append('"').append(value.replace("\"", "\"\"")).append('"');
+            row.createCell(index).setCellValue(valueOrEmpty(values[index]));
         }
-        csv.append("\r\n");
-    }
-
-    private String protectFromSpreadsheetFormula(String value) {
-        String leadingStripped = value.stripLeading();
-        if (leadingStripped.isEmpty()) {
-            return value;
-        }
-        char firstCharacter = leadingStripped.charAt(0);
-        if (firstCharacter == '=' || firstCharacter == '+' || firstCharacter == '-'
-                || firstCharacter == '@' || firstCharacter == '\t' || firstCharacter == '\r') {
-            return "'" + value;
-        }
-        return value;
     }
 
     private ExportPeriod resolvePeriod(LocalDate startDate, LocalDate endDate, boolean required) {
@@ -242,7 +262,7 @@ public class AdminOrderExportService {
     private String buildProjectFilename(Project project, ExportPeriod period) {
         String projectTitle = sanitizeFilenamePart(project.getTitle());
         String dateSuffix = period == null ? "" : "_" + period.fileDateRange();
-        return projectTitle + "_주문목록" + dateSuffix + ".csv";
+        return projectTitle + "_주문목록" + dateSuffix + ".xlsx";
     }
 
     private String sanitizeFilenamePart(String value) {

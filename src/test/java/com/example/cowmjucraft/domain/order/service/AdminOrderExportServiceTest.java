@@ -27,11 +27,16 @@ import com.example.cowmjucraft.domain.project.entity.Project;
 import com.example.cowmjucraft.domain.project.entity.ProjectCategory;
 import com.example.cowmjucraft.domain.project.entity.ProjectStatus;
 import com.example.cowmjucraft.domain.project.repository.ProjectRepository;
-import java.nio.charset.StandardCharsets;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import org.apache.poi.ss.usermodel.CellType;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -67,7 +72,7 @@ class AdminOrderExportServiceTest {
     }
 
     @Test
-    void exportProjectOrders_주문상세정보_CSV파일반환() {
+    void exportProjectOrders_주문상세정보_XLSX파일반환() throws IOException {
         // given
         Project project = project(1L, "가을 프로젝트");
         LocalDateTime createdAt = LocalDateTime.of(2026, 9, 3, 14, 25, 30);
@@ -104,20 +109,26 @@ class AdminOrderExportServiceTest {
         );
 
         // then
-        String csv = new String(response.content(), StandardCharsets.UTF_8);
-        assertThat(response.filename()).isEqualTo("가을 프로젝트_주문목록_20260901-20260905.csv");
-        assertThat(csv).startsWith("\uFEFF\"주문일자\"");
-        assertThat(csv).contains("\"2026-09-03 14:25:30\"");
-        assertThat(csv).contains("\"ORD-10\"");
-        assertThat(csv).contains("\"'=홍길동\"");
-        assertThat(csv).contains("\"티셔츠, 검정 | 스티커 \"\"A\"\"\"");
-        assertThat(csv).contains("\"2 | 1\"");
-        assertThat(csv).contains("\"04524 서울시 중구 101호\"");
-        assertThat(csv).doesNotContain("상품 옵션");
+        try (XSSFWorkbook workbook = new XSSFWorkbook(new ByteArrayInputStream(response.content()))) {
+            Sheet sheet = workbook.getSheet("주문목록");
+            Row header = sheet.getRow(0);
+            Row row = sheet.getRow(1);
+
+            assertThat(response.filename()).isEqualTo("가을 프로젝트_주문목록_20260901-20260905.xlsx");
+            assertThat(header.getCell(0).getStringCellValue()).isEqualTo("주문일자");
+            assertThat(row.getCell(0).getStringCellValue()).isEqualTo("2026-09-03 14:25:30");
+            assertThat(row.getCell(1).getStringCellValue()).isEqualTo("ORD-10");
+            assertThat(row.getCell(3).getCellType()).isEqualTo(CellType.STRING);
+            assertThat(row.getCell(3).getStringCellValue()).isEqualTo("=홍길동");
+            assertThat(row.getCell(8).getStringCellValue()).isEqualTo("티셔츠, 검정 | 스티커 \"A\"");
+            assertThat(row.getCell(9).getStringCellValue()).isEqualTo("2 | 1");
+            assertThat(row.getCell(11).getStringCellValue()).isEqualTo("04524 서울시 중구 101호");
+            assertThat(row.getLastCellNum()).isEqualTo((short) 14);
+        }
     }
 
     @Test
-    void exportOrdersByDate_주문없음_헤더만포함한CSV반환() {
+    void exportOrdersByDate_주문없음_헤더만포함한XLSX반환() throws IOException {
         // given
         LocalDate date = LocalDate.of(2026, 9, 5);
         given(orderRepository.findAllForExport(
@@ -137,10 +148,13 @@ class AdminOrderExportServiceTest {
         );
 
         // then
-        String csv = new String(response.content(), StandardCharsets.UTF_8);
-        assertThat(response.filename()).isEqualTo("주문목록_20260905-20260905.csv");
-        assertThat(csv.lines()).hasSize(1);
-        assertThat(csv).contains("\"환불계좌\"");
+        try (XSSFWorkbook workbook = new XSSFWorkbook(new ByteArrayInputStream(response.content()))) {
+            Sheet sheet = workbook.getSheet("주문목록");
+
+            assertThat(response.filename()).isEqualTo("주문목록_20260905-20260905.xlsx");
+            assertThat(sheet.getPhysicalNumberOfRows()).isEqualTo(1);
+            assertThat(sheet.getRow(0).getCell(13).getStringCellValue()).isEqualTo("환불계좌");
+        }
         verifyNoInteractions(orderBuyerRepository, orderFulfillmentRepository, orderItemRepository);
     }
 

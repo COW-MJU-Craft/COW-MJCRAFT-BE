@@ -46,6 +46,7 @@ public enum OrderErrorType implements ErrorCode {
     INVALID_EXPORT_DATE_RANGE(400, "다운로드 날짜 범위가 올바르지 않습니다."),
 
     TOKEN_HASH_FAILED(500, "토큰 처리 중 오류가 발생했습니다."),
+    EXPORT_FILE_CREATE_FAILED(500, "주문 다운로드 파일 생성에 실패했습니다."),
     EMAIL_SEND_FAILED(500, "주문 메일 발송에 실패했습니다.");
 
     private final int httpStatusCode;
