@@ -7,6 +7,8 @@ import com.example.cowmjucraft.domain.item.entity.ItemStatus;
 import com.example.cowmjucraft.domain.item.entity.ItemType;
 import com.example.cowmjucraft.domain.item.entity.ProjectItem;
 import com.example.cowmjucraft.domain.order.entity.Order;
+import com.example.cowmjucraft.domain.order.entity.OrderFulfillment;
+import com.example.cowmjucraft.domain.order.entity.OrderFulfillmentMethod;
 import com.example.cowmjucraft.domain.order.entity.OrderItem;
 import com.example.cowmjucraft.domain.order.entity.OrderStatus;
 import com.example.cowmjucraft.domain.project.entity.Project;
@@ -21,6 +23,7 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
+import org.springframework.test.util.ReflectionTestUtils;
 
 @DataJpaTest
 class ProjectOrderQueryRepositoryTest {
@@ -36,6 +39,33 @@ class ProjectOrderQueryRepositoryTest {
 
     @Autowired
     private ProjectRepository projectRepository;
+
+    @Test
+    void findAllForExport_프로젝트날짜상태수령방식조건_일치주문만조회() {
+        // given
+        TestData data = persistTestData();
+        LocalDateTime now = LocalDateTime.now();
+
+        // when
+        List<Order> matching = orderRepository.findAllForExport(
+                data.firstProject().getId(),
+                now.minusDays(1),
+                now.plusDays(1),
+                OrderStatus.PAID,
+                OrderFulfillmentMethod.DELIVERY
+        );
+        List<Order> differentFulfillmentMethod = orderRepository.findAllForExport(
+                data.firstProject().getId(),
+                now.minusDays(1),
+                now.plusDays(1),
+                OrderStatus.PAID,
+                OrderFulfillmentMethod.PICKUP
+        );
+
+        // then
+        assertThat(matching).extracting(Order::getId).containsExactly(data.paidOrder().getId());
+        assertThat(differentFulfillmentMethod).isEmpty();
+    }
 
     @Test
     void findAllByRepresentativeProjectIdAndStatusOrderByCreatedAtDesc_대표프로젝트주문만조회() {
@@ -104,6 +134,29 @@ class ProjectOrderQueryRepositoryTest {
 
         Order paidOrder = order("ORD-PAID", firstProject, 1L, OrderStatus.PAID, 35000);
         Order pendingOrder = order("ORD-PENDING", firstProject, 2L, OrderStatus.PENDING_DEPOSIT, 5000);
+
+        entityManager.persist(new OrderFulfillment(
+                paidOrder,
+                OrderFulfillmentMethod.DELIVERY,
+                "홍길동",
+                "010-1234-5678",
+                true,
+                "04524",
+                "서울시 중구",
+                "101호",
+                null
+        ));
+        entityManager.persist(new OrderFulfillment(
+                pendingOrder,
+                OrderFulfillmentMethod.PICKUP,
+                "김명지",
+                "010-9876-5432",
+                true,
+                null,
+                null,
+                null,
+                null
+        ));
 
         entityManager.persist(new OrderItem(paidOrder, firstItem, 1, 10000, 10000, firstItem.getName()));
         entityManager.persist(new OrderItem(
@@ -182,6 +235,7 @@ class ProjectOrderQueryRepositoryTest {
                 true,
                 now
         );
+        ReflectionTestUtils.setField(order, "createdAt", now);
         entityManager.persist(order);
         return order;
     }
