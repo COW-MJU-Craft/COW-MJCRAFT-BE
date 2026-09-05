@@ -43,6 +43,7 @@ public enum OrderErrorType implements ErrorCode {
     CANCEL_RISK_AGREEMENT_REQUIRED(400, "주문 취소 리스크 동의가 필요합니다."),
     ORDER_AMOUNT_OVERFLOW(400, "주문 금액 계산 중 오류가 발생했습니다."),
     LOOKUP_FIELD_REQUIRED(400, "필수 조회 필드가 누락되었습니다."),
+    INVALID_EXPORT_DATE_RANGE(400, "다운로드 날짜 범위가 올바르지 않습니다."),
 
     TOKEN_HASH_FAILED(500, "토큰 처리 중 오류가 발생했습니다."),
     EMAIL_SEND_FAILED(500, "주문 메일 발송에 실패했습니다.");
