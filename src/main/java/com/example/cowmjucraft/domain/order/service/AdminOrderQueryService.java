@@ -6,10 +6,13 @@ import com.example.cowmjucraft.domain.order.dto.response.OrderDetailResponseDto;
 import com.example.cowmjucraft.domain.order.entity.MailOutboxEventType;
 import com.example.cowmjucraft.domain.order.entity.Order;
 import com.example.cowmjucraft.domain.order.entity.OrderBuyer;
+import com.example.cowmjucraft.domain.order.entity.OrderFulfillment;
+import com.example.cowmjucraft.domain.order.entity.OrderFulfillmentMethod;
 import com.example.cowmjucraft.domain.order.entity.OrderStatus;
 import com.example.cowmjucraft.domain.order.exception.OrderErrorType;
 import com.example.cowmjucraft.domain.order.exception.OrderException;
 import com.example.cowmjucraft.domain.order.repository.OrderBuyerRepository;
+import com.example.cowmjucraft.domain.order.repository.OrderFulfillmentRepository;
 import com.example.cowmjucraft.domain.order.repository.OrderRepository;
 import java.time.LocalDateTime;
 import java.util.Collections;
@@ -27,15 +30,17 @@ public class AdminOrderQueryService {
 
     private final OrderRepository orderRepository;
     private final OrderBuyerRepository orderBuyerRepository;
+    private final OrderFulfillmentRepository orderFulfillmentRepository;
     private final OrderDetailQueryService orderDetailQueryService;
     private final OrderViewTokenService orderViewTokenService;
     private final MailOutboxService mailOutboxService;
 
     @Transactional(readOnly = true)
-    public List<AdminOrderListItemResponseDto> getOrders(OrderStatus status) {
-        List<Order> orders = status == null
-                ? orderRepository.findAllByOrderByCreatedAtDesc()
-                : orderRepository.findAllByStatusOrderByCreatedAtDesc(status);
+    public List<AdminOrderListItemResponseDto> getOrders(
+            OrderStatus status,
+            OrderFulfillmentMethod fulfillmentMethod
+    ) {
+        List<Order> orders = orderRepository.findAllByFilters(null, status, fulfillmentMethod);
 
         if (orders.isEmpty()) {
             return Collections.emptyList();
@@ -44,10 +49,14 @@ public class AdminOrderQueryService {
         List<Long> orderIds = orders.stream().map(Order::getId).toList();
         Map<Long, OrderBuyer> buyerByOrderId = orderBuyerRepository.findAllByOrderIdIn(orderIds).stream()
                 .collect(Collectors.toMap(OrderBuyer::getOrderId, Function.identity()));
+        Map<Long, OrderFulfillment> fulfillmentByOrderId = orderFulfillmentRepository
+                .findAllByOrderIdIn(orderIds).stream()
+                .collect(Collectors.toMap(OrderFulfillment::getOrderId, Function.identity()));
 
         return orders.stream()
                 .map(order -> {
                     OrderBuyer buyer = buyerByOrderId.get(order.getId());
+                    OrderFulfillment fulfillment = fulfillmentByOrderId.get(order.getId());
                     return new AdminOrderListItemResponseDto(
                             order.getId(),
                             order.getOrderNo(),
@@ -56,6 +65,7 @@ public class AdminOrderQueryService {
                             order.getStatus().name(),
                             order.getFinalAmount(),
                             order.getShippingFee(),
+                            fulfillment == null ? null : fulfillment.getMethod(),
                             order.getDepositorName(),
                             buyer == null ? null : buyer.getName(),
                             buyer == null ? null : buyer.getPhone(),

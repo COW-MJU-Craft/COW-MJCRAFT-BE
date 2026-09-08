@@ -22,6 +22,25 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     @Query("""
             select o
             from Order o
+            where (:projectId is null or o.representativeProject.id = :projectId)
+              and (:status is null or o.status = :status)
+              and (:fulfillmentMethod is null or exists (
+                    select f.orderId
+                    from OrderFulfillment f
+                    where f.order = o
+                      and f.method = :fulfillmentMethod
+              ))
+            order by o.createdAt desc, o.id desc
+            """)
+    List<Order> findAllByFilters(
+            @Param("projectId") Long projectId,
+            @Param("status") OrderStatus status,
+            @Param("fulfillmentMethod") OrderFulfillmentMethod fulfillmentMethod
+    );
+
+    @Query("""
+            select o
+            from Order o
             where o.representativeProject.id = :projectId
               and (:status is null or o.status = :status)
             order by o.createdAt desc

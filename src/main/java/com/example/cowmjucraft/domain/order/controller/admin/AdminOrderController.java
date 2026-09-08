@@ -5,6 +5,7 @@ import com.example.cowmjucraft.domain.order.dto.request.AdminOrderCompletePageUp
 import com.example.cowmjucraft.domain.order.dto.request.AdminOrderPolicyUpdateRequestDto;
 import com.example.cowmjucraft.domain.order.dto.response.*;
 import com.example.cowmjucraft.domain.order.entity.OrderStatus;
+import com.example.cowmjucraft.domain.order.entity.OrderFulfillmentMethod;
 import com.example.cowmjucraft.domain.order.service.AdminOrderCompletePageService;
 import com.example.cowmjucraft.domain.order.service.AdminOrderPaymentService;
 import com.example.cowmjucraft.domain.order.service.AdminOrderPolicyService;
@@ -33,9 +34,14 @@ public class AdminOrderController implements AdminOrderControllerDocs {
     @GetMapping("/orders")
     @Override
     public ResponseEntity<ApiResult<List<AdminOrderListItemResponseDto>>> getOrders(
-            @RequestParam(value = "status", required = false) OrderStatus status
+            @RequestParam(value = "status", required = false) OrderStatus status,
+            @RequestParam(value = "fulfillmentMethod", required = false)
+            OrderFulfillmentMethod fulfillmentMethod
     ) {
-        return ApiResponse.of(SuccessType.SUCCESS, adminOrderQueryService.getOrders(status));
+        return ApiResponse.of(
+                SuccessType.SUCCESS,
+                adminOrderQueryService.getOrders(status, fulfillmentMethod)
+        );
     }
 
     @GetMapping("/orders/{orderId}")

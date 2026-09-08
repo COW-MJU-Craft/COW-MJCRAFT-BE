@@ -1,6 +1,7 @@
 package com.example.cowmjucraft.domain.order.dto.response;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import com.example.cowmjucraft.domain.order.entity.OrderFulfillmentMethod;
 import java.time.LocalDateTime;
 
 @Schema(description = "관리자 주문 목록 아이템 응답 DTO")
@@ -25,6 +26,9 @@ public record AdminOrderListItemResponseDto(
 
         @Schema(description = "배송비", example = "3500")
         int shippingFee,
+
+        @Schema(description = "수령 방식", example = "DELIVERY")
+        OrderFulfillmentMethod fulfillmentMethod,
 
         @Schema(description = "입금자명", example = "홍길동")
         String depositorName,

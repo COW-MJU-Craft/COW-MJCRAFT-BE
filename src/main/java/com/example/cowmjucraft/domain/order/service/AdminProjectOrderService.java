@@ -6,10 +6,13 @@ import com.example.cowmjucraft.domain.order.dto.response.AdminOrderStatusRespons
 import com.example.cowmjucraft.domain.order.dto.response.AdminProjectOrderStatisticsResponseDto;
 import com.example.cowmjucraft.domain.order.entity.Order;
 import com.example.cowmjucraft.domain.order.entity.OrderBuyer;
+import com.example.cowmjucraft.domain.order.entity.OrderFulfillment;
+import com.example.cowmjucraft.domain.order.entity.OrderFulfillmentMethod;
 import com.example.cowmjucraft.domain.order.entity.OrderStatus;
 import com.example.cowmjucraft.domain.order.exception.OrderErrorType;
 import com.example.cowmjucraft.domain.order.exception.OrderException;
 import com.example.cowmjucraft.domain.order.repository.OrderBuyerRepository;
+import com.example.cowmjucraft.domain.order.repository.OrderFulfillmentRepository;
 import com.example.cowmjucraft.domain.order.repository.OrderItemRepository;
 import com.example.cowmjucraft.domain.order.repository.OrderRepository;
 import com.example.cowmjucraft.domain.order.repository.ProjectOrderStatisticsProjection;
@@ -44,13 +47,17 @@ public class AdminProjectOrderService {
     private final OrderRepository orderRepository;
     private final OrderItemRepository orderItemRepository;
     private final OrderBuyerRepository orderBuyerRepository;
+    private final OrderFulfillmentRepository orderFulfillmentRepository;
     private final AdminOrderPaymentService adminOrderPaymentService;
 
     @Transactional(readOnly = true)
-    public List<AdminOrderListItemResponseDto> getOrders(Long projectId, OrderStatus status) {
+    public List<AdminOrderListItemResponseDto> getOrders(
+            Long projectId,
+            OrderStatus status,
+            OrderFulfillmentMethod fulfillmentMethod
+    ) {
         validateProjectExists(projectId);
-        List<Order> orders = orderRepository
-                .findAllByRepresentativeProjectIdAndStatusOrderByCreatedAtDesc(projectId, status);
+        List<Order> orders = orderRepository.findAllByFilters(projectId, status, fulfillmentMethod);
         return toListResponses(orders);
     }
 
@@ -116,10 +123,14 @@ public class AdminProjectOrderService {
         List<Long> orderIds = orders.stream().map(Order::getId).toList();
         Map<Long, OrderBuyer> buyerByOrderId = orderBuyerRepository.findAllByOrderIdIn(orderIds).stream()
                 .collect(Collectors.toMap(OrderBuyer::getOrderId, Function.identity()));
+        Map<Long, OrderFulfillment> fulfillmentByOrderId = orderFulfillmentRepository
+                .findAllByOrderIdIn(orderIds).stream()
+                .collect(Collectors.toMap(OrderFulfillment::getOrderId, Function.identity()));
 
         return orders.stream()
                 .map(order -> {
                     OrderBuyer buyer = buyerByOrderId.get(order.getId());
+                    OrderFulfillment fulfillment = fulfillmentByOrderId.get(order.getId());
                     return new AdminOrderListItemResponseDto(
                             order.getId(),
                             order.getOrderNo(),
@@ -128,6 +139,7 @@ public class AdminProjectOrderService {
                             order.getStatus().name(),
                             order.getFinalAmount(),
                             order.getShippingFee(),
+                            fulfillment == null ? null : fulfillment.getMethod(),
                             order.getDepositorName(),
                             buyer == null ? null : buyer.getName(),
                             buyer == null ? null : buyer.getPhone(),
