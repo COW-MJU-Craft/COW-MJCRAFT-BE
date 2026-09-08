@@ -75,19 +75,22 @@ class OrderCreateServiceTest {
         representativeProject = project(10L);
         org.mockito.Mockito.lenient().when(projectRepository.findByIdForUpdate(10L))
                 .thenReturn(Optional.of(representativeProject));
+        OrderPricingService orderPricingService = new OrderPricingService(
+                projectItemRepository,
+                orderPolicyRepository
+        );
         orderCreateService = new OrderCreateService(
                 orderRepository,
                 orderItemRepository,
                 orderBuyerRepository,
                 orderFulfillmentRepository,
                 orderAuthRepository,
-                projectItemRepository,
                 passwordEncoder,
                 orderViewTokenService,
                 mailOutboxService,
                 new PasswordPolicy(),
-                orderPolicyRepository,
-                projectRepository
+                projectRepository,
+                orderPricingService
         );
     }
 
