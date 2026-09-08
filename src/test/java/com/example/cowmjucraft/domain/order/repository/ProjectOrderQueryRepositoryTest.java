@@ -92,6 +92,25 @@ class ProjectOrderQueryRepositoryTest {
     }
 
     @Test
+    void findAllByFilters_프로젝트상태수령방식을함께필터링한다() {
+        TestData data = persistTestData();
+
+        List<Order> deliveryPaid = orderRepository.findAllByFilters(
+                data.firstProject().getId(),
+                OrderStatus.PAID,
+                OrderFulfillmentMethod.DELIVERY
+        );
+        List<Order> pickupPaid = orderRepository.findAllByFilters(
+                data.firstProject().getId(),
+                OrderStatus.PAID,
+                OrderFulfillmentMethod.PICKUP
+        );
+
+        assertThat(deliveryPaid).extracting(Order::getId).containsExactly(data.paidOrder().getId());
+        assertThat(pickupPaid).isEmpty();
+    }
+
+    @Test
     void calculateProjectOrderStatistics_혼합프로젝트주문_해당프로젝트상품금액만집계() {
         // given
         TestData data = persistTestData();
