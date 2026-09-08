@@ -2,10 +2,12 @@ package com.example.cowmjucraft.domain.order.controller.client;
 
 import com.example.cowmjucraft.domain.order.dto.request.OrderCreateRequestDto;
 import com.example.cowmjucraft.domain.order.dto.request.OrderLookupRequestDto;
+import com.example.cowmjucraft.domain.order.dto.request.OrderQuoteRequestDto;
 import com.example.cowmjucraft.domain.order.dto.response.OrderCompletePageResponseDto;
 import com.example.cowmjucraft.domain.order.dto.response.OrderCreateResponseDto;
 import com.example.cowmjucraft.domain.order.dto.response.OrderDetailResponseDto;
 import com.example.cowmjucraft.domain.order.dto.response.OrderLookupIdAvailabilityResponseDto;
+import com.example.cowmjucraft.domain.order.dto.response.OrderQuoteResponseDto;
 import com.example.cowmjucraft.domain.order.service.*;
 import com.example.cowmjucraft.global.response.ApiResponse;
 import com.example.cowmjucraft.global.response.ApiResult;
@@ -30,6 +32,7 @@ public class ClientOrderController implements ClientOrderControllerDocs {
     private final OrderDetailQueryService orderDetailQueryService;
     private final OrderQueryByTokenService orderQueryByTokenService;
     private final OrderCompletePageService orderCompletePageService;
+    private final OrderQuoteService orderQuoteService;
 
     @PostMapping("/orders")
     @Override
@@ -37,6 +40,14 @@ public class ClientOrderController implements ClientOrderControllerDocs {
             @Valid @RequestBody OrderCreateRequestDto request
     ) {
         return ApiResponse.of(SuccessType.CREATED, orderCreateService.createOrder(request));
+    }
+
+    @PostMapping("/orders/quote")
+    @Override
+    public ResponseEntity<ApiResult<OrderQuoteResponseDto>> quoteOrder(
+            @Valid @RequestBody OrderQuoteRequestDto request
+    ) {
+        return ApiResponse.of(SuccessType.SUCCESS, orderQuoteService.quote(request));
     }
 
     @GetMapping("/orders/lookup-id/availability")
