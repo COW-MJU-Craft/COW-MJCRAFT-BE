@@ -1,5 +1,6 @@
 package com.example.cowmjucraft.domain.order.controller.admin;
 
+import com.example.cowmjucraft.domain.order.dto.request.AdminOrderBuyerEmailUpdateRequestDto;
 import com.example.cowmjucraft.domain.order.dto.request.AdminOrderCancelRequestDto;
 import com.example.cowmjucraft.domain.order.dto.request.AdminOrderCompletePageUpsertRequestDto;
 import com.example.cowmjucraft.domain.order.dto.request.AdminOrderPolicyUpdateRequestDto;
@@ -157,5 +158,25 @@ public interface AdminOrderControllerDocs {
     ResponseEntity<ApiResult<AdminOrderStatusResponseDto>> confirmRefund(
             @Parameter(description = "주문 ID", example = "1")
             Long orderId
+    );
+
+    @Operation(
+            summary = "주문자 이메일 정정",
+            description = """
+                    주문자가 이메일을 잘못 입력하면 완료 메일도 조회도 전부 막힌다.
+                    사용자가 스스로 고칠 수 없으므로 관리자가 정정한다.
+                    정정하면 주문 스냅샷의 이메일과 소속 고객을 함께 옮기고,
+                    기존 조회 링크를 폐기한 뒤 새 링크를 정정된 주소로 다시 보낸다.
+                    """
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "정정 성공", content = @Content(schema = @Schema(implementation = ApiResult.class))),
+            @ApiResponse(responseCode = "400", description = "이메일 형식 오류"),
+            @ApiResponse(responseCode = "404", description = "주문 또는 주문자 정보를 찾을 수 없음")
+    })
+    ResponseEntity<ApiResult<Void>> correctBuyerEmail(
+            @Parameter(description = "주문 ID", example = "1")
+            Long orderId,
+            AdminOrderBuyerEmailUpdateRequestDto request
     );
 }

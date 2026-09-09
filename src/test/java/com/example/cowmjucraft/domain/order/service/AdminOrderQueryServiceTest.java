@@ -2,6 +2,7 @@ package com.example.cowmjucraft.domain.order.service;
 
 import com.example.cowmjucraft.domain.order.dto.response.AdminOrderListItemResponseDto;
 import com.example.cowmjucraft.domain.order.entity.MailOutboxEventType;
+import com.example.cowmjucraft.domain.customer.entity.Customer;
 import com.example.cowmjucraft.domain.order.entity.Order;
 import com.example.cowmjucraft.domain.order.entity.OrderBuyer;
 import com.example.cowmjucraft.domain.order.entity.OrderBuyerType;
@@ -134,6 +135,7 @@ class AdminOrderQueryServiceTest {
     private Order order(OrderStatus status) {
         Order order = new Order(
                 "ORD-001",
+                testCustomer(),
                 project(1L),
                 1L,
                 status,
@@ -156,6 +158,7 @@ class AdminOrderQueryServiceTest {
     private Order orderWithShippingFee(int shippingFee) {
         Order order = new Order(
                 "ORD-001",
+                testCustomer(),
                 project(1L),
                 1L,
                 OrderStatus.PENDING_DEPOSIT,
@@ -189,5 +192,9 @@ class AdminOrderQueryServiceTest {
                 "instagram",
                 "buyer@example.com"
         );
+    }
+
+    private Customer testCustomer() {
+        return new Customer("buyer@mju.ac.kr");
     }
 }

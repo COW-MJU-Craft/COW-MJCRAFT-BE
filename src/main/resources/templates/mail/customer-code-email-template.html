@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>이메일 인증 코드 안내</title>
+</head>
+<body style="margin:0; padding:24px 0; background-color:#f4f6fb; font-family:Apple SD Gothic Neo, 'Malgun Gothic', 'Noto Sans KR', sans-serif; color:#2b2f36;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#f4f6fb;">
+    <tr>
+        <td align="center" style="padding:16px;">
+            <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="width:600px; max-width:600px; background-color:#ffffff; border-radius:16px; box-shadow:0 8px 24px rgba(11,46,91,0.12); overflow:hidden;">
+                <tr>
+                    <td style="background-color:#0B2E5B; padding:24px 28px; color:#ffffff; font-size:22px; font-weight:700; letter-spacing:0.2px;">
+                        명지공방(明智工房)
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding:28px; font-size:15px; line-height:1.7; color:#2b2f36;">
+                        <p style="margin:0 0 14px 0; font-size:20px; font-weight:700; color:#123A7A;">인증 코드를 입력해 주세요.</p>
+                        <p style="margin:0 0 20px 0;">
+                            주문 정보를 저장하거나 비밀번호를 다시 설정하려면 아래 6자리 숫자가 필요해요.
+                        </p>
+
+                        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 20px 0;">
+                            <tr>
+                                <td align="center" style="padding:22px 16px; background-color:#f9fbff; border:1px solid #e7ecf4; border-radius:12px;">
+                                    <span style="font-size:34px; font-weight:700; letter-spacing:10px; color:#123A7A;"
+                                          th:text="${code}">481902</span>
+                                </td>
+                            </tr>
+                        </table>
+
+                        <p style="margin:0 0 8px 0; color:#5b6474; font-size:14px;">
+                            이 코드는 <strong th:text="${ttlMinutes}">10</strong>분간만 사용할 수 있어요.
+                        </p>
+                        <p style="margin:0; color:#5b6474; font-size:14px;">
+                            요청하지 않으셨다면 이 메일은 무시하셔도 됩니다. 코드를 입력하지 않으면 아무 일도 일어나지 않아요.
+                        </p>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding:18px 28px; background-color:#f9fbff; border-top:1px solid #e7ecf4; font-size:12px; color:#8792a6;">
+                        본 메일은 발신 전용입니다. 문의는 명지공방 채널로 남겨주세요.
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
+</body>
+</html>

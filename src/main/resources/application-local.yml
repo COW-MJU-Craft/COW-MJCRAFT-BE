@@ -47,6 +47,11 @@ app:
   public-base-url: ${APP_PUBLIC_BASE_URL}
   order-view-path: ${APP_ORDER_VIEW_PATH}
   order-view-token-ttl-minutes: ${APP_ORDER_VIEW_TOKEN_TTL_MINUTES}
+  # 이메일 인증 코드 해싱용 서버 비밀값. 절대 커밋하지 않는다.
+  customer-code-pepper: ${APP_CUSTOMER_CODE_PEPPER}
+  customer-code-ttl-minutes: ${APP_CUSTOMER_CODE_TTL_MINUTES:10}
+  customer-code-resend-interval-seconds: ${APP_CUSTOMER_CODE_RESEND_INTERVAL_SECONDS:60}
+  customer-code-daily-limit: ${APP_CUSTOMER_CODE_DAILY_LIMIT:10}
 
 mail:
   from: ${MAIL_FROM:${MAIL_USERNAME}}

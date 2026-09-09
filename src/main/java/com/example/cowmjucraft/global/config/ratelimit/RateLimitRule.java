@@ -33,6 +33,27 @@ public enum RateLimitRule {
     LOOKUP_ID_AVAILABILITY("lookup-id-availability", List.of("/api/orders/lookup-id/availability"), false),
 
     /**
+     * 이메일 인증 코드 발송 — 성공·실패를 가리지 않고 모두 센다.
+     * 응답이 항상 202라 실패만 세는 방식으로는 아무것도 막지 못하고,
+     * 남의 메일함으로 코드를 쏟아붓는 것 자체를 막아야 한다.
+     */
+    CUSTOMER_EMAIL_CODE("customer-email-code", List.of("/api/customers/email-code"), false),
+
+    /**
+     * 고객 자격증명을 받는 엔드포인트 — 실패한 시도만 센다.
+     * 세션이 없어 비밀번호가 매 요청에 실리므로 계정 단위 잠금
+     * ({@code Customer.MAX_PASSWORD_FAILURES})과 함께 두 겹으로 막는다.
+     */
+    CUSTOMER_CREDENTIAL(
+            "customer-credential",
+            List.of("/api/customers/prefill", "/api/customers/profile", "/api/customers/orders"),
+            true
+    ),
+
+    /** 코드 검증 — 실패한 시도만 센다. */
+    CUSTOMER_ENROLL("customer-enroll", List.of("/api/customers/enroll"), true),
+
+    /**
      * 주문 사전 견적 — 인증·부작용 없는 공개 조회라 자동화된 대량 호출을 자체적으로
      * 막을 수단이 없다. 성공·실패를 가리지 않고 모든 요청을 센다.
      */
