@@ -30,6 +30,7 @@ class OrderQuoteServiceTest {
 
     @Test
     void quote_가격계산결과를클라이언트응답으로변환한다() {
+        // given
         OrderQuoteService orderQuoteService = new OrderQuoteService(orderPricingService);
         ProjectItem projectItem = projectItem();
         OrderPricingService.PriceQuote priceQuote = new OrderPricingService.PriceQuote(
@@ -45,8 +46,10 @@ class OrderQuoteServiceTest {
         given(orderPricingService.calculate(anyList(), eq(OrderFulfillmentMethod.DELIVERY)))
                 .willReturn(priceQuote);
 
+        // when
         OrderQuoteResponseDto response = orderQuoteService.quote(request);
 
+        // then
         assertThat(response.totalAmount()).isEqualTo(6_000);
         assertThat(response.shippingFee()).isEqualTo(3_500);
         assertThat(response.finalAmount()).isEqualTo(9_500);

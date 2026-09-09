@@ -11,9 +11,12 @@ import com.example.cowmjucraft.domain.order.exception.OrderErrorType;
 import com.example.cowmjucraft.domain.order.exception.OrderException;
 import com.example.cowmjucraft.domain.order.repository.OrderPolicyRepository;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,17 +34,17 @@ public class OrderPricingService {
             OrderFulfillmentMethod fulfillmentMethod
     ) {
         Map<Long, Integer> quantityByItemId = aggregateItemQuantities(items);
+        Map<Long, ProjectItem> projectItemById = findProjectItems(quantityByItemId.keySet());
         int totalAmount = 0;
         List<PriceLine> lines = new ArrayList<>();
 
         for (Map.Entry<Long, Integer> entry : quantityByItemId.entrySet()) {
             Long projectItemId = entry.getKey();
             int quantity = entry.getValue();
-            ProjectItem projectItem = projectItemRepository.findById(projectItemId)
-                    .orElseThrow(() -> new OrderException(
-                            OrderErrorType.ITEM_NOT_FOUND,
-                            "projectItemId=" + projectItemId
-                    ));
+            ProjectItem projectItem = projectItemById.get(projectItemId);
+            if (projectItem == null) {
+                throw new OrderException(OrderErrorType.ITEM_NOT_FOUND, "projectItemId=" + projectItemId);
+            }
 
             validateOrderable(projectItem, quantity);
 
@@ -88,6 +91,12 @@ public class OrderPricingService {
             }
         }
         return quantityByItemId;
+    }
+
+    /** 상품 종류만큼 select이 나가지 않도록 한 번에 조회한다. 순서는 호출부의 요청 순서를 그대로 따른다. */
+    private Map<Long, ProjectItem> findProjectItems(Collection<Long> projectItemIds) {
+        return projectItemRepository.findAllById(projectItemIds).stream()
+                .collect(Collectors.toMap(ProjectItem::getId, Function.identity()));
     }
 
     private void validateOrderable(ProjectItem projectItem, int quantity) {

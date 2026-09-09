@@ -61,6 +61,7 @@ class ClientOrderQuoteControllerTest {
 
     @Test
     void quoteOrder_상품과수령방식으로현재금액반환() throws Exception {
+        // given
         given(orderQuoteService.quote(any(OrderQuoteRequestDto.class)))
                 .willReturn(new OrderQuoteResponseDto(
                         List.of(new OrderQuoteResponseDto.ItemDto(1L, 10L, "키링", 2, 3_000, 6_000)),
@@ -69,6 +70,7 @@ class ClientOrderQuoteControllerTest {
                         9_500
                 ));
 
+        // when & then
         mockMvc.perform(post("/api/orders/quote")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
