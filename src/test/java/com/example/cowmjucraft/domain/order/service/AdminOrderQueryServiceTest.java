@@ -50,7 +50,7 @@ class AdminOrderQueryServiceTest {
         adminOrderQueryService = new AdminOrderQueryService(
                 orderRepository,
                 orderBuyerRepository,
-                orderFulfillmentRepository,
+                new AdminOrderListAssembler(orderBuyerRepository, orderFulfillmentRepository),
                 orderDetailQueryService,
                 orderViewTokenService,
                 mailOutboxService

@@ -5,14 +5,10 @@ import com.example.cowmjucraft.domain.order.dto.response.AdminOrderListItemRespo
 import com.example.cowmjucraft.domain.order.dto.response.AdminOrderStatusResponseDto;
 import com.example.cowmjucraft.domain.order.dto.response.AdminProjectOrderStatisticsResponseDto;
 import com.example.cowmjucraft.domain.order.entity.Order;
-import com.example.cowmjucraft.domain.order.entity.OrderBuyer;
-import com.example.cowmjucraft.domain.order.entity.OrderFulfillment;
 import com.example.cowmjucraft.domain.order.entity.OrderFulfillmentMethod;
 import com.example.cowmjucraft.domain.order.entity.OrderStatus;
 import com.example.cowmjucraft.domain.order.exception.OrderErrorType;
 import com.example.cowmjucraft.domain.order.exception.OrderException;
-import com.example.cowmjucraft.domain.order.repository.OrderBuyerRepository;
-import com.example.cowmjucraft.domain.order.repository.OrderFulfillmentRepository;
 import com.example.cowmjucraft.domain.order.repository.OrderItemRepository;
 import com.example.cowmjucraft.domain.order.repository.OrderRepository;
 import com.example.cowmjucraft.domain.order.repository.ProjectOrderStatisticsProjection;
@@ -20,13 +16,9 @@ import com.example.cowmjucraft.domain.project.exception.ProjectErrorType;
 import com.example.cowmjucraft.domain.project.exception.ProjectException;
 import com.example.cowmjucraft.domain.project.repository.ProjectRepository;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -46,8 +38,7 @@ public class AdminProjectOrderService {
     private final ProjectRepository projectRepository;
     private final OrderRepository orderRepository;
     private final OrderItemRepository orderItemRepository;
-    private final OrderBuyerRepository orderBuyerRepository;
-    private final OrderFulfillmentRepository orderFulfillmentRepository;
+    private final AdminOrderListAssembler adminOrderListAssembler;
     private final AdminOrderPaymentService adminOrderPaymentService;
 
     @Transactional(readOnly = true)
@@ -57,8 +48,9 @@ public class AdminProjectOrderService {
             OrderFulfillmentMethod fulfillmentMethod
     ) {
         validateProjectExists(projectId);
-        List<Order> orders = orderRepository.findAllByFilters(projectId, status, fulfillmentMethod);
-        return toListResponses(orders);
+        return adminOrderListAssembler.assemble(
+                orderRepository.findAllByFilters(projectId, status, fulfillmentMethod)
+        );
     }
 
     @Transactional(readOnly = true)
@@ -113,41 +105,6 @@ public class AdminProjectOrderService {
                 nextStatus.name(),
                 orderIds
         );
-    }
-
-    private List<AdminOrderListItemResponseDto> toListResponses(List<Order> orders) {
-        if (orders.isEmpty()) {
-            return Collections.emptyList();
-        }
-
-        List<Long> orderIds = orders.stream().map(Order::getId).toList();
-        Map<Long, OrderBuyer> buyerByOrderId = orderBuyerRepository.findAllByOrderIdIn(orderIds).stream()
-                .collect(Collectors.toMap(OrderBuyer::getOrderId, Function.identity()));
-        Map<Long, OrderFulfillment> fulfillmentByOrderId = orderFulfillmentRepository
-                .findAllByOrderIdIn(orderIds).stream()
-                .collect(Collectors.toMap(OrderFulfillment::getOrderId, Function.identity()));
-
-        return orders.stream()
-                .map(order -> {
-                    OrderBuyer buyer = buyerByOrderId.get(order.getId());
-                    OrderFulfillment fulfillment = fulfillmentByOrderId.get(order.getId());
-                    return new AdminOrderListItemResponseDto(
-                            order.getId(),
-                            order.getOrderNo(),
-                            order.getRepresentativeProject().getId(),
-                            order.getProjectOrderNo(),
-                            order.getStatus().name(),
-                            order.getFinalAmount(),
-                            order.getShippingFee(),
-                            fulfillment == null ? null : fulfillment.getMethod(),
-                            order.getDepositorName(),
-                            buyer == null ? null : buyer.getName(),
-                            buyer == null ? null : buyer.getPhone(),
-                            order.getCreatedAt(),
-                            order.getDepositDeadline()
-                    );
-                })
-                .toList();
     }
 
     private List<Long> normalizeOrderIds(Collection<Long> requestedOrderIds) {

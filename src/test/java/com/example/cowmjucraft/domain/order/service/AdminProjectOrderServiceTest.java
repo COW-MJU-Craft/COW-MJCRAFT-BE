@@ -53,8 +53,7 @@ class AdminProjectOrderServiceTest {
                 projectRepository,
                 orderRepository,
                 orderItemRepository,
-                orderBuyerRepository,
-                orderFulfillmentRepository,
+                new AdminOrderListAssembler(orderBuyerRepository, orderFulfillmentRepository),
                 adminOrderPaymentService
         );
     }
