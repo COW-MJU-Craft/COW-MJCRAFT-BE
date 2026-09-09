@@ -18,5 +18,5 @@ echo "Claude CLI 설치 여부: $(command -v claude &>/dev/null && echo '확인�
 
 # pre-commit hook 실행 권한 확인 (절대 규칙 강제)
 chmod +x .githooks/pre-commit 2>/dev/null || true
-echo "pre-commit: main 직접 커밋 차단 + 시크릿 스캔 활성화됨"
+echo "pre-commit: main·develop 직접 커밋 차단 + 시크릿 스캔 활성화됨"
 echo "gitleaks 설치 여부: $(command -v gitleaks &>/dev/null && echo '확인됨' || echo '미설치 (grep 폴백 사용, brew install gitleaks 권장)')"
