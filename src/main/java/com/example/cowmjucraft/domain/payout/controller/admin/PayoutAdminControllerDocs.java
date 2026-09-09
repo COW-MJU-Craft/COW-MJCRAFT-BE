@@ -4,7 +4,10 @@ import com.example.cowmjucraft.domain.payout.dto.request.PayoutCreateAdminReques
 import com.example.cowmjucraft.domain.payout.dto.request.PayoutItemCreateAdminRequest;
 import com.example.cowmjucraft.domain.payout.dto.request.PayoutItemUpdateAdminRequest;
 import com.example.cowmjucraft.domain.payout.dto.request.PayoutUpdateAdminRequest;
-import com.example.cowmjucraft.domain.payout.dto.response.*;
+import com.example.cowmjucraft.domain.payout.dto.response.PayoutCreateResponse;
+import com.example.cowmjucraft.domain.payout.dto.response.PayoutDetailResponse;
+import com.example.cowmjucraft.domain.payout.dto.response.PayoutItemCreateResponse;
+import com.example.cowmjucraft.domain.payout.dto.response.PayoutListWrapperResponse;
 import com.example.cowmjucraft.global.response.ApiResult;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;

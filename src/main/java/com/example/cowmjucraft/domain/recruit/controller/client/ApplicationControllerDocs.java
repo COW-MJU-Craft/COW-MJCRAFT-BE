@@ -4,10 +4,13 @@ import com.example.cowmjucraft.domain.recruit.dto.client.request.ApplicationCrea
 import com.example.cowmjucraft.domain.recruit.dto.client.request.ApplicationReadRequest;
 import com.example.cowmjucraft.domain.recruit.dto.client.request.ApplicationUpdateRequest;
 import com.example.cowmjucraft.domain.recruit.dto.client.request.ResultReadRequest;
-import com.example.cowmjucraft.domain.recruit.dto.client.response.*;
+import com.example.cowmjucraft.domain.recruit.dto.client.response.ApplicationCreateResponse;
+import com.example.cowmjucraft.domain.recruit.dto.client.response.ApplicationFormInfoResponse;
+import com.example.cowmjucraft.domain.recruit.dto.client.response.ApplicationReadResponse;
+import com.example.cowmjucraft.domain.recruit.dto.client.response.ApplicationUpdateResponse;
+import com.example.cowmjucraft.domain.recruit.dto.client.response.ResultReadResponse;
 import com.example.cowmjucraft.global.cloud.S3PresignFacade;
 import com.example.cowmjucraft.global.response.ApiResult;
-import org.springframework.http.ResponseEntity;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -16,6 +19,7 @@ import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.http.ResponseEntity;
 
 import java.util.List;
 
