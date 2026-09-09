@@ -6,8 +6,10 @@ import com.example.cowmjucraft.domain.customer.entity.Customer;
 import com.example.cowmjucraft.domain.order.entity.Order;
 import com.example.cowmjucraft.domain.order.entity.OrderBuyer;
 import com.example.cowmjucraft.domain.order.entity.OrderBuyerType;
+import com.example.cowmjucraft.domain.order.entity.OrderFulfillmentMethod;
 import com.example.cowmjucraft.domain.order.entity.OrderStatus;
 import com.example.cowmjucraft.domain.order.repository.OrderBuyerRepository;
+import com.example.cowmjucraft.domain.order.repository.OrderFulfillmentRepository;
 import com.example.cowmjucraft.domain.order.repository.OrderRepository;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -34,6 +36,8 @@ class AdminOrderQueryServiceTest {
     @Mock
     private OrderBuyerRepository orderBuyerRepository;
     @Mock
+    private OrderFulfillmentRepository orderFulfillmentRepository;
+    @Mock
     private OrderDetailQueryService orderDetailQueryService;
     @Mock
     private OrderViewTokenService orderViewTokenService;
@@ -47,6 +51,7 @@ class AdminOrderQueryServiceTest {
         adminOrderQueryService = new AdminOrderQueryService(
                 orderRepository,
                 orderBuyerRepository,
+                new AdminOrderListAssembler(orderBuyerRepository, orderFulfillmentRepository),
                 orderDetailQueryService,
                 orderViewTokenService,
                 mailOutboxService
@@ -57,15 +62,20 @@ class AdminOrderQueryServiceTest {
     void getOrders_주문목록조회_shippingFee포함() {
         // given
         Order order = orderWithShippingFee(3500);
-        when(orderRepository.findAllByOrderByCreatedAtDesc()).thenReturn(List.of(order));
+        when(orderRepository.findAllByFilters(null, null, OrderFulfillmentMethod.DELIVERY))
+                .thenReturn(List.of(order));
         when(orderBuyerRepository.findAllByOrderIdIn(List.of(10L))).thenReturn(List.of());
 
         // when
-        List<AdminOrderListItemResponseDto> result = adminOrderQueryService.getOrders(null);
+        List<AdminOrderListItemResponseDto> result = adminOrderQueryService.getOrders(
+                null,
+                OrderFulfillmentMethod.DELIVERY
+        );
 
         // then
         assertThat(result).hasSize(1);
         assertThat(result.get(0).shippingFee()).isEqualTo(3500);
+        verify(orderRepository).findAllByFilters(null, null, OrderFulfillmentMethod.DELIVERY);
     }
 
     @Test

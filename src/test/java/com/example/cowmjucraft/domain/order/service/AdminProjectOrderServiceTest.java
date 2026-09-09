@@ -12,9 +12,11 @@ import com.example.cowmjucraft.domain.order.dto.response.AdminOrderListItemRespo
 import com.example.cowmjucraft.domain.order.dto.response.AdminProjectOrderStatisticsResponseDto;
 import com.example.cowmjucraft.domain.customer.entity.Customer;
 import com.example.cowmjucraft.domain.order.entity.Order;
+import com.example.cowmjucraft.domain.order.entity.OrderFulfillmentMethod;
 import com.example.cowmjucraft.domain.order.entity.OrderStatus;
 import com.example.cowmjucraft.domain.order.exception.OrderException;
 import com.example.cowmjucraft.domain.order.repository.OrderBuyerRepository;
+import com.example.cowmjucraft.domain.order.repository.OrderFulfillmentRepository;
 import com.example.cowmjucraft.domain.order.repository.OrderItemRepository;
 import com.example.cowmjucraft.domain.order.repository.OrderRepository;
 import com.example.cowmjucraft.domain.order.repository.ProjectOrderStatisticsProjection;
@@ -40,6 +42,8 @@ class AdminProjectOrderServiceTest {
     @Mock
     private OrderBuyerRepository orderBuyerRepository;
     @Mock
+    private OrderFulfillmentRepository orderFulfillmentRepository;
+    @Mock
     private AdminOrderPaymentService adminOrderPaymentService;
 
     private AdminProjectOrderService adminProjectOrderService;
@@ -50,7 +54,7 @@ class AdminProjectOrderServiceTest {
                 projectRepository,
                 orderRepository,
                 orderItemRepository,
-                orderBuyerRepository,
+                new AdminOrderListAssembler(orderBuyerRepository, orderFulfillmentRepository),
                 adminOrderPaymentService
         );
     }
@@ -80,9 +84,10 @@ class AdminProjectOrderServiceTest {
         // given
         Order order = order(10L, OrderStatus.IN_PRODUCTION);
         given(projectRepository.existsById(1L)).willReturn(true);
-        given(orderRepository.findAllByRepresentativeProjectIdAndStatusOrderByCreatedAtDesc(
+        given(orderRepository.findAllByFilters(
                 1L,
-                OrderStatus.IN_PRODUCTION
+                OrderStatus.IN_PRODUCTION,
+                OrderFulfillmentMethod.PICKUP
         ))
                 .willReturn(List.of(order));
         given(orderBuyerRepository.findAllByOrderIdIn(List.of(10L))).willReturn(List.of());
@@ -90,7 +95,8 @@ class AdminProjectOrderServiceTest {
         // when
         List<AdminOrderListItemResponseDto> response = adminProjectOrderService.getOrders(
                 1L,
-                OrderStatus.IN_PRODUCTION
+                OrderStatus.IN_PRODUCTION,
+                OrderFulfillmentMethod.PICKUP
         );
 
         // then

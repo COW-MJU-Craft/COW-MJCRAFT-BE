@@ -2,10 +2,12 @@ package com.example.cowmjucraft.domain.order.controller.client;
 
 import com.example.cowmjucraft.domain.order.dto.request.OrderCreateRequestDto;
 import com.example.cowmjucraft.domain.order.dto.request.OrderLookupRequestDto;
+import com.example.cowmjucraft.domain.order.dto.request.OrderQuoteRequestDto;
 import com.example.cowmjucraft.domain.order.dto.response.OrderCompletePageResponseDto;
 import com.example.cowmjucraft.domain.order.dto.response.OrderCreateResponseDto;
 import com.example.cowmjucraft.domain.order.dto.response.OrderDetailResponseDto;
 import com.example.cowmjucraft.domain.order.dto.response.OrderLookupIdAvailabilityResponseDto;
+import com.example.cowmjucraft.domain.order.dto.response.OrderQuoteResponseDto;
 import com.example.cowmjucraft.global.response.ApiResult;
 import org.springframework.http.ResponseEntity;
 import io.swagger.v3.oas.annotations.Operation;
@@ -117,6 +119,18 @@ public interface ClientOrderControllerDocs {
             @ApiResponse(responseCode = "409", description = "재고 부족 또는 상태 충돌")
     })
     ResponseEntity<ApiResult<OrderCreateResponseDto>> createOrder(OrderCreateRequestDto request);
+
+    @Operation(
+            summary = "주문 금액 사전 견적",
+            description = "현재 상품 가격, 판매 상태, 재고와 배송 정책을 기준으로 주문 금액을 검증합니다. 재고는 차감하지 않습니다."
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "견적 성공"),
+            @ApiResponse(responseCode = "400", description = "요청 값 검증 실패"),
+            @ApiResponse(responseCode = "404", description = "상품 또는 주문 정책을 찾을 수 없음"),
+            @ApiResponse(responseCode = "409", description = "판매 불가 또는 재고 부족")
+    })
+    ResponseEntity<ApiResult<OrderQuoteResponseDto>> quoteOrder(OrderQuoteRequestDto request);
 
     @Operation(
             summary = "조회 아이디 사용 가능 여부 확인",

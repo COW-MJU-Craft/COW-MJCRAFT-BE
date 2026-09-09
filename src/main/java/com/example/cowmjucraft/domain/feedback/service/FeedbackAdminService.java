@@ -4,9 +4,9 @@ import com.example.cowmjucraft.domain.feedback.entity.Feedback;
 import com.example.cowmjucraft.domain.feedback.exception.FeedbackErrorType;
 import com.example.cowmjucraft.domain.feedback.exception.FeedbackException;
 import com.example.cowmjucraft.domain.feedback.repository.FeedbackRepository;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @RequiredArgsConstructor
 @Service

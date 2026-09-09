@@ -1,6 +1,11 @@
 package com.example.cowmjucraft.domain.recruit.dto.admin.response;
 
-import com.example.cowmjucraft.domain.recruit.entity.*;
+import com.example.cowmjucraft.domain.recruit.entity.Answer;
+import com.example.cowmjucraft.domain.recruit.entity.AnswerType;
+import com.example.cowmjucraft.domain.recruit.entity.Application;
+import com.example.cowmjucraft.domain.recruit.entity.DepartmentType;
+import com.example.cowmjucraft.domain.recruit.entity.FormQuestion;
+import com.example.cowmjucraft.domain.recruit.entity.SectionType;
 
 import java.util.ArrayList;
 import java.util.List;

@@ -16,7 +16,6 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
 
     boolean existsByRepresentativeProjectId(Long projectId);
     boolean existsByIdAndRepresentativeProjectId(Long orderId, Long projectId);
-
     /** 고객의 주문 목록. 최신 주문이 먼저 온다. */
     List<Order> findAllByCustomerIdOrderByCreatedAtDescIdDesc(Long customerId);
 
@@ -26,20 +25,6 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     /** 소유권 검증을 포함한 단건 조회. 남의 주문이면 비어 있는 결과가 온다. */
     Optional<Order> findByIdAndCustomerId(Long orderId, Long customerId);
 
-    List<Order> findAllByOrderByCreatedAtDesc();
-    List<Order> findAllByStatusOrderByCreatedAtDesc(OrderStatus status);
-
-    @Query("""
-            select o
-            from Order o
-            where o.representativeProject.id = :projectId
-              and (:status is null or o.status = :status)
-            order by o.createdAt desc
-            """)
-    List<Order> findAllByRepresentativeProjectIdAndStatusOrderByCreatedAtDesc(
-            @Param("projectId") Long projectId,
-            @Param("status") OrderStatus status
-    );
 
     @Query("""
             select o
@@ -56,13 +41,25 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
               ))
             order by o.createdAt desc, o.id desc
             """)
-    List<Order> findAllForExport(
+    List<Order> findAllByFilters(
             @Param("projectId") Long projectId,
             @Param("startAt") LocalDateTime startAt,
             @Param("endAtExclusive") LocalDateTime endAtExclusive,
             @Param("status") OrderStatus status,
             @Param("fulfillmentMethod") OrderFulfillmentMethod fulfillmentMethod
     );
+
+    /**
+     * 기간 조건이 없는 목록 조회. 목록과 내보내기가 같은 필터 규칙을 쓰도록
+     * JPQL은 위 메서드 한 벌만 유지한다.
+     */
+    default List<Order> findAllByFilters(
+            Long projectId,
+            OrderStatus status,
+            OrderFulfillmentMethod fulfillmentMethod
+    ) {
+        return findAllByFilters(projectId, null, null, status, fulfillmentMethod);
+    }
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select o from Order o where o.id = :orderId")

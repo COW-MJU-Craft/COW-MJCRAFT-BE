@@ -4,7 +4,12 @@ import com.example.cowmjucraft.domain.order.dto.request.AdminOrderBuyerEmailUpda
 import com.example.cowmjucraft.domain.order.dto.request.AdminOrderCancelRequestDto;
 import com.example.cowmjucraft.domain.order.dto.request.AdminOrderCompletePageUpsertRequestDto;
 import com.example.cowmjucraft.domain.order.dto.request.AdminOrderPolicyUpdateRequestDto;
-import com.example.cowmjucraft.domain.order.dto.response.*;
+import com.example.cowmjucraft.domain.order.dto.response.AdminOrderCompletePageResponseDto;
+import com.example.cowmjucraft.domain.order.dto.response.AdminOrderListItemResponseDto;
+import com.example.cowmjucraft.domain.order.dto.response.AdminOrderPolicyResponseDto;
+import com.example.cowmjucraft.domain.order.dto.response.AdminOrderStatusResponseDto;
+import com.example.cowmjucraft.domain.order.dto.response.OrderDetailResponseDto;
+import com.example.cowmjucraft.domain.order.entity.OrderFulfillmentMethod;
 import com.example.cowmjucraft.domain.order.entity.OrderStatus;
 import com.example.cowmjucraft.domain.order.service.AdminOrderBuyerEmailService;
 import com.example.cowmjucraft.domain.order.service.AdminOrderCompletePageService;
@@ -16,10 +21,18 @@ import com.example.cowmjucraft.global.response.ApiResponse;
 import com.example.cowmjucraft.global.response.ApiResult;
 import com.example.cowmjucraft.global.response.type.SuccessType;
 import jakarta.validation.Valid;
-import org.springframework.http.ResponseEntity;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 @RequiredArgsConstructor
 @RestController
@@ -36,9 +49,14 @@ public class AdminOrderController implements AdminOrderControllerDocs {
     @GetMapping("/orders")
     @Override
     public ResponseEntity<ApiResult<List<AdminOrderListItemResponseDto>>> getOrders(
-            @RequestParam(value = "status", required = false) OrderStatus status
+            @RequestParam(value = "status", required = false) OrderStatus status,
+            @RequestParam(value = "fulfillmentMethod", required = false)
+            OrderFulfillmentMethod fulfillmentMethod
     ) {
-        return ApiResponse.of(SuccessType.SUCCESS, adminOrderQueryService.getOrders(status));
+        return ApiResponse.of(
+                SuccessType.SUCCESS,
+                adminOrderQueryService.getOrders(status, fulfillmentMethod)
+        );
     }
 
     @GetMapping("/orders/{orderId}")

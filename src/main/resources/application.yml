@@ -64,6 +64,9 @@ app:
       lookup-id-availability:
         capacity: ${RATE_LIMIT_LOOKUP_ID_CAPACITY:20}
         window: ${RATE_LIMIT_LOOKUP_ID_WINDOW:PT1M}
+      order-quote:
+        capacity: ${RATE_LIMIT_ORDER_QUOTE_CAPACITY:20}
+        window: ${RATE_LIMIT_ORDER_QUOTE_WINDOW:PT1M}
       # 이메일 코드 발송 — 성공까지 모두 센다. 남의 메일함에 코드를 쏟아붓지 못하게.
       customer-email-code:
         capacity: ${RATE_LIMIT_CUSTOMER_EMAIL_CODE_CAPACITY:20}

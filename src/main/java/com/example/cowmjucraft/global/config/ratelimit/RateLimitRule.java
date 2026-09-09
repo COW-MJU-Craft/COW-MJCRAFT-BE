@@ -51,7 +51,13 @@ public enum RateLimitRule {
     ),
 
     /** 코드 검증 — 실패한 시도만 센다. */
-    CUSTOMER_ENROLL("customer-enroll", List.of("/api/customers/enroll"), true);
+    CUSTOMER_ENROLL("customer-enroll", List.of("/api/customers/enroll"), true),
+
+    /**
+     * 주문 사전 견적 — 인증·부작용 없는 공개 조회라 자동화된 대량 호출을 자체적으로
+     * 막을 수단이 없다. 성공·실패를 가리지 않고 모든 요청을 센다.
+     */
+    ORDER_QUOTE("order-quote", List.of("/api/orders/quote"), false);
 
     private final String key;
     private final List<String> paths;
