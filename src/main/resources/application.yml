@@ -64,6 +64,9 @@ app:
       lookup-id-availability:
         capacity: ${RATE_LIMIT_LOOKUP_ID_CAPACITY:20}
         window: ${RATE_LIMIT_LOOKUP_ID_WINDOW:PT1M}
+      order-quote:
+        capacity: ${RATE_LIMIT_ORDER_QUOTE_CAPACITY:20}
+        window: ${RATE_LIMIT_ORDER_QUOTE_WINDOW:PT1M}
 
 mail:
   outbox:
