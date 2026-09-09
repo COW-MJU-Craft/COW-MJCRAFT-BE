@@ -25,6 +25,7 @@ import com.example.cowmjucraft.domain.project.repository.ProjectRepository;
 import com.example.cowmjucraft.global.security.PasswordPolicy;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -75,19 +76,22 @@ class OrderCreateServiceTest {
         representativeProject = project(10L);
         org.mockito.Mockito.lenient().when(projectRepository.findByIdForUpdate(10L))
                 .thenReturn(Optional.of(representativeProject));
+        OrderPricingService orderPricingService = new OrderPricingService(
+                projectItemRepository,
+                orderPolicyRepository
+        );
         orderCreateService = new OrderCreateService(
                 orderRepository,
                 orderItemRepository,
                 orderBuyerRepository,
                 orderFulfillmentRepository,
                 orderAuthRepository,
-                projectItemRepository,
                 passwordEncoder,
                 orderViewTokenService,
                 mailOutboxService,
                 new PasswordPolicy(),
-                orderPolicyRepository,
-                projectRepository
+                projectRepository,
+                orderPricingService
         );
     }
 
@@ -95,7 +99,7 @@ class OrderCreateServiceTest {
     void createOrder_allowsGroupbuyItemWithinRemainingQuantity() {
         ProjectItem item = groupbuyItem(1L, 100, 40);
         when(orderAuthRepository.existsByLookupId("guest-mju-001")).thenReturn(false);
-        when(projectItemRepository.findById(1L)).thenReturn(Optional.of(item));
+        when(projectItemRepository.findAllById(Set.of(1L))).thenReturn(List.of(item));
         when(orderRepository.save(any(Order.class))).thenAnswer(invocation -> {
             Order order = invocation.getArgument(0);
             ReflectionTestUtils.setField(order, "id", 10L);
@@ -119,7 +123,7 @@ class OrderCreateServiceTest {
     void createOrder_allowsGroupbuyItemOverRemainingQuantity() {
         ProjectItem item = groupbuyItem(1L, 100, 40);
         when(orderAuthRepository.existsByLookupId("guest-mju-001")).thenReturn(false);
-        when(projectItemRepository.findById(1L)).thenReturn(Optional.of(item));
+        when(projectItemRepository.findAllById(Set.of(1L))).thenReturn(List.of(item));
         when(orderRepository.save(any(Order.class))).thenAnswer(invocation -> {
             Order order = invocation.getArgument(0);
             ReflectionTestUtils.setField(order, "id", 10L);
@@ -149,7 +153,7 @@ class OrderCreateServiceTest {
         // given
         ProjectItem item = groupbuyItem(1L, 100, 40);
         when(orderAuthRepository.existsByLookupId("guest-mju-001")).thenReturn(false);
-        when(projectItemRepository.findById(1L)).thenReturn(Optional.of(item));
+        when(projectItemRepository.findAllById(Set.of(1L))).thenReturn(List.of(item));
         when(orderPolicyRepository.findFirstByOrderByIdAsc())
                 .thenReturn(Optional.of(new OrderPolicy(3500)));
         when(orderRepository.save(any(Order.class))).thenAnswer(invocation -> {
@@ -173,7 +177,7 @@ class OrderCreateServiceTest {
         // given
         ProjectItem item = groupbuyItem(1L, 100, 40);
         when(orderAuthRepository.existsByLookupId("guest-mju-001")).thenReturn(false);
-        when(projectItemRepository.findById(1L)).thenReturn(Optional.of(item));
+        when(projectItemRepository.findAllById(Set.of(1L))).thenReturn(List.of(item));
         when(orderRepository.save(any(Order.class))).thenAnswer(invocation -> {
             Order order = invocation.getArgument(0);
             ReflectionTestUtils.setField(order, "id", 10L);
@@ -214,8 +218,7 @@ class OrderCreateServiceTest {
                 baseRequest.fulfillment()
         );
         when(orderAuthRepository.existsByLookupId("guest-mju-001")).thenReturn(false);
-        when(projectItemRepository.findById(2L)).thenReturn(Optional.of(firstItem));
-        when(projectItemRepository.findById(3L)).thenReturn(Optional.of(secondItem));
+        when(projectItemRepository.findAllById(Set.of(2L, 3L))).thenReturn(List.of(firstItem, secondItem));
         when(projectRepository.findByIdForUpdate(20L)).thenReturn(Optional.of(firstProject));
         when(orderRepository.save(any(Order.class))).thenAnswer(invocation -> {
             Order order = invocation.getArgument(0);

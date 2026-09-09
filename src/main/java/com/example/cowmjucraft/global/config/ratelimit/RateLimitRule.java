@@ -30,7 +30,13 @@ public enum RateLimitRule {
      * 조회 아이디 중복 확인 — 성공 응답 자체가 "해당 ID 존재" 정보를 노출하므로
      * 성공·실패를 가리지 않고 모든 요청을 센다.
      */
-    LOOKUP_ID_AVAILABILITY("lookup-id-availability", List.of("/api/orders/lookup-id/availability"), false);
+    LOOKUP_ID_AVAILABILITY("lookup-id-availability", List.of("/api/orders/lookup-id/availability"), false),
+
+    /**
+     * 주문 사전 견적 — 인증·부작용 없는 공개 조회라 자동화된 대량 호출을 자체적으로
+     * 막을 수단이 없다. 성공·실패를 가리지 않고 모든 요청을 센다.
+     */
+    ORDER_QUOTE("order-quote", List.of("/api/orders/quote"), false);
 
     private final String key;
     private final List<String> paths;
