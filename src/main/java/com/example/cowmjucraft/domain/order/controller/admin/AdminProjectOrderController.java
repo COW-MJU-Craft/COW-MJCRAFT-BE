@@ -6,6 +6,7 @@ import com.example.cowmjucraft.domain.order.dto.response.AdminOrderListItemRespo
 import com.example.cowmjucraft.domain.order.dto.response.AdminOrderStatusResponseDto;
 import com.example.cowmjucraft.domain.order.dto.response.AdminProjectOrderStatisticsResponseDto;
 import com.example.cowmjucraft.domain.order.entity.OrderStatus;
+import com.example.cowmjucraft.domain.order.entity.OrderFulfillmentMethod;
 import com.example.cowmjucraft.domain.order.service.AdminProjectOrderService;
 import com.example.cowmjucraft.global.response.ApiResponse;
 import com.example.cowmjucraft.global.response.ApiResult;
@@ -33,9 +34,14 @@ public class AdminProjectOrderController implements AdminProjectOrderControllerD
     @Override
     public ResponseEntity<ApiResult<List<AdminOrderListItemResponseDto>>> getOrders(
             @PathVariable Long projectId,
-            @RequestParam(value = "status", required = false) OrderStatus status
+            @RequestParam(value = "status", required = false) OrderStatus status,
+            @RequestParam(value = "fulfillmentMethod", required = false)
+            OrderFulfillmentMethod fulfillmentMethod
     ) {
-        return ApiResponse.of(SuccessType.SUCCESS, adminProjectOrderService.getOrders(projectId, status));
+        return ApiResponse.of(
+                SuccessType.SUCCESS,
+                adminProjectOrderService.getOrders(projectId, status, fulfillmentMethod)
+        );
     }
 
     @GetMapping("/statistics")

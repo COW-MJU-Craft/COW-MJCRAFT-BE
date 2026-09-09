@@ -41,20 +41,20 @@ class ProjectOrderQueryRepositoryTest {
     private ProjectRepository projectRepository;
 
     @Test
-    void findAllForExport_프로젝트날짜상태수령방식조건_일치주문만조회() {
+    void findAllByFilters_프로젝트날짜상태수령방식조건_일치주문만조회() {
         // given
         TestData data = persistTestData();
         LocalDateTime now = LocalDateTime.now();
 
         // when
-        List<Order> matching = orderRepository.findAllForExport(
+        List<Order> matching = orderRepository.findAllByFilters(
                 data.firstProject().getId(),
                 now.minusDays(1),
                 now.plusDays(1),
                 OrderStatus.PAID,
                 OrderFulfillmentMethod.DELIVERY
         );
-        List<Order> differentFulfillmentMethod = orderRepository.findAllForExport(
+        List<Order> differentFulfillmentMethod = orderRepository.findAllByFilters(
                 data.firstProject().getId(),
                 now.minusDays(1),
                 now.plusDays(1),
@@ -68,27 +68,60 @@ class ProjectOrderQueryRepositoryTest {
     }
 
     @Test
-    void findAllByRepresentativeProjectIdAndStatusOrderByCreatedAtDesc_대표프로젝트주문만조회() {
+    void findAllByFilters_대표프로젝트주문만조회() {
         // given
         TestData data = persistTestData();
 
         // when
-        List<Order> all = orderRepository.findAllByRepresentativeProjectIdAndStatusOrderByCreatedAtDesc(
+        List<Order> all = orderRepository.findAllByFilters(data.firstProject().getId(), null, null);
+        List<Order> paid = orderRepository.findAllByFilters(
                 data.firstProject().getId(),
+                OrderStatus.PAID,
                 null
         );
-        List<Order> paid = orderRepository.findAllByRepresentativeProjectIdAndStatusOrderByCreatedAtDesc(
-                data.firstProject().getId(),
-                OrderStatus.PAID
-        );
         List<Order> nonRepresentativeProjectOrders = orderRepository
-                .findAllByRepresentativeProjectIdAndStatusOrderByCreatedAtDesc(data.secondProject().getId(), null);
+                .findAllByFilters(data.secondProject().getId(), null, null);
 
         // then
         assertThat(all).extracting(Order::getId)
                 .containsExactlyInAnyOrder(data.paidOrder().getId(), data.pendingOrder().getId());
         assertThat(paid).extracting(Order::getId).containsExactly(data.paidOrder().getId());
         assertThat(nonRepresentativeProjectOrders).isEmpty();
+    }
+
+    @Test
+    void findAllByFilters_조건이없으면전체주문조회() {
+        // given
+        TestData data = persistTestData();
+
+        // when
+        List<Order> all = orderRepository.findAllByFilters(null, null, null);
+
+        // then
+        assertThat(all).extracting(Order::getId)
+                .containsExactlyInAnyOrder(data.paidOrder().getId(), data.pendingOrder().getId());
+    }
+
+    @Test
+    void findAllByFilters_프로젝트상태수령방식을함께필터링한다() {
+        // given
+        TestData data = persistTestData();
+
+        // when
+        List<Order> deliveryPaid = orderRepository.findAllByFilters(
+                data.firstProject().getId(),
+                OrderStatus.PAID,
+                OrderFulfillmentMethod.DELIVERY
+        );
+        List<Order> pickupPaid = orderRepository.findAllByFilters(
+                data.firstProject().getId(),
+                OrderStatus.PAID,
+                OrderFulfillmentMethod.PICKUP
+        );
+
+        // then
+        assertThat(deliveryPaid).extracting(Order::getId).containsExactly(data.paidOrder().getId());
+        assertThat(pickupPaid).isEmpty();
     }
 
     @Test

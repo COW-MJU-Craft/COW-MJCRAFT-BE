@@ -9,6 +9,7 @@ import com.example.cowmjucraft.domain.order.dto.response.AdminOrderPolicyRespons
 import com.example.cowmjucraft.domain.order.dto.response.AdminOrderStatusResponseDto;
 import com.example.cowmjucraft.domain.order.dto.response.OrderDetailResponseDto;
 import com.example.cowmjucraft.domain.order.entity.OrderStatus;
+import com.example.cowmjucraft.domain.order.entity.OrderFulfillmentMethod;
 import com.example.cowmjucraft.domain.order.service.AdminOrderCompletePageService;
 import com.example.cowmjucraft.domain.order.service.AdminOrderPaymentService;
 import com.example.cowmjucraft.domain.order.service.AdminOrderPolicyService;
@@ -44,9 +45,14 @@ public class AdminOrderController implements AdminOrderControllerDocs {
     @GetMapping("/orders")
     @Override
     public ResponseEntity<ApiResult<List<AdminOrderListItemResponseDto>>> getOrders(
-            @RequestParam(value = "status", required = false) OrderStatus status
+            @RequestParam(value = "status", required = false) OrderStatus status,
+            @RequestParam(value = "fulfillmentMethod", required = false)
+            OrderFulfillmentMethod fulfillmentMethod
     ) {
-        return ApiResponse.of(SuccessType.SUCCESS, adminOrderQueryService.getOrders(status));
+        return ApiResponse.of(
+                SuccessType.SUCCESS,
+                adminOrderQueryService.getOrders(status, fulfillmentMethod)
+        );
     }
 
     @GetMapping("/orders/{orderId}")
