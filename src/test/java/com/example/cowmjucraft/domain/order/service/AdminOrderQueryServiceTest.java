@@ -1,5 +1,6 @@
 package com.example.cowmjucraft.domain.order.service;
 
+import com.example.cowmjucraft.domain.order.dto.response.AdminOrderListItemResponseDto;
 import com.example.cowmjucraft.domain.order.entity.MailOutboxEventType;
 import com.example.cowmjucraft.domain.order.entity.Order;
 import com.example.cowmjucraft.domain.order.entity.OrderBuyer;
@@ -8,6 +9,7 @@ import com.example.cowmjucraft.domain.order.entity.OrderStatus;
 import com.example.cowmjucraft.domain.order.repository.OrderBuyerRepository;
 import com.example.cowmjucraft.domain.order.repository.OrderRepository;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -17,6 +19,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static com.example.cowmjucraft.domain.order.OrderTestFixtures.project;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
@@ -47,6 +50,21 @@ class AdminOrderQueryServiceTest {
                 orderViewTokenService,
                 mailOutboxService
         );
+    }
+
+    @Test
+    void getOrders_주문목록조회_shippingFee포함() {
+        // given
+        Order order = orderWithShippingFee(3500);
+        when(orderRepository.findAllByOrderByCreatedAtDesc()).thenReturn(List.of(order));
+        when(orderBuyerRepository.findAllByOrderIdIn(List.of(10L))).thenReturn(List.of());
+
+        // when
+        List<AdminOrderListItemResponseDto> result = adminOrderQueryService.getOrders(null);
+
+        // then
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0).shippingFee()).isEqualTo(3500);
     }
 
     @Test
@@ -106,10 +124,34 @@ class AdminOrderQueryServiceTest {
     private Order order(OrderStatus status) {
         Order order = new Order(
                 "ORD-001",
+                project(1L),
+                1L,
                 status,
                 10_000,
                 0,
                 10_000,
+                LocalDateTime.now().plusDays(1),
+                "홍길동",
+                true,
+                LocalDateTime.now(),
+                true,
+                LocalDateTime.now(),
+                true,
+                LocalDateTime.now()
+        );
+        ReflectionTestUtils.setField(order, "id", 10L);
+        return order;
+    }
+
+    private Order orderWithShippingFee(int shippingFee) {
+        Order order = new Order(
+                "ORD-001",
+                project(1L),
+                1L,
+                OrderStatus.PENDING_DEPOSIT,
+                10_000,
+                shippingFee,
+                10_000 + shippingFee,
                 LocalDateTime.now().plusDays(1),
                 "홍길동",
                 true,

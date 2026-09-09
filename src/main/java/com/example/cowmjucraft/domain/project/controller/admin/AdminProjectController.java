@@ -7,6 +7,7 @@ import com.example.cowmjucraft.domain.project.dto.request.AdminProjectUpdateRequ
 import com.example.cowmjucraft.domain.project.dto.response.AdminProjectOrderPatchResponseDto;
 import com.example.cowmjucraft.domain.project.dto.response.AdminProjectPresignPutBatchResponseDto;
 import com.example.cowmjucraft.domain.project.dto.response.AdminProjectResponseDto;
+import com.example.cowmjucraft.domain.project.entity.ProjectStatus;
 import com.example.cowmjucraft.domain.project.service.AdminProjectService;
 import com.example.cowmjucraft.global.response.ApiResponse;
 import com.example.cowmjucraft.global.response.ApiResult;
@@ -23,6 +24,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RequiredArgsConstructor
@@ -42,8 +44,10 @@ public class AdminProjectController implements AdminProjectControllerDocs {
 
     @GetMapping
     @Override
-    public ResponseEntity<ApiResult<List<AdminProjectResponseDto>>> getProjects() {
-        return ApiResponse.of(SuccessType.SUCCESS, adminProjectService.getProjects());
+    public ResponseEntity<ApiResult<List<AdminProjectResponseDto>>> getProjects(
+            @RequestParam(value = "status", required = false) ProjectStatus status
+    ) {
+        return ApiResponse.of(SuccessType.SUCCESS, adminProjectService.getProjects(status));
     }
 
     @GetMapping("/{projectId}")

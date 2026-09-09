@@ -1,6 +1,7 @@
 package com.example.cowmjucraft.domain.order.entity;
 
 import com.example.cowmjucraft.domain.common.BaseTimeEntity;
+import com.example.cowmjucraft.domain.project.entity.Project;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -8,7 +9,11 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import java.time.LocalDateTime;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -17,15 +22,28 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
-@Table(name = "orders")
+@Table(
+        name = "orders",
+        uniqueConstraints = @UniqueConstraint(
+                name = "uk_orders_project_order_no",
+                columnNames = {"representative_project_id", "project_order_no"}
+        )
+)
 public class Order extends BaseTimeEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "order_no", nullable = false, unique = true, length = 50)
+    @Column(name = "order_no", nullable = false, unique = true, length = 64)
     private String orderNo;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "representative_project_id", nullable = false)
+    private Project representativeProject;
+
+    @Column(name = "project_order_no", nullable = false)
+    private long projectOrderNo;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -84,6 +102,8 @@ public class Order extends BaseTimeEntity {
 
     public Order(
             String orderNo,
+            Project representativeProject,
+            long projectOrderNo,
             OrderStatus status,
             int totalAmount,
             int shippingFee,
@@ -98,6 +118,8 @@ public class Order extends BaseTimeEntity {
             LocalDateTime cancelRiskAgreedAt
     ) {
         this.orderNo = orderNo;
+        this.representativeProject = representativeProject;
+        this.projectOrderNo = projectOrderNo;
         this.status = status;
         this.totalAmount = totalAmount;
         this.shippingFee = shippingFee;

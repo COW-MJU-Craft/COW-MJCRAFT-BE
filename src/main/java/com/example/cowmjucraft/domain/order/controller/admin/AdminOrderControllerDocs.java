@@ -2,8 +2,10 @@ package com.example.cowmjucraft.domain.order.controller.admin;
 
 import com.example.cowmjucraft.domain.order.dto.request.AdminOrderCancelRequestDto;
 import com.example.cowmjucraft.domain.order.dto.request.AdminOrderCompletePageUpsertRequestDto;
+import com.example.cowmjucraft.domain.order.dto.request.AdminOrderPolicyUpdateRequestDto;
 import com.example.cowmjucraft.domain.order.dto.response.AdminOrderCompletePageResponseDto;
 import com.example.cowmjucraft.domain.order.dto.response.AdminOrderListItemResponseDto;
+import com.example.cowmjucraft.domain.order.dto.response.AdminOrderPolicyResponseDto;
 import com.example.cowmjucraft.domain.order.dto.response.AdminOrderStatusResponseDto;
 import com.example.cowmjucraft.domain.order.dto.response.OrderDetailResponseDto;
 import com.example.cowmjucraft.domain.order.entity.OrderStatus;
@@ -29,7 +31,7 @@ public interface AdminOrderControllerDocs {
             @ApiResponse(responseCode = "400", description = "status 값이 유효하지 않음")
     })
     ResponseEntity<ApiResult<List<AdminOrderListItemResponseDto>>> getOrders(
-            @Parameter(description = "주문 상태 필터 (PENDING_DEPOSIT | PAID | CANCELED | REFUND_REQUESTED | REFUNDED)", example = "PENDING_DEPOSIT")
+            @Parameter(description = "주문 상태 필터 (PENDING_DEPOSIT | PAID | IN_PRODUCTION | READY_TO_SHIP | DELIVERED | CANCELED | REFUND_REQUESTED | REFUNDED)", example = "PENDING_DEPOSIT")
             OrderStatus status
     );
 
@@ -73,6 +75,36 @@ public interface AdminOrderControllerDocs {
                     )
             )
             AdminOrderCompletePageUpsertRequestDto request
+    );
+
+    @Operation(summary = "관리자 주문 정책 조회", description = "관리자가 택배 배송비 등 주문 정책 설정 정보를 조회합니다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "조회 성공", content = @Content(schema = @Schema(implementation = ApiResult.class))),
+            @ApiResponse(responseCode = "404", description = "주문 정책 설정을 찾을 수 없음")
+    })
+    ResponseEntity<ApiResult<AdminOrderPolicyResponseDto>> getOrderPolicy();
+
+    @Operation(summary = "관리자 주문 정책 수정", description = "관리자가 택배 배송비 등 주문 정책 설정 정보를 수정합니다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "처리 성공", content = @Content(schema = @Schema(implementation = ApiResult.class))),
+            @ApiResponse(responseCode = "422", description = "필수 입력값이 누락되었거나 음수가 입력됨")
+    })
+    ResponseEntity<ApiResult<AdminOrderPolicyResponseDto>> updateOrderPolicy(@RequestBody(
+                    required = true,
+                    description = "관리자 주문 정책 수정 요청",
+                    content = @Content(
+                            schema = @Schema(implementation = AdminOrderPolicyUpdateRequestDto.class),
+                            examples = @ExampleObject(
+                                    name = "admin-order-policy-update-request",
+                                    value = """
+                                        {
+                                          "defaultShippingFee": 3500
+                                        }
+                                        """
+                            )
+                    )
+            )
+            AdminOrderPolicyUpdateRequestDto request
     );
 
     @Operation(summary = "관리자 결제 확정", description = "입금 대기(PENDING_DEPOSIT) 주문을 결제 확정(PAID) 처리하고, 조회 토큰을 갱신합니다.")

@@ -6,6 +6,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import java.util.List;
 
 @Schema(description = "비회원 주문 생성 요청 DTO")
@@ -37,6 +38,7 @@ public record OrderCreateRequestDto(
         @ArraySchema(schema = @Schema(implementation = OrderCreateItemRequestDto.class), arraySchema = @Schema(description = "주문 상품 목록", requiredMode = Schema.RequiredMode.REQUIRED))
         @Valid
         @NotEmpty(message = "items는 1개 이상이어야 합니다.")
+        @Size(max = 50, message = "items는 50개를 초과할 수 없습니다.")
         List<OrderCreateItemRequestDto> items,
 
         @Schema(description = "주문자 정보", requiredMode = Schema.RequiredMode.REQUIRED)

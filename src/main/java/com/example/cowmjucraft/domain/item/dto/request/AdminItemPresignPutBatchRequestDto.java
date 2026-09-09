@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.Size;
 import java.util.List;
 
 @Schema(description = "물품 presign-put 요청")
@@ -11,6 +12,7 @@ public record AdminItemPresignPutBatchRequestDto(
 
         @Valid
         @NotEmpty
+        @Size(max = 10, message = "files는 10개를 초과할 수 없습니다.")
         @Schema(
                 description = "업로드 파일 목록",
                 example = """

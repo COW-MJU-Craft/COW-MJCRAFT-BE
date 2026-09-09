@@ -41,6 +41,9 @@ public class Application extends BaseTimeEntity {
     @Column(nullable = false)
     private ResultStatus resultStatus;
 
+    @Version
+    private Integer version;
+
     public Application(
             Form form,
             String studentId,

@@ -145,26 +145,15 @@ public class IntroduceService {
     public AdminIntroduceMainResponseDto adminUpsertMain(AdminIntroduceMainUpsertRequestDto request) {
         String heroLogoKeysJson = jsonCodec.writeJson(request.heroLogoKeys());
 
-        Introduce introduce = introduceRepository.findById(INTRODUCE_ID).orElse(null);
-        if (introduce == null) {
-            introduce = new Introduce(
-                    request.title(),
-                    request.subtitle(),
-                    request.summary(),
-                    heroLogoKeysJson,
-                    jsonCodec.writeDetailContent(IntroduceDetailContentDto.empty())
-            );
-        } else {
-            introduce.update(
-                    request.title(),
-                    request.subtitle(),
-                    request.summary(),
-                    heroLogoKeysJson,
-                    introduce.getSectionsJson()
-            );
-        }
+        Introduce introduce = getIntroduceOrThrow();
+        introduce.update(
+                request.title(),
+                request.subtitle(),
+                request.summary(),
+                heroLogoKeysJson,
+                introduce.getSectionsJson()
+        );
 
-        introduceRepository.save(introduce);
         return adminGetMain();
     }
 

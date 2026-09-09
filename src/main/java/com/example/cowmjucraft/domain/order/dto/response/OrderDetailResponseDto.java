@@ -24,8 +24,14 @@ public record OrderDetailResponseDto(
 ) {
 
     public record OrderInfo(
-            @Schema(description = "주문 번호", example = "ORD-20260207190000-123456")
+            @Schema(description = "주문 번호", example = "P10-12-09041530-482731")
             String orderNo,
+
+            @Schema(description = "주문번호를 발급한 대표 프로젝트 ID", example = "10")
+            Long representativeProjectId,
+
+            @Schema(description = "대표 프로젝트 내 주문 순번", example = "12")
+            long projectOrderNo,
 
             @Schema(description = "주문 상태", example = "PENDING_DEPOSIT")
             String status,
@@ -112,7 +118,10 @@ public record OrderDetailResponseDto(
             String postalCode,
 
             @Schema(description = "배송 메모", example = "부재 시 문 앞에 놓아주세요")
-            String deliveryMemo
+            String deliveryMemo,
+
+            @Schema(description = "운송장 정보", example = "CJ대한통운 1234-5678-9012", nullable = true)
+            String trackingInformation
     ) {
     }
 

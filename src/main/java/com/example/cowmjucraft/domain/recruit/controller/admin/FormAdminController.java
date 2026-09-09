@@ -7,6 +7,7 @@ import com.example.cowmjucraft.global.cloud.S3PresignFacade;
 import com.example.cowmjucraft.global.response.ApiResponse;
 import com.example.cowmjucraft.global.response.ApiResult;
 import com.example.cowmjucraft.global.response.type.SuccessType;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import java.util.List;
 
@@ -20,6 +21,7 @@ public class FormAdminController implements FormAdminControllerDocs {
 
     private final FormAdminService formAdminService;
 
+    @Valid
     @Override
     @PostMapping("/forms")
     public ResponseEntity<ApiResult<FormCreateAdminResponse>> createForm(

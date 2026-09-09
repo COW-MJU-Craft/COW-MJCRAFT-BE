@@ -8,6 +8,8 @@ spring:
       hibernate:
         jdbc:
           time_zone: Asia/Seoul
+  transaction:
+    default-timeout: ${DB_TRANSACTION_TIMEOUT:30s}
   mail:
     properties:
       mail:

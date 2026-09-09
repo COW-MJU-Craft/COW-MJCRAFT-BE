@@ -307,13 +307,24 @@ public class AdminItemService {
         Map<Long, ItemImage> imageMap = images.stream()
                 .collect(Collectors.toMap(ItemImage::getId, Function.identity()));
 
-        int sortOrder = 0;
         for (Long imageId : imageIds) {
             ItemImage image = imageMap.get(imageId);
             if (!image.getItem().getId().equals(item.getId())) {
                 throw new ItemException(ItemErrorType.IMAGE_NOT_BELONG_TO_ITEM, "imageId does not belong to item: " + imageId);
             }
-            image.updateSortOrder(sortOrder++);
+        }
+
+        // UNIQUE(item_id, sort_order)가 mid-transaction에 걸리지 않도록,
+        // 먼저 전부 음수 임시값으로 밀어낸 뒤(flush로 확정) 최종 순서를 부여한다.
+        int tempOrder = -1;
+        for (Long imageId : imageIds) {
+            imageMap.get(imageId).updateSortOrder(tempOrder--);
+        }
+        itemImageRepository.flush();
+
+        int sortOrder = 0;
+        for (Long imageId : imageIds) {
+            imageMap.get(imageId).updateSortOrder(sortOrder++);
         }
 
         return new AdminItemImageOrderPatchResponseDto(itemId, imageIds.size());

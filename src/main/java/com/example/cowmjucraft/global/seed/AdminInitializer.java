@@ -1,66 +1,24 @@
 package com.example.cowmjucraft.global.seed;
 
-import com.example.cowmjucraft.domain.accounts.admin.entity.Admin;
-import com.example.cowmjucraft.domain.accounts.admin.repository.AdminRepository;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.StringUtils;
 
-
+/**
+ * 애플리케이션 기동 완료 시점에 관리자 시딩을 트리거한다.
+ *
+ * <p>시딩 로직 자체는 {@link AdminSeeder}에 둔다. 같은 Bean 안에서
+ * {@code @Transactional} 메서드를 호출하면 proxy를 우회해 트랜잭션이 적용되지 않는다.
+ */
 @RequiredArgsConstructor
 @Component
-@Slf4j
 public class AdminInitializer {
 
-    private final AdminRepository adminRepository;
-    private final PasswordEncoder passwordEncoder;
-
-    @Value("${admin.login-id}")
-    private String adminLoginId;
-
-    @Value("${admin.password}")
-    private String adminPassword;
-
-    @Value("${admin.email:}")
-    private String adminEmail;
+    private final AdminSeeder adminSeeder;
 
     @EventListener(ApplicationReadyEvent.class)
     public void onApplicationReady() {
-        seedAdminIfNecessary();
-    }
-
-    @Transactional
-    public void seedAdminIfNecessary() {
-        if (!StringUtils.hasText(adminLoginId) || !StringUtils.hasText(adminPassword)) {
-            log.warn("Admin seed skipped: admin.login-id or admin.password not set");
-            return;
-        }
-
-        if (adminRepository.existsByLoginId(adminLoginId)) {
-            return;
-        }
-
-        String email = StringUtils.hasText(adminEmail)
-                ? adminEmail
-                : adminLoginId + "@example.com";
-
-        try {
-            adminRepository.save(
-                    new Admin(
-                            adminLoginId,
-                            passwordEncoder.encode(adminPassword),
-                            email
-                    )
-            );
-        } catch (DataIntegrityViolationException ex) {
-            log.warn("Admin seed skipped: admin user already exists");
-        }
+        adminSeeder.seedAdminIfNecessary();
     }
 }

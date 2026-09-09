@@ -7,6 +7,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.persistence.Version;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -29,6 +30,9 @@ public class OrderCompletePage extends BaseTimeEntity {
 
     @Column(name = "payment_information", nullable = false, length = 1000)
     private String paymentInformation;
+
+    @Version
+    private Integer version;
 
     public OrderCompletePage(
             String messageTitle,

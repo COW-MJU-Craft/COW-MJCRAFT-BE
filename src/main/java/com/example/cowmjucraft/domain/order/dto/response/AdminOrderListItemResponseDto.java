@@ -8,14 +8,23 @@ public record AdminOrderListItemResponseDto(
         @Schema(description = "주문 ID", example = "1")
         Long orderId,
 
-        @Schema(description = "주문 번호", example = "ORD-20260207190000-123456")
+        @Schema(description = "주문 번호", example = "P10-12-09041530-482731")
         String orderNo,
+
+        @Schema(description = "주문번호를 발급한 대표 프로젝트 ID", example = "10")
+        Long representativeProjectId,
+
+        @Schema(description = "대표 프로젝트 내 주문 순번", example = "12")
+        long projectOrderNo,
 
         @Schema(description = "주문 상태", example = "PENDING_DEPOSIT")
         String status,
 
         @Schema(description = "최종 결제 금액", example = "24000")
         int finalAmount,
+
+        @Schema(description = "배송비", example = "3500")
+        int shippingFee,
 
         @Schema(description = "입금자명", example = "홍길동")
         String depositorName,

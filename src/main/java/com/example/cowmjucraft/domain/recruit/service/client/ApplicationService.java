@@ -13,6 +13,7 @@ import com.example.cowmjucraft.global.security.CredentialMatcher;
 import com.example.cowmjucraft.global.security.PasswordPolicy;
 import com.example.cowmjucraft.domain.recruit.exception.RecruitErrorType;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -375,7 +376,11 @@ public class ApplicationService {
                     }
                     existing.updateValue(value);
                 } else {
-                    answerRepository.save(new Answer(application, formQuestion, value));
+                    try {
+                        answerRepository.save(new Answer(application, formQuestion, value));
+                    } catch (DataIntegrityViolationException e) {
+                        throw new RecruitException(RecruitErrorType.DUPLICATE_ANSWER);
+                    }
                 }
             }
         }

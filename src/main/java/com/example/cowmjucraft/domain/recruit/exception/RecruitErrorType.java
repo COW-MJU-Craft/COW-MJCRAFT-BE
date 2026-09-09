@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 public enum RecruitErrorType implements ErrorCode {
 
     FORM_NOT_FOUND(404, "폼을 찾을 수 없습니다."),
+    RECRUIT_SETTINGS_MISSING(500, "모집 설정 정보를 찾을 수 없습니다."),
     FORM_QUESTION_NOT_FOUND(404, "문항을 찾을 수 없습니다."),
     TARGET_FORM_NOT_FOUND(404, "대상 폼을 찾을 수 없습니다."),
     SOURCE_FORM_NOT_FOUND(404, "원본 폼을 찾을 수 없습니다."),

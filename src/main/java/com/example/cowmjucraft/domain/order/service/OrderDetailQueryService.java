@@ -94,6 +94,8 @@ public class OrderDetailQueryService {
         return new OrderDetailResponseDto(
                 new OrderDetailResponseDto.OrderInfo(
                         order.getOrderNo(),
+                        order.getRepresentativeProject().getId(),
+                        order.getProjectOrderNo(),
                         order.getStatus().name(),
                         order.getTotalAmount(),
                         order.getShippingFee(),
@@ -124,7 +126,8 @@ public class OrderDetailQueryService {
                         fulfillment.getAddressLine1(),
                         fulfillment.getAddressLine2(),
                         fulfillment.getPostalCode(),
-                        fulfillment.getDeliveryMemo()
+                        fulfillment.getDeliveryMemo(),
+                        fulfillment.getTrackingInformation()
                 ),
                 paymentInformation,
                 items

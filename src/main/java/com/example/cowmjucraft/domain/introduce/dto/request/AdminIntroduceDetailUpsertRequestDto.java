@@ -7,6 +7,7 @@ import com.example.cowmjucraft.domain.introduce.dto.common.IntroducePurposeDto;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 
 import java.util.List;
 
@@ -21,6 +22,7 @@ public record AdminIntroduceDetailUpsertRequestDto(
         @Schema(description = "현재 로고", nullable = true)
         IntroduceCurrentLogoDto currentLogo,
 
+        @Size(max = 50, message = "logoHistories는 50개를 초과할 수 없습니다.")
         @Schema(description = "로고 히스토리 목록", nullable = true)
         List<IntroduceLogoHistoryDto> logoHistories
 ) {
