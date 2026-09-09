@@ -1,6 +1,7 @@
 package com.example.cowmjucraft.domain.recruit.dto.admin.response;
 
-import com.example.cowmjucraft.domain.recruit.entity.*;
+import com.example.cowmjucraft.domain.recruit.entity.FormNotice;
+import com.example.cowmjucraft.domain.recruit.entity.FormQuestion;
 import java.util.List;
 
 public record FormDetailAdminResponse(
