@@ -16,3 +16,11 @@ regexTarget = "line"
 regexes = [
   '''eyJ[A-Za-z0-9_-]+\.{3}''',
 ]
+
+# JwtTokenProviderTest의 더미 JWT 키가 generic-api-key로 오탐된 커밋.
+# 값은 base64("test-secret-for-jwt-token-provider-1")로 실제 자격증명이 아니다.
+# 후속 커밋에서 리터럴을 런타임 생성으로 바꿨으나, gitleaks는 전체 이력을 스캔하고
+# 절대 규칙 2(force push 금지)에 따라 이력을 다시 쓸 수 없어 이 커밋만 예외 처리한다.
+commits = [
+  "c190126df8d4ec21a40604bbe5594e0a2539f0e9",
+]

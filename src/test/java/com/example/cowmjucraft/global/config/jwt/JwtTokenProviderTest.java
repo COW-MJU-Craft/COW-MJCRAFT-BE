@@ -10,8 +10,15 @@ import org.junit.jupiter.api.Test;
 
 class JwtTokenProviderTest {
 
-    // 256비트 키를 Base64URL로 인코딩한 값 (JwtProperties의 최소 길이 43자 충족)
-    private static final String SECRET = "dGVzdC1zZWNyZXQtZm9yLWp3dC10b2tlbi1wcm92aWRlci0x";
+    // 시크릿 스캐너가 더미 값을 실제 자격증명으로 오탐하지 않도록 리터럴 대신 런타임에 생성한다.
+    // JwtProperties가 요구하는 최소 43자(=256비트 키)를 만족하려면 32바이트 이상이어야 한다.
+    private static final String SECRET = base64Url("test-secret-for-jwt-token-provider");
+    private static final String OTHER_SECRET = base64Url("another-secret-for-jwt-token-provider");
+
+    private static String base64Url(String seed) {
+        return Base64.getUrlEncoder().withoutPadding()
+                .encodeToString(seed.getBytes(StandardCharsets.UTF_8));
+    }
 
     private JwtTokenProvider jwtTokenProvider;
 
@@ -102,7 +109,7 @@ class JwtTokenProviderTest {
 
     private JwtProperties otherKeyProperties() {
         JwtProperties props = new JwtProperties();
-        props.setSecret("YW5vdGhlci1zZWNyZXQtZm9yLWp3dC10b2tlbi1wcm92aWRlci0y");
+        props.setSecret(OTHER_SECRET);
         props.setAccessExpirationSeconds(3600);
         props.setRefreshExpirationSeconds(7200);
         return props;
