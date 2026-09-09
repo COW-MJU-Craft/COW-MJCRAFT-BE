@@ -1,5 +1,7 @@
 package com.example.cowmjucraft.domain.order.service;
 
+import com.example.cowmjucraft.domain.customer.entity.Customer;
+import com.example.cowmjucraft.domain.customer.service.CustomerAccountService;
 import com.example.cowmjucraft.domain.item.entity.ItemSaleType;
 import com.example.cowmjucraft.domain.item.entity.ItemStatus;
 import com.example.cowmjucraft.domain.item.entity.ProjectItem;
@@ -63,21 +65,31 @@ public class OrderCreateService {
     private final PasswordPolicy passwordPolicy;
     private final OrderPolicyRepository orderPolicyRepository;
     private final ProjectRepository projectRepository;
+    private final CustomerAccountService customerAccountService;
 
     @Transactional
     public OrderCreateResponseDto createOrder(OrderCreateRequestDto request) {
         validateAgreements(request);
 
         String depositorName = normalizeRequiredText(request.depositorName(), "입금자명");
-        String lookupId = normalizeRequiredText(request.lookupId(), "조회 아이디");
-        String password = normalizeRequiredText(request.password(), "조회 비밀번호");
 
-        if (!passwordPolicy.isValid(password)) {
-            throw new OrderException(OrderErrorType.WEAK_PASSWORD);
-        }
+        // 조회 아이디/비밀번호는 이메일 기반 고객 식별로 대체되는 중이라 선택값이다.
+        // 프론트 전환이 끝나면 이 블록과 order_auth 저장이 함께 사라진다.
+        String lookupId = trimToNull(request.lookupId());
+        String password = trimToNull(request.password());
+        boolean legacyLookupRequested = lookupId != null || password != null;
 
-        if (orderAuthRepository.existsByLookupId(lookupId)) {
-            throw new OrderException(OrderErrorType.DUPLICATED_LOOKUP_ID);
+        if (legacyLookupRequested) {
+            lookupId = normalizeRequiredText(lookupId, "조회 아이디");
+            password = normalizeRequiredText(password, "조회 비밀번호");
+
+            if (!passwordPolicy.isValid(password)) {
+                throw new OrderException(OrderErrorType.WEAK_PASSWORD);
+            }
+
+            if (orderAuthRepository.existsByLookupId(lookupId)) {
+                throw new OrderException(OrderErrorType.DUPLICATED_LOOKUP_ID);
+            }
         }
 
         Map<Long, Integer> quantityByItemId = aggregateItemQuantities(request.items());
@@ -133,11 +145,18 @@ public class OrderCreateService {
                         "projectId=" + representativeProjectId
                 ));
         long projectOrderNo = representativeProject.issueNextOrderNo();
+
+        // 이메일만으로 고객 행을 만들거나 재사용한다.
+        // 프로필과 비밀번호는 건드리지 않는다 — 주문 생성은 인증을 받지 않으므로,
+        // 남의 이메일로 주문해 그 사람 정보를 덮어쓰는 경로가 되면 안 된다.
+        Customer customer = customerAccountService.upsertForOrder(request.buyer().email(), now);
+
         boolean privacyAgreed = true;
         boolean refundAgreed = true;
         boolean cancelRiskAgreed = true;
         Order order = new Order(
                 generateOrderNo(representativeProjectId, projectOrderNo, now),
+                customer,
                 representativeProject,
                 projectOrderNo,
                 OrderStatus.PENDING_DEPOSIT,
@@ -202,11 +221,13 @@ public class OrderCreateService {
                 trimToNull(fulfillment.deliveryMemo())
         ));
 
-        orderAuthRepository.save(new OrderAuth(
-                savedOrder,
-                lookupId,
-                passwordEncoder.encode(password)
-        ));
+        if (legacyLookupRequested) {
+            orderAuthRepository.save(new OrderAuth(
+                    savedOrder,
+                    lookupId,
+                    passwordEncoder.encode(password)
+            ));
+        }
 
         String rawViewToken = orderViewTokenService.issueNewToken(savedOrder, now);
 

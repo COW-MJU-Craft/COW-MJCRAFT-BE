@@ -16,6 +16,16 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
 
     boolean existsByRepresentativeProjectId(Long projectId);
     boolean existsByIdAndRepresentativeProjectId(Long orderId, Long projectId);
+
+    /** 고객의 주문 목록. 최신 주문이 먼저 온다. */
+    List<Order> findAllByCustomerIdOrderByCreatedAtDescIdDesc(Long customerId);
+
+    /** 불러오기가 참조하는 "가장 최근 주문". */
+    Optional<Order> findFirstByCustomerIdOrderByCreatedAtDescIdDesc(Long customerId);
+
+    /** 소유권 검증을 포함한 단건 조회. 남의 주문이면 비어 있는 결과가 온다. */
+    Optional<Order> findByIdAndCustomerId(Long orderId, Long customerId);
+
     List<Order> findAllByOrderByCreatedAtDesc();
     List<Order> findAllByStatusOrderByCreatedAtDesc(OrderStatus status);
 

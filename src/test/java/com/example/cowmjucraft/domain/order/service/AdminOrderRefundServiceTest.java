@@ -1,6 +1,7 @@
 package com.example.cowmjucraft.domain.order.service;
 
 import com.example.cowmjucraft.domain.order.entity.MailOutboxEventType;
+import com.example.cowmjucraft.domain.customer.entity.Customer;
 import com.example.cowmjucraft.domain.order.entity.Order;
 import com.example.cowmjucraft.domain.order.entity.OrderBuyer;
 import com.example.cowmjucraft.domain.order.entity.OrderBuyerType;
@@ -78,6 +79,7 @@ class AdminOrderRefundServiceTest {
     private Order order() {
         Order order = new Order(
                 "ORD-001",
+                testCustomer(),
                 project(1L),
                 1L,
                 OrderStatus.REFUND_REQUESTED,
@@ -111,5 +113,9 @@ class AdminOrderRefundServiceTest {
                 "instagram",
                 "buyer@example.com"
         );
+    }
+
+    private Customer testCustomer() {
+        return new Customer("buyer@mju.ac.kr");
     }
 }

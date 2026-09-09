@@ -11,6 +11,7 @@ import com.example.cowmjucraft.domain.item.entity.ItemStatus;
 import com.example.cowmjucraft.domain.item.entity.ItemType;
 import com.example.cowmjucraft.domain.item.entity.ProjectItem;
 import com.example.cowmjucraft.domain.order.dto.response.AdminOrderExportResponseDto;
+import com.example.cowmjucraft.domain.customer.entity.Customer;
 import com.example.cowmjucraft.domain.order.entity.Order;
 import com.example.cowmjucraft.domain.order.entity.OrderBuyer;
 import com.example.cowmjucraft.domain.order.entity.OrderBuyerType;
@@ -205,6 +206,7 @@ class AdminOrderExportServiceTest {
     private Order order(Long id, Project project, LocalDateTime createdAt) {
         Order order = new Order(
                 "ORD-" + id,
+                testCustomer(),
                 project,
                 1L,
                 OrderStatus.PAID,
@@ -277,5 +279,9 @@ class AdminOrderExportServiceTest {
         );
         ReflectionTestUtils.setField(item, "id", id);
         return new OrderItem(order, item, quantity, 10000, 10000 * quantity, name);
+    }
+
+    private Customer testCustomer() {
+        return new Customer("buyer@mju.ac.kr");
     }
 }

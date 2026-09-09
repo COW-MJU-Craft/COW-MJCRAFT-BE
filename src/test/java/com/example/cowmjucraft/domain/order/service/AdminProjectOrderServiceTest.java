@@ -10,6 +10,7 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import com.example.cowmjucraft.domain.order.dto.response.AdminOrderBulkAdvanceResponseDto;
 import com.example.cowmjucraft.domain.order.dto.response.AdminOrderListItemResponseDto;
 import com.example.cowmjucraft.domain.order.dto.response.AdminProjectOrderStatisticsResponseDto;
+import com.example.cowmjucraft.domain.customer.entity.Customer;
 import com.example.cowmjucraft.domain.order.entity.Order;
 import com.example.cowmjucraft.domain.order.entity.OrderStatus;
 import com.example.cowmjucraft.domain.order.exception.OrderException;
@@ -178,6 +179,7 @@ class AdminProjectOrderServiceTest {
         LocalDateTime now = LocalDateTime.now();
         Order order = new Order(
                 "ORD-" + id,
+                testCustomer(),
                 project(1L),
                 1L,
                 status,
@@ -195,5 +197,9 @@ class AdminProjectOrderServiceTest {
         );
         ReflectionTestUtils.setField(order, "id", id);
         return order;
+    }
+
+    private Customer testCustomer() {
+        return new Customer("buyer@mju.ac.kr");
     }
 }

@@ -11,12 +11,22 @@ import java.util.List;
 
 @Schema(description = "비회원 주문 생성 요청 DTO")
 public record OrderCreateRequestDto(
-        @Schema(description = "조회 아이디(고유)", example = "guest-mju-001", requiredMode = Schema.RequiredMode.REQUIRED)
-        @NotBlank(message = "lookupId는 필수입니다.")
+        @Schema(
+                description = """
+                        [Deprecated] 조회 아이디. 이메일 기반 고객 식별로 대체되었다.
+                        보내면 기존대로 order_auth에 저장하고, 생략하면 건너뛴다.
+                        프론트 전환이 끝나면 password와 함께 삭제된다.
+                        """,
+                example = "guest-mju-001"
+        )
+        @Deprecated(since = "고객 식별 개편")
         String lookupId,
 
-        @Schema(description = "조회 비밀번호", example = "Pa$$w0rd!", requiredMode = Schema.RequiredMode.REQUIRED)
-        @NotBlank(message = "password는 필수입니다.")
+        @Schema(
+                description = "[Deprecated] 조회 비밀번호. lookupId와 함께 보내야 한다.",
+                example = "Pa$$w0rd!"
+        )
+        @Deprecated(since = "고객 식별 개편")
         String password,
 
         @Schema(description = "입금자명", example = "홍길동", requiredMode = Schema.RequiredMode.REQUIRED)

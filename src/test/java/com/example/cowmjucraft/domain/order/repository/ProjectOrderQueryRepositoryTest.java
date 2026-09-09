@@ -1,5 +1,7 @@
 package com.example.cowmjucraft.domain.order.repository;
 
+import java.util.Locale;
+import com.example.cowmjucraft.domain.customer.entity.Customer;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.example.cowmjucraft.domain.item.entity.ItemSaleType;
@@ -220,6 +222,7 @@ class ProjectOrderQueryRepositoryTest {
         LocalDateTime now = LocalDateTime.now();
         Order order = new Order(
                 orderNo,
+                customer(orderNo),
                 representativeProject,
                 projectOrderNo,
                 status,
@@ -238,6 +241,12 @@ class ProjectOrderQueryRepositoryTest {
         ReflectionTestUtils.setField(order, "createdAt", now);
         entityManager.persist(order);
         return order;
+    }
+
+    private Customer customer(String orderNo) {
+        Customer customer = new Customer(orderNo.toLowerCase(Locale.ROOT) + "@mju.ac.kr");
+        entityManager.persist(customer);
+        return customer;
     }
 
     private record TestData(Project firstProject, Project secondProject, Order paidOrder, Order pendingOrder) {
