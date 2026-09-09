@@ -6,6 +6,7 @@ import com.example.cowmjucraft.domain.order.exception.OrderErrorType;
 import com.example.cowmjucraft.domain.order.exception.OrderException;
 import com.example.cowmjucraft.domain.order.repository.OrderViewTokenRepository;
 import com.example.cowmjucraft.global.config.AppProperties;
+import com.example.cowmjucraft.global.config.AppProperties.OrderViewTokenDelivery;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -65,7 +66,11 @@ public class OrderViewTokenService {
             path = "/" + path;
         }
 
-        return base + path + "?token=" + token;
+        String separator = appProperties.getOrderViewTokenDelivery() == OrderViewTokenDelivery.FRAGMENT
+                ? "#token="
+                : "?token=";
+
+        return base + path + separator + token;
     }
 
     @Transactional(readOnly = true)
