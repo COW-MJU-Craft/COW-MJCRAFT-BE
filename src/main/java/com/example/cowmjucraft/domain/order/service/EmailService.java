@@ -44,7 +44,7 @@ public class EmailService {
 
             sendHtml(to, ORDER_VIEW_SUBJECT, html, orderNo);
         } catch (Exception exception) {
-            log.error("주문 조회 링크 메일 발송 실패: to={}, orderNo={}", to, orderNo, exception);
+            log.error("주문 조회 링크 메일 발송 실패: to={}, orderNo={}", maskEmail(to), orderNo, exception);
             throw new OrderException(OrderErrorType.EMAIL_SEND_FAILED);
         }
     }
@@ -137,7 +137,7 @@ public class EmailService {
             String html = templateEngine.process("mail/order-status-email-template", context);
             sendHtml(to, ORDER_STATUS_SUBJECT, html, orderNo);
         } catch (Exception exception) {
-            log.error("주문 상태 메일 발송 실패: to={}, orderNo={}", to, orderNo, exception);
+            log.error("주문 상태 메일 발송 실패: to={}, orderNo={}", maskEmail(to), orderNo, exception);
             throw new OrderException(OrderErrorType.EMAIL_SEND_FAILED);
         }
     }
@@ -152,9 +152,25 @@ public class EmailService {
             helper.setText(html, true);
             mailSender.send(message);
         } catch (Exception exception) {
-            log.error("메일 발송 실패: to={}, orderNo={}", to, orderNo, exception);
+            log.error("메일 발송 실패: to={}, orderNo={}", maskEmail(to), orderNo, exception);
             throw new OrderException(OrderErrorType.EMAIL_SEND_FAILED);
         }
+    }
+
+    /**
+     * 메일 발송 실패는 SMTP 장애 시 대량으로 발생할 수 있어, 로그 저장소에 수신자 주소가
+     * 평문으로 쌓이지 않도록 로컬 파트의 첫 글자만 남기고 마스킹한다.
+     */
+    static String maskEmail(String email) {
+        if (email == null || email.isBlank()) {
+            return "(없음)";
+        }
+        String trimmed = email.trim();
+        int atIndex = trimmed.lastIndexOf('@');
+        if (atIndex <= 0) {
+            return "***";
+        }
+        return trimmed.charAt(0) + "***" + trimmed.substring(atIndex);
     }
 
     private String formatDateTime(LocalDateTime dateTime) {

@@ -1,9 +1,18 @@
 package com.example.cowmjucraft.domain.recruit.controller.admin;
 
-import com.example.cowmjucraft.domain.recruit.dto.admin.request.*; // NoticeRequest 등 포함되도록 와일드카드 사용 추천
-import com.example.cowmjucraft.domain.recruit.dto.admin.response.*;
+import com.example.cowmjucraft.domain.recruit.dto.admin.request.AddQuestionAdminRequest;
+import com.example.cowmjucraft.domain.recruit.dto.admin.request.FormCopyAdminRequest;
+import com.example.cowmjucraft.domain.recruit.dto.admin.request.FormCreateAdminRequest;
+import com.example.cowmjucraft.domain.recruit.dto.admin.request.FormNoticeRequest;
+import com.example.cowmjucraft.domain.recruit.dto.admin.request.FormQuestionUpdateAdminRequest;
+import com.example.cowmjucraft.domain.recruit.dto.admin.response.AddFormNoticeAdminResponse;
+import com.example.cowmjucraft.domain.recruit.dto.admin.response.AddQuestionAdminResponse;
+import com.example.cowmjucraft.domain.recruit.dto.admin.response.FormCopyAdminResponse;
+import com.example.cowmjucraft.domain.recruit.dto.admin.response.FormCreateAdminResponse;
+import com.example.cowmjucraft.domain.recruit.dto.admin.response.FormDetailAdminResponse;
+import com.example.cowmjucraft.domain.recruit.dto.admin.response.FormListAdminResponse;
+import com.example.cowmjucraft.domain.recruit.dto.admin.response.FormQuestionListAdminResponse;
 import com.example.cowmjucraft.global.response.ApiResult;
-import org.springframework.http.ResponseEntity;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -11,6 +20,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 
 import java.util.List;
