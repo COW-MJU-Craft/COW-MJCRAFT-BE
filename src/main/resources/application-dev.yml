@@ -37,3 +37,7 @@ app:
   public-base-url: ${APP_PUBLIC_BASE_URL}
   order-view-path: ${APP_ORDER_VIEW_PATH}
   order-view-token-ttl-minutes: ${APP_ORDER_VIEW_TOKEN_TTL_MINUTES}
+  # QUERY(기본): 메일 링크가 ?token=... — 액세스 로그·프록시 로그·Referer에 토큰이 남는다.
+  # FRAGMENT: #token=... — fragment는 서버로 전송되지 않는다. 프런트엔드가 location.hash에서
+  # 토큰을 읽도록 대응을 마친 뒤 전환한다.
+  order-view-token-delivery: ${APP_ORDER_VIEW_TOKEN_DELIVERY:QUERY}

@@ -10,6 +10,7 @@ import com.example.cowmjucraft.global.response.ApiResult;
 import org.springframework.http.ResponseEntity;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -17,7 +18,6 @@ import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.springframework.web.bind.annotation.RequestParam;
 
 @Tag(name = "Order - Public", description = "비회원 주문 API")
 public interface ClientOrderControllerDocs {
@@ -237,8 +237,20 @@ public interface ClientOrderControllerDocs {
             @ApiResponse(responseCode = "410", description = "토큰 만료")
     })
     ResponseEntity<ApiResult<OrderDetailResponseDto>> viewOrderByToken(
-            @Parameter(description = "이메일 링크 조회 토큰", required = true, example = "raw-view-token-string")
-            String token
+            @Parameter(
+                    name = "X-Order-View-Token",
+                    in = ParameterIn.HEADER,
+                    description = "이메일 링크 조회 토큰 (권장). 쿼리 파라미터보다 우선한다.",
+                    example = "raw-view-token-string"
+            )
+            String headerToken,
+            @Parameter(
+                    name = "token",
+                    in = ParameterIn.QUERY,
+                    description = "이메일 링크 조회 토큰 (구버전 호환). 헤더가 없을 때만 사용된다.",
+                    example = "raw-view-token-string"
+            )
+            String queryToken
     );
 
     @Operation(
@@ -266,11 +278,18 @@ public interface ClientOrderControllerDocs {
     })
     ResponseEntity<ApiResult<OrderCompletePageResponseDto>> getOrderCompletePage(
             @Parameter(
-                    name = "token",
-                    description = "주문 조회 토큰",
-                    required = true,
+                    name = "X-Order-View-Token",
+                    in = ParameterIn.HEADER,
+                    description = "주문 조회 토큰 (권장). 쿼리 파라미터보다 우선한다.",
                     example = "sample-order-view-token"
             )
-            @RequestParam("token") String token
+            String headerToken,
+            @Parameter(
+                    name = "token",
+                    in = ParameterIn.QUERY,
+                    description = "주문 조회 토큰 (구버전 호환). 헤더가 없을 때만 사용된다.",
+                    example = "sample-order-view-token"
+            )
+            String queryToken
     );
 }
