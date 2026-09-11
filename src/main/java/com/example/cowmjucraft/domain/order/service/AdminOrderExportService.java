@@ -108,7 +108,7 @@ public class AdminOrderExportService {
     ) {
         LocalDateTime startAt = period == null ? null : period.startAt();
         LocalDateTime endAtExclusive = period == null ? null : period.endAtExclusive();
-        List<Order> orders = orderRepository.findAllForExport(
+        List<Order> orders = orderRepository.findAllByFilters(
                 projectId,
                 startAt,
                 endAtExclusive,

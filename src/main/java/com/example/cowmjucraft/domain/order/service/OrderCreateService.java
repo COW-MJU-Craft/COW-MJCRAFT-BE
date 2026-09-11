@@ -1,12 +1,7 @@
 package com.example.cowmjucraft.domain.order.service;
 
-import com.example.cowmjucraft.domain.item.entity.ItemSaleType;
-import com.example.cowmjucraft.domain.item.entity.ItemStatus;
-import com.example.cowmjucraft.domain.item.entity.ProjectItem;
-import com.example.cowmjucraft.domain.item.repository.ProjectItemRepository;
 import com.example.cowmjucraft.domain.order.dto.request.OrderCreateBuyerRequestDto;
 import com.example.cowmjucraft.domain.order.dto.request.OrderCreateFulfillmentRequestDto;
-import com.example.cowmjucraft.domain.order.dto.request.OrderCreateItemRequestDto;
 import com.example.cowmjucraft.domain.order.dto.request.OrderCreateRequestDto;
 import com.example.cowmjucraft.domain.order.dto.response.OrderCreateResponseDto;
 import com.example.cowmjucraft.domain.order.entity.Order;
@@ -15,7 +10,6 @@ import com.example.cowmjucraft.domain.order.entity.OrderBuyer;
 import com.example.cowmjucraft.domain.order.entity.OrderFulfillment;
 import com.example.cowmjucraft.domain.order.entity.OrderFulfillmentMethod;
 import com.example.cowmjucraft.domain.order.entity.OrderItem;
-import com.example.cowmjucraft.domain.order.entity.OrderPolicy;
 import com.example.cowmjucraft.domain.order.entity.OrderStatus;
 import com.example.cowmjucraft.domain.order.exception.OrderErrorType;
 import com.example.cowmjucraft.domain.order.exception.OrderException;
@@ -23,7 +17,6 @@ import com.example.cowmjucraft.domain.order.repository.OrderAuthRepository;
 import com.example.cowmjucraft.domain.order.repository.OrderBuyerRepository;
 import com.example.cowmjucraft.domain.order.repository.OrderFulfillmentRepository;
 import com.example.cowmjucraft.domain.order.repository.OrderItemRepository;
-import com.example.cowmjucraft.domain.order.repository.OrderPolicyRepository;
 import com.example.cowmjucraft.domain.order.repository.OrderRepository;
 import com.example.cowmjucraft.domain.project.entity.Project;
 import com.example.cowmjucraft.domain.project.exception.ProjectErrorType;
@@ -33,11 +26,8 @@ import java.security.SecureRandom;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import com.example.cowmjucraft.global.security.PasswordPolicy;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -56,13 +46,12 @@ public class OrderCreateService {
     private final OrderBuyerRepository orderBuyerRepository;
     private final OrderFulfillmentRepository orderFulfillmentRepository;
     private final OrderAuthRepository orderAuthRepository;
-    private final ProjectItemRepository projectItemRepository;
     private final PasswordEncoder passwordEncoder;
     private final OrderViewTokenService orderViewTokenService;
     private final MailOutboxService mailOutboxService;
     private final PasswordPolicy passwordPolicy;
-    private final OrderPolicyRepository orderPolicyRepository;
     private final ProjectRepository projectRepository;
+    private final OrderPricingService orderPricingService;
 
     @Transactional
     public OrderCreateResponseDto createOrder(OrderCreateRequestDto request) {
@@ -80,49 +69,9 @@ public class OrderCreateService {
             throw new OrderException(OrderErrorType.DUPLICATED_LOOKUP_ID);
         }
 
-        Map<Long, Integer> quantityByItemId = aggregateItemQuantities(request.items());
-
-        int totalAmount = 0;
-        List<ResolvedOrderLine> lines = new ArrayList<>();
-
-        for (Map.Entry<Long, Integer> entry : quantityByItemId.entrySet()) {
-            Long projectItemId = entry.getKey();
-            int quantity = entry.getValue();
-
-            ProjectItem projectItem = projectItemRepository.findById(projectItemId)
-                    .orElseThrow(() -> new OrderException(
-                            OrderErrorType.ITEM_NOT_FOUND,
-                            "projectItemId=" + projectItemId
-                    ));
-
-            if (projectItem.getStatus() != ItemStatus.OPEN) {
-                throw new OrderException(OrderErrorType.ITEM_NOT_AVAILABLE, "projectItemId=" + projectItemId);
-            }
-
-            validateOrderableQuantity(projectItem, quantity);
-
-            int unitPrice = projectItem.getPrice();
-            int lineAmount;
-            try {
-                lineAmount = Math.multiplyExact(unitPrice, quantity);
-                totalAmount = Math.addExact(totalAmount, lineAmount);
-            } catch (ArithmeticException exception) {
-                throw new OrderException(OrderErrorType.ORDER_AMOUNT_OVERFLOW);
-            }
-
-            lines.add(new ResolvedOrderLine(projectItem, quantity, unitPrice, lineAmount));
-        }
-
         OrderCreateFulfillmentRequestDto fulfillment = request.fulfillment();
-        int shippingFee = fulfillment.method() == OrderFulfillmentMethod.DELIVERY
-                ? getDefaultShippingFee()
-                : 0;
-        int finalAmount;
-        try {
-            finalAmount = Math.addExact(totalAmount, shippingFee);
-        } catch (ArithmeticException exception) {
-            throw new OrderException(OrderErrorType.ORDER_AMOUNT_OVERFLOW);
-        }
+        OrderPricingService.PriceQuote quote = orderPricingService.calculate(request.items(), fulfillment.method());
+        List<OrderPricingService.PriceLine> lines = quote.lines();
 
         LocalDateTime now = LocalDateTime.now();
         LocalDate today = now.toLocalDate();
@@ -141,9 +90,9 @@ public class OrderCreateService {
                 representativeProject,
                 projectOrderNo,
                 OrderStatus.PENDING_DEPOSIT,
-                totalAmount,
-                shippingFee,
-                finalAmount,
+                quote.totalAmount(),
+                quote.shippingFee(),
+                quote.finalAmount(),
                 today.plusDays(1).atTime(23, 59, 59),
                 depositorName,
                 privacyAgreed,
@@ -248,46 +197,6 @@ public class OrderCreateService {
         }
     }
 
-    private Map<Long, Integer> aggregateItemQuantities(List<OrderCreateItemRequestDto> items) {
-        if (items == null || items.isEmpty()) {
-            throw new OrderException(OrderErrorType.ORDER_ITEMS_REQUIRED);
-        }
-
-        Map<Long, Integer> quantityByItemId = new LinkedHashMap<>();
-        for (OrderCreateItemRequestDto item : items) {
-            if (item == null || item.projectItemId() == null) {
-                throw new OrderException(OrderErrorType.INVALID_ORDER_ITEM);
-            }
-            if (item.quantity() <= 0) {
-                throw new OrderException(OrderErrorType.QUANTITY_MUST_BE_POSITIVE);
-            }
-            quantityByItemId.merge(item.projectItemId(), item.quantity(), Math::addExact);
-        }
-        return quantityByItemId;
-    }
-
-    private void validateOrderableQuantity(ProjectItem projectItem, int quantity) {
-        if (projectItem.getSaleType() == ItemSaleType.NORMAL) {
-            Integer stockQty = projectItem.getStockQty();
-            if (stockQty == null || stockQty < quantity) {
-                throw new OrderException(OrderErrorType.INSUFFICIENT_STOCK, "projectItemId=" + projectItem.getId());
-            }
-            return;
-        }
-
-        if (projectItem.getSaleType() == ItemSaleType.GROUPBUY) {
-            return;
-        }
-
-        throw new OrderException(OrderErrorType.SALE_TYPE_NOT_ORDERABLE, "projectItemId=" + projectItem.getId());
-    }
-
-    private int getDefaultShippingFee() {
-        OrderPolicy orderPolicy = orderPolicyRepository.findFirstByOrderByIdAsc()
-                .orElseThrow(() -> new OrderException(OrderErrorType.ORDER_POLICY_NOT_FOUND));
-        return orderPolicy.getDefaultShippingFee();
-    }
-
     private String generateOrderNo(Long projectId, long projectOrderNo, LocalDateTime now) {
         return "P" + projectId
                 + "-" + projectOrderNo
@@ -311,6 +220,4 @@ public class OrderCreateService {
         return trimmed.isEmpty() ? null : trimmed;
     }
 
-    private record ResolvedOrderLine(ProjectItem projectItem, int quantity, int unitPrice, int lineAmount) {
-    }
 }

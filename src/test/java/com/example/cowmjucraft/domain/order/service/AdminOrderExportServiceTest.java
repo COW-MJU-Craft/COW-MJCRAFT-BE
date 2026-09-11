@@ -87,7 +87,7 @@ class AdminOrderExportServiceTest {
         LocalDate endDate = LocalDate.of(2026, 9, 5);
 
         given(projectRepository.findById(1L)).willReturn(Optional.of(project));
-        given(orderRepository.findAllForExport(
+        given(orderRepository.findAllByFilters(
                 1L,
                 startDate.atStartOfDay(),
                 endDate.plusDays(1).atStartOfDay(),
@@ -131,7 +131,7 @@ class AdminOrderExportServiceTest {
     void exportOrdersByDate_주문없음_헤더만포함한XLSX반환() throws IOException {
         // given
         LocalDate date = LocalDate.of(2026, 9, 5);
-        given(orderRepository.findAllForExport(
+        given(orderRepository.findAllByFilters(
                 null,
                 date.atStartOfDay(),
                 date.plusDays(1).atStartOfDay(),
