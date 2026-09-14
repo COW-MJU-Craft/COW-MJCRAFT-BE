@@ -8,6 +8,7 @@ import com.example.cowmjucraft.domain.order.dto.response.AdminOrderListItemRespo
 import com.example.cowmjucraft.domain.order.dto.response.AdminOrderPolicyResponseDto;
 import com.example.cowmjucraft.domain.order.dto.response.AdminOrderStatusResponseDto;
 import com.example.cowmjucraft.domain.order.dto.response.OrderDetailResponseDto;
+import com.example.cowmjucraft.domain.order.entity.OrderFulfillmentMethod;
 import com.example.cowmjucraft.domain.order.entity.OrderStatus;
 import com.example.cowmjucraft.global.response.ApiResult;
 import org.springframework.http.ResponseEntity;
@@ -32,7 +33,9 @@ public interface AdminOrderControllerDocs {
     })
     ResponseEntity<ApiResult<List<AdminOrderListItemResponseDto>>> getOrders(
             @Parameter(description = "주문 상태 필터 (PENDING_DEPOSIT | PAID | IN_PRODUCTION | READY_TO_SHIP | DELIVERED | CANCELED | REFUND_REQUESTED | REFUNDED)", example = "PENDING_DEPOSIT")
-            OrderStatus status
+            OrderStatus status,
+            @Parameter(description = "수령 방식 필터 (PICKUP | DELIVERY)", example = "DELIVERY")
+            OrderFulfillmentMethod fulfillmentMethod
     );
 
     @Operation(summary = "관리자 주문 상세 조회", description = "주문, 구매자, 수령정보, 주문상품 목록을 조회합니다. 취소 주문은 canceledAt, cancelReason이 함께 반환됩니다.")

@@ -55,7 +55,7 @@
 
 **최초 셋업 (clone 후 1회)**
 ```bash
-bash scripts/setup-hooks.sh   # pre-commit 훅 활성화 (main 커밋 차단·시크릿 차단)
+bash scripts/setup-hooks.sh   # pre-commit 훅 활성화 (main·develop 커밋 차단·시크릿 차단)
 ```
 - 로컬에 gitleaks가 없으면 훅은 grep 폴백으로 동작한다 (`brew install gitleaks` 권장)
 

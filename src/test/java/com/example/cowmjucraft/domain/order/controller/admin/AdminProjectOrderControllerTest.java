@@ -11,6 +11,7 @@ import com.example.cowmjucraft.domain.order.dto.response.AdminOrderBulkAdvanceRe
 import com.example.cowmjucraft.domain.order.dto.response.AdminOrderStatusResponseDto;
 import com.example.cowmjucraft.domain.order.dto.response.AdminProjectOrderStatisticsResponseDto;
 import com.example.cowmjucraft.domain.order.entity.OrderStatus;
+import com.example.cowmjucraft.domain.order.entity.OrderFulfillmentMethod;
 import com.example.cowmjucraft.domain.order.service.AdminProjectOrderService;
 import com.example.cowmjucraft.global.exception.GlobalExceptionHandler;
 import java.util.List;
@@ -41,14 +42,23 @@ class AdminProjectOrderControllerTest {
     @Test
     void getOrders_프로젝트와상태필터_서비스결과반환() throws Exception {
         // given
-        given(adminProjectOrderService.getOrders(1L, OrderStatus.IN_PRODUCTION)).willReturn(List.of());
+        given(adminProjectOrderService.getOrders(
+                1L,
+                OrderStatus.IN_PRODUCTION,
+                OrderFulfillmentMethod.DELIVERY
+        )).willReturn(List.of());
 
         // when & then
         mockMvc.perform(get("/api/admin/projects/1/orders")
-                        .queryParam("status", "IN_PRODUCTION"))
+                        .queryParam("status", "IN_PRODUCTION")
+                        .queryParam("fulfillmentMethod", "DELIVERY"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data").isArray());
-        verify(adminProjectOrderService).getOrders(1L, OrderStatus.IN_PRODUCTION);
+        verify(adminProjectOrderService).getOrders(
+                1L,
+                OrderStatus.IN_PRODUCTION,
+                OrderFulfillmentMethod.DELIVERY
+        );
     }
 
     @Test

@@ -6,17 +6,14 @@ import com.example.cowmjucraft.domain.order.dto.response.OrderDetailResponseDto;
 import com.example.cowmjucraft.domain.order.entity.MailOutboxEventType;
 import com.example.cowmjucraft.domain.order.entity.Order;
 import com.example.cowmjucraft.domain.order.entity.OrderBuyer;
+import com.example.cowmjucraft.domain.order.entity.OrderFulfillmentMethod;
 import com.example.cowmjucraft.domain.order.entity.OrderStatus;
 import com.example.cowmjucraft.domain.order.exception.OrderErrorType;
 import com.example.cowmjucraft.domain.order.exception.OrderException;
 import com.example.cowmjucraft.domain.order.repository.OrderBuyerRepository;
 import com.example.cowmjucraft.domain.order.repository.OrderRepository;
 import java.time.LocalDateTime;
-import java.util.Collections;
 import java.util.List;
-import java.util.Map;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,43 +24,19 @@ public class AdminOrderQueryService {
 
     private final OrderRepository orderRepository;
     private final OrderBuyerRepository orderBuyerRepository;
+    private final AdminOrderListAssembler adminOrderListAssembler;
     private final OrderDetailQueryService orderDetailQueryService;
     private final OrderViewTokenService orderViewTokenService;
     private final MailOutboxService mailOutboxService;
 
     @Transactional(readOnly = true)
-    public List<AdminOrderListItemResponseDto> getOrders(OrderStatus status) {
-        List<Order> orders = status == null
-                ? orderRepository.findAllByOrderByCreatedAtDesc()
-                : orderRepository.findAllByStatusOrderByCreatedAtDesc(status);
-
-        if (orders.isEmpty()) {
-            return Collections.emptyList();
-        }
-
-        List<Long> orderIds = orders.stream().map(Order::getId).toList();
-        Map<Long, OrderBuyer> buyerByOrderId = orderBuyerRepository.findAllByOrderIdIn(orderIds).stream()
-                .collect(Collectors.toMap(OrderBuyer::getOrderId, Function.identity()));
-
-        return orders.stream()
-                .map(order -> {
-                    OrderBuyer buyer = buyerByOrderId.get(order.getId());
-                    return new AdminOrderListItemResponseDto(
-                            order.getId(),
-                            order.getOrderNo(),
-                            order.getRepresentativeProject().getId(),
-                            order.getProjectOrderNo(),
-                            order.getStatus().name(),
-                            order.getFinalAmount(),
-                            order.getShippingFee(),
-                            order.getDepositorName(),
-                            buyer == null ? null : buyer.getName(),
-                            buyer == null ? null : buyer.getPhone(),
-                            order.getCreatedAt(),
-                            order.getDepositDeadline()
-                    );
-                })
-                .toList();
+    public List<AdminOrderListItemResponseDto> getOrders(
+            OrderStatus status,
+            OrderFulfillmentMethod fulfillmentMethod
+    ) {
+        return adminOrderListAssembler.assemble(
+                orderRepository.findAllByFilters(null, status, fulfillmentMethod)
+        );
     }
 
     @Transactional(readOnly = true)

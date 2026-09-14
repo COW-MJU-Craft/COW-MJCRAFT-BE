@@ -6,6 +6,7 @@ import com.example.cowmjucraft.domain.order.dto.response.AdminOrderListItemRespo
 import com.example.cowmjucraft.domain.order.dto.response.AdminOrderStatusResponseDto;
 import com.example.cowmjucraft.domain.order.dto.response.AdminProjectOrderStatisticsResponseDto;
 import com.example.cowmjucraft.domain.order.entity.OrderStatus;
+import com.example.cowmjucraft.domain.order.entity.OrderFulfillmentMethod;
 import com.example.cowmjucraft.global.response.ApiResult;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -28,7 +29,9 @@ public interface AdminProjectOrderControllerDocs {
     })
     ResponseEntity<ApiResult<List<AdminOrderListItemResponseDto>>> getOrders(
             @Parameter(description = "프로젝트 ID", example = "1") Long projectId,
-            @Parameter(description = "주문 상태 필터") OrderStatus status
+            @Parameter(description = "주문 상태 필터") OrderStatus status,
+            @Parameter(description = "수령 방식 필터 (PICKUP | DELIVERY)")
+            OrderFulfillmentMethod fulfillmentMethod
     );
 
     @Operation(summary = "프로젝트 주문 통계 조회", description = "목록 필터와 무관하게 집계 대상 상태의 주문 수와 프로젝트 상품 금액을 조회합니다.")
