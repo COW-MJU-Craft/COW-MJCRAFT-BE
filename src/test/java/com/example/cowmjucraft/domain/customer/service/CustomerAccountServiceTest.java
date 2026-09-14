@@ -6,6 +6,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
+import static org.mockito.BDDMockito.willThrow;
 import static org.mockito.Mockito.never;
 
 import com.example.cowmjucraft.domain.customer.dto.request.CustomerEnrollRequestDto;
@@ -23,9 +24,9 @@ import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
@@ -38,6 +39,9 @@ class CustomerAccountServiceTest {
 
     @Mock
     private CustomerRepository customerRepository;
+
+    @Mock
+    private CustomerCreator customerCreator;
 
     @Mock
     private CustomerEmailCodeService customerEmailCodeService;
@@ -53,6 +57,7 @@ class CustomerAccountServiceTest {
         passwordEncoder = new BCryptPasswordEncoder();
         customerAccountService = new CustomerAccountService(
                 customerRepository,
+                customerCreator,
                 customerEmailCodeService,
                 customerCredentialService,
                 passwordEncoder,
@@ -62,28 +67,26 @@ class CustomerAccountServiceTest {
 
     @Test
     void enroll_신규고객_생성후비밀번호와프로필저장() {
-        // given
-        given(customerRepository.findByEmail(EMAIL)).willReturn(Optional.empty());
-        given(customerRepository.saveAndFlush(any(Customer.class)))
-                .willAnswer(invocation -> invocation.getArgument(0));
+        // given — 최초 조회는 없음, INSERT 후 재조회는 새로 만든 managed 엔티티를 돌려준다
+        Customer created = new Customer(EMAIL);
+        given(customerRepository.findByEmail(EMAIL))
+                .willReturn(Optional.empty(), Optional.of(created));
 
         // when
         CustomerEnrollResponseDto response = customerAccountService.enroll(
                 new CustomerEnrollRequestDto(EMAIL, CODE, PASSWORD, profile())
         );
 
-        // then
-        ArgumentCaptor<Customer> captor = ArgumentCaptor.forClass(Customer.class);
-        then(customerRepository).should().saveAndFlush(captor.capture());
-        Customer saved = captor.getValue();
+        // then — 새 행은 별도 트랜잭션(CustomerCreator)에서 INSERT되고, 이후 변경은 재조회한 행에 반영된다
+        then(customerCreator).should().insert(EMAIL);
 
         assertThat(response.email()).isEqualTo(EMAIL);
         assertThat(response.profileSaved()).isTrue();
-        assertThat(saved.getEmailVerifiedAt()).isNotNull();
-        assertThat(passwordEncoder.matches(PASSWORD, saved.getPasswordHash())).isTrue();
-        assertThat(saved.getName()).isEqualTo("김윤진");
+        assertThat(created.getEmailVerifiedAt()).isNotNull();
+        assertThat(passwordEncoder.matches(PASSWORD, created.getPasswordHash())).isTrue();
+        assertThat(created.getName()).isEqualTo("김윤진");
         // 전화번호는 숫자만 남긴다
-        assertThat(saved.getPhone()).isEqualTo("01023456789");
+        assertThat(created.getPhone()).isEqualTo("01023456789");
     }
 
     @Test
@@ -97,7 +100,7 @@ class CustomerAccountServiceTest {
         customerAccountService.enroll(new CustomerEnrollRequestDto(EMAIL, CODE, PASSWORD, null));
 
         // then — 새 행을 만들지 않고 기존 행의 비밀번호만 바꾼다
-        then(customerRepository).should(never()).saveAndFlush(any());
+        then(customerCreator).should(never()).insert(anyString());
         assertThat(passwordEncoder.matches(PASSWORD, existing.getPasswordHash())).isTrue();
     }
 
@@ -150,19 +153,39 @@ class CustomerAccountServiceTest {
 
     @Test
     void upsertForOrder_신규이메일_고객생성하고프로필은비운다() {
-        // given
-        given(customerRepository.findByEmail(EMAIL)).willReturn(Optional.empty());
-        given(customerRepository.saveAndFlush(any(Customer.class)))
-                .willAnswer(invocation -> invocation.getArgument(0));
+        // given — 최초 조회는 없음, INSERT 후 재조회로 managed 엔티티를 얻는다
+        Customer created = new Customer(EMAIL);
+        given(customerRepository.findByEmail(EMAIL))
+                .willReturn(Optional.empty(), Optional.of(created));
         LocalDateTime now = LocalDateTime.now();
 
         // when
         Customer customer = customerAccountService.upsertForOrder("  YunJin@MJU.ac.KR ", now);
 
         // then — 주문 생성은 인증을 받지 않으므로 비밀번호·프로필을 쓰면 안 된다
+        then(customerCreator).should().insert(EMAIL);
         assertThat(customer.getEmail()).isEqualTo(EMAIL);
         assertThat(customer.getPasswordHash()).isNull();
         assertThat(customer.getProfileSavedAt()).isNull();
+        assertThat(customer.getLastOrderedAt()).isEqualTo(now);
+    }
+
+    @Test
+    void upsertForOrder_동시생성충돌_상대가만든행을재사용한다() {
+        // given — 최초 조회는 없어 INSERT를 시도하지만, 그 사이 상대가 같은 이메일로 먼저 만들어
+        //         UNIQUE 제약에 걸린다. 이후 재조회는 상대가 만든 행을 돌려준다.
+        Customer concurrent = new Customer(EMAIL);
+        given(customerRepository.findByEmail(EMAIL))
+                .willReturn(Optional.empty(), Optional.of(concurrent));
+        willThrow(new DataIntegrityViolationException("duplicate email"))
+                .given(customerCreator).insert(EMAIL);
+        LocalDateTime now = LocalDateTime.now();
+
+        // when — 충돌을 삼키고 예외 없이 상대 행을 재사용한다
+        Customer customer = customerAccountService.upsertForOrder(EMAIL, now);
+
+        // then
+        assertThat(customer).isSameAs(concurrent);
         assertThat(customer.getLastOrderedAt()).isEqualTo(now);
     }
 
@@ -183,7 +206,7 @@ class CustomerAccountServiceTest {
         assertThat(customer.getName()).isEqualTo("김윤진");
         assertThat(customer.getPasswordHash()).isNotNull();
         assertThat(customer.getLastOrderedAt()).isEqualTo(now);
-        then(customerRepository).should(never()).saveAndFlush(any());
+        then(customerCreator).should(never()).insert(anyString());
     }
 
     @Test

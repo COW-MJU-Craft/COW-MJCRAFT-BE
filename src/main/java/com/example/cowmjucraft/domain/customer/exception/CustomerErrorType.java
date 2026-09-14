@@ -24,7 +24,10 @@ public enum CustomerErrorType implements ErrorCode {
 
     WEAK_PASSWORD(422, "비밀번호는 8자 이상이며 영문과 숫자를 모두 포함해야 합니다."),
 
-    CODE_HASH_FAILED(500, "인증 코드 처리 중 오류가 발생했습니다.");
+    CODE_HASH_FAILED(500, "인증 코드 처리 중 오류가 발생했습니다."),
+
+    /** 고객 행 INSERT는 성공했다고 보고됐는데 재조회에서 사라진, 정상적으로는 도달 불가능한 상태. */
+    CUSTOMER_PERSIST_FAILED(500, "고객 정보 저장 중 오류가 발생했습니다.");
 
     private final int httpStatusCode;
     private final String message;

@@ -23,7 +23,8 @@ class RateLimitFilterTest {
         properties = new RateLimitProperties();
         properties.setRules(Map.of(
                 RateLimitRule.ADMIN_LOGIN.getKey(), limit(3, Duration.ofMinutes(10)),
-                RateLimitRule.LOOKUP_ID_AVAILABILITY.getKey(), limit(3, Duration.ofMinutes(1))
+                RateLimitRule.LOOKUP_ID_AVAILABILITY.getKey(), limit(3, Duration.ofMinutes(1)),
+                RateLimitRule.CUSTOMER_CREDENTIAL.getKey(), limit(3, Duration.ofMinutes(1))
         ));
         filter = new RateLimitFilter(properties, new RateLimitService(properties), new ObjectMapper());
     }
@@ -85,6 +86,20 @@ class RateLimitFilterTest {
 
         // then
         assertThat(call("/api/orders/lookup-id/availability", success).getStatus()).isEqualTo(429);
+    }
+
+    @Test
+    void doFilter_주문상세_하위경로도_실패반복시429() throws Exception {
+        // given — /api/customers/orders/{orderId} 는 CUSTOMER_CREDENTIAL 규칙의 하위 경로다
+        FilterChain unauthorized = (req, res) -> ((MockHttpServletResponse) res).setStatus(401);
+
+        // when — capacity 3 소진
+        for (int i = 0; i < 3; i++) {
+            assertThat(call("/api/customers/orders/42", unauthorized).getStatus()).isEqualTo(401);
+        }
+
+        // then — IP 단위 제한이 상세 조회에도 걸린다
+        assertThat(call("/api/customers/orders/42", unauthorized).getStatus()).isEqualTo(429);
     }
 
     @Test

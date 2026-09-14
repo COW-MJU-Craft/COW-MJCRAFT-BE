@@ -43,6 +43,9 @@ public enum RateLimitRule {
      * 고객 자격증명을 받는 엔드포인트 — 실패한 시도만 센다.
      * 세션이 없어 비밀번호가 매 요청에 실리므로 계정 단위 잠금
      * ({@code Customer.MAX_PASSWORD_FAILURES})과 함께 두 겹으로 막는다.
+     *
+     * <p>{@code /api/customers/orders}는 목록과 상세({@code /orders/{orderId}})를 모두 덮는다 —
+     * {@link #matches(String)}가 하위 경로까지 매칭하므로 상세 조회도 IP 제한 대상이다.
      */
     CUSTOMER_CREDENTIAL(
             "customer-credential",
@@ -63,7 +66,15 @@ public enum RateLimitRule {
     private final List<String> paths;
     private final boolean countOnlyFailures;
 
+    /**
+     * 규칙 경로와 정확히 같거나 그 하위 경로({@code 규칙경로 + "/..."})면 매칭한다.
+     *
+     * <p>경로 변수를 쓰는 엔드포인트({@code /api/customers/orders/{orderId}})를 덮기 위함이다.
+     * 세그먼트 경계({@code "/"})를 붙여 비교하므로 {@code /api/orders/lookup}이
+     * {@code /api/orders/lookup-id/availability}까지 잘못 삼키지 않는다.
+     */
     public boolean matches(String requestPath) {
-        return paths.contains(requestPath);
+        return paths.stream().anyMatch(path ->
+                requestPath.equals(path) || requestPath.startsWith(path + "/"));
     }
 }

@@ -24,6 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class CustomerAccountService {
 
     private final CustomerRepository customerRepository;
+    private final CustomerCreator customerCreator;
     private final CustomerEmailCodeService customerEmailCodeService;
     private final CustomerCredentialService customerCredentialService;
     private final PasswordEncoder passwordEncoder;
@@ -96,16 +97,22 @@ public class CustomerAccountService {
     }
 
     /**
-     * 같은 이메일로 동시에 주문이 들어오면 UNIQUE 제약에 걸린다.
-     * 그 경우 상대가 이미 만든 행을 다시 읽어 쓴다.
+     * 새 고객 행을 만든다. 같은 이메일로 동시에 주문·등록이 들어오면 UNIQUE 제약에 걸리는데,
+     * 그 경우 상대가 이미 만든 행을 쓴다.
+     *
+     * <p>INSERT는 {@link CustomerCreator}가 별도 트랜잭션에서 수행한다 — 실패해도 호출부
+     * 트랜잭션을 오염시키지 않아야 재조회 복구가 성립하기 때문이다. INSERT 성공 시 그 엔티티는
+     * 별도 트랜잭션 소속이라 detached이므로, 여기서 다시 읽어 <b>현재 영속성 컨텍스트의 managed
+     * 엔티티</b>로 돌려준다. 그래야 호출부의 이후 변경(비밀번호 설정·마지막 주문 시각 등)이 flush된다.
      */
     private Customer saveNew(String email) {
         try {
-            return customerRepository.saveAndFlush(new Customer(email));
+            customerCreator.insert(email);
         } catch (DataIntegrityViolationException exception) {
-            return customerRepository.findByEmail(email)
-                    .orElseThrow(() -> exception);
+            // 동시에 같은 이메일로 먼저 만들어졌다 — 아래 재조회가 그 행을 집어온다.
         }
+        return customerRepository.findByEmail(email)
+                .orElseThrow(() -> new CustomerException(CustomerErrorType.CUSTOMER_PERSIST_FAILED));
     }
 
     private String requireText(String value, String fieldName) {
