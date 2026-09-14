@@ -65,6 +65,16 @@ public class OrderBuyer {
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
+    /**
+     * 주문자 이메일을 정정한다.
+     *
+     * <p>이메일이 유일한 연락 수단이자 고객 식별 키라, 오타가 나면 완료 메일도
+     * 조회도 전부 막힌다. 사용자가 스스로 고칠 방법이 없으므로 관리자에게만 연다.
+     */
+    public void correctEmail(String email) {
+        this.email = email;
+    }
+
     public OrderBuyer(
             Order order,
             OrderBuyerType buyerType,

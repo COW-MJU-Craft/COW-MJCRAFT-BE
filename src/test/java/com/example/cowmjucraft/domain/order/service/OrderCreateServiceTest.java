@@ -1,5 +1,8 @@
 package com.example.cowmjucraft.domain.order.service;
 
+import org.mockito.ArgumentCaptor;
+import com.example.cowmjucraft.domain.customer.entity.Customer;
+import com.example.cowmjucraft.domain.customer.service.CustomerAccountService;
 import com.example.cowmjucraft.domain.item.entity.ItemSaleType;
 import com.example.cowmjucraft.domain.item.entity.ItemStatus;
 import com.example.cowmjucraft.domain.item.entity.ItemType;
@@ -34,6 +37,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import static org.mockito.ArgumentMatchers.eq;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
@@ -65,6 +69,9 @@ class OrderCreateServiceTest {
     private MailOutboxService mailOutboxService;
     @Mock
     private OrderPolicyRepository orderPolicyRepository;
+
+    @Mock
+    private CustomerAccountService customerAccountService;
     @Mock
     private ProjectRepository projectRepository;
 
@@ -91,7 +98,8 @@ class OrderCreateServiceTest {
                 mailOutboxService,
                 new PasswordPolicy(),
                 projectRepository,
-                orderPricingService
+                orderPricingService,
+                customerAccountService
         );
     }
 
@@ -266,6 +274,72 @@ class OrderCreateServiceTest {
 
     private OrderCreateRequestDto request(int quantity) {
         return request(quantity, "Pa$$w0rd!");
+    }
+
+    @Test
+    void createOrder_조회아이디없이도_주문이생성되고고객이연결된다() {
+        // given — 프론트 전환 후의 요청 형태
+        ProjectItem item = groupbuyItem(1L, 100, 40);
+        Customer customer = new Customer("hong@example.com");
+        when(projectItemRepository.findAllById(Set.of(1L))).thenReturn(List.of(item));
+        when(customerAccountService.upsertForOrder(eq("hong@example.com"), any())).thenReturn(customer);
+        when(orderRepository.save(any(Order.class))).thenAnswer(invocation -> {
+            Order order = invocation.getArgument(0);
+            ReflectionTestUtils.setField(order, "id", 10L);
+            return order;
+        });
+        when(orderViewTokenService.issueNewToken(any(Order.class), any())).thenReturn("raw-token");
+        when(orderViewTokenService.buildOrderViewUrl("raw-token")).thenReturn("https://example.com/orders/view?token=raw-token");
+
+        // when
+        var response = orderCreateService.createOrder(requestWithoutLookup(1));
+
+        // then — order_auth를 만들지 않고, 중복 검사도 하지 않는다
+        assertThat(response.lookupId()).isNull();
+        verify(orderAuthRepository, never()).save(any());
+        verify(orderAuthRepository, never()).existsByLookupId(any());
+
+        ArgumentCaptor<Order> captor = ArgumentCaptor.forClass(Order.class);
+        verify(orderRepository).save(captor.capture());
+        assertThat(captor.getValue().getCustomer()).isSameAs(customer);
+    }
+
+    @Test
+    void createOrder_조회아이디를보내면_기존대로order_auth를저장한다() {
+        // given — 프론트 전환 전의 요청 형태(호환 유지)
+        ProjectItem item = groupbuyItem(1L, 100, 40);
+        when(orderAuthRepository.existsByLookupId("guest-mju-001")).thenReturn(false);
+        when(projectItemRepository.findAllById(Set.of(1L))).thenReturn(List.of(item));
+        when(orderRepository.save(any(Order.class))).thenAnswer(invocation -> {
+            Order order = invocation.getArgument(0);
+            ReflectionTestUtils.setField(order, "id", 10L);
+            return order;
+        });
+        when(passwordEncoder.encode("Pa$$w0rd!")).thenReturn("encoded-password");
+        when(orderViewTokenService.issueNewToken(any(Order.class), any())).thenReturn("raw-token");
+        when(orderViewTokenService.buildOrderViewUrl("raw-token")).thenReturn("https://example.com/orders/view?token=raw-token");
+
+        // when
+        var response = orderCreateService.createOrder(request(1));
+
+        // then
+        assertThat(response.lookupId()).isEqualTo("guest-mju-001");
+        verify(orderAuthRepository).save(any());
+    }
+
+    private OrderCreateRequestDto requestWithoutLookup(int quantity) {
+        OrderCreateRequestDto base = request(quantity);
+        return new OrderCreateRequestDto(
+                null,
+                null,
+                base.depositorName(),
+                base.privacyAgreed(),
+                base.refundAgreed(),
+                base.cancelRiskAgreed(),
+                base.items(),
+                base.buyer(),
+                base.fulfillment()
+        );
     }
 
     private OrderCreateRequestDto request(int quantity, String password) {

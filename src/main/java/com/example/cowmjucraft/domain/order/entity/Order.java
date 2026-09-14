@@ -1,6 +1,7 @@
 package com.example.cowmjucraft.domain.order.entity;
 
 import com.example.cowmjucraft.domain.common.BaseTimeEntity;
+import com.example.cowmjucraft.domain.customer.entity.Customer;
 import com.example.cowmjucraft.domain.project.entity.Project;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -37,6 +38,14 @@ public class Order extends BaseTimeEntity {
 
     @Column(name = "order_no", nullable = false, unique = true, length = 64)
     private String orderNo;
+
+    /**
+     * 주문한 사람. 이메일로 식별되며 주문 생성 시 upsert된다.
+     * 비회원 주문이라도 이메일은 반드시 받으므로 항상 채워진다.
+     */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "customer_id", nullable = false)
+    private Customer customer;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "representative_project_id", nullable = false)
@@ -102,6 +111,7 @@ public class Order extends BaseTimeEntity {
 
     public Order(
             String orderNo,
+            Customer customer,
             Project representativeProject,
             long projectOrderNo,
             OrderStatus status,
@@ -118,6 +128,7 @@ public class Order extends BaseTimeEntity {
             LocalDateTime cancelRiskAgreedAt
     ) {
         this.orderNo = orderNo;
+        this.customer = customer;
         this.representativeProject = representativeProject;
         this.projectOrderNo = projectOrderNo;
         this.status = status;
@@ -132,6 +143,11 @@ public class Order extends BaseTimeEntity {
         this.refundAgreedAt = refundAgreedAt;
         this.cancelRiskAgreed = cancelRiskAgreed;
         this.cancelRiskAgreedAt = cancelRiskAgreedAt;
+    }
+
+    /** 관리자가 주문자 이메일을 정정하면 소속 고객도 함께 옮긴다. */
+    public void reassignCustomer(Customer customer) {
+        this.customer = customer;
     }
 
     public void updateStatus(OrderStatus status) {

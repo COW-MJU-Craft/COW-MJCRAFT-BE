@@ -33,6 +33,30 @@ public enum RateLimitRule {
     LOOKUP_ID_AVAILABILITY("lookup-id-availability", List.of("/api/orders/lookup-id/availability"), false),
 
     /**
+     * 이메일 인증 코드 발송 — 성공·실패를 가리지 않고 모두 센다.
+     * 응답이 항상 202라 실패만 세는 방식으로는 아무것도 막지 못하고,
+     * 남의 메일함으로 코드를 쏟아붓는 것 자체를 막아야 한다.
+     */
+    CUSTOMER_EMAIL_CODE("customer-email-code", List.of("/api/customers/email-code"), false),
+
+    /**
+     * 고객 자격증명을 받는 엔드포인트 — 실패한 시도만 센다.
+     * 세션이 없어 비밀번호가 매 요청에 실리므로 계정 단위 잠금
+     * ({@code Customer.MAX_PASSWORD_FAILURES})과 함께 두 겹으로 막는다.
+     *
+     * <p>{@code /api/customers/orders}는 목록과 상세({@code /orders/{orderId}})를 모두 덮는다 —
+     * {@link #matches(String)}가 하위 경로까지 매칭하므로 상세 조회도 IP 제한 대상이다.
+     */
+    CUSTOMER_CREDENTIAL(
+            "customer-credential",
+            List.of("/api/customers/prefill", "/api/customers/profile", "/api/customers/orders"),
+            true
+    ),
+
+    /** 코드 검증 — 실패한 시도만 센다. */
+    CUSTOMER_ENROLL("customer-enroll", List.of("/api/customers/enroll"), true),
+
+    /**
      * 주문 사전 견적 — 인증·부작용 없는 공개 조회라 자동화된 대량 호출을 자체적으로
      * 막을 수단이 없다. 성공·실패를 가리지 않고 모든 요청을 센다.
      */
@@ -42,7 +66,15 @@ public enum RateLimitRule {
     private final List<String> paths;
     private final boolean countOnlyFailures;
 
+    /**
+     * 규칙 경로와 정확히 같거나 그 하위 경로({@code 규칙경로 + "/..."})면 매칭한다.
+     *
+     * <p>경로 변수를 쓰는 엔드포인트({@code /api/customers/orders/{orderId}})를 덮기 위함이다.
+     * 세그먼트 경계({@code "/"})를 붙여 비교하므로 {@code /api/orders/lookup}이
+     * {@code /api/orders/lookup-id/availability}까지 잘못 삼키지 않는다.
+     */
     public boolean matches(String requestPath) {
-        return paths.contains(requestPath);
+        return paths.stream().anyMatch(path ->
+                requestPath.equals(path) || requestPath.startsWith(path + "/"));
     }
 }

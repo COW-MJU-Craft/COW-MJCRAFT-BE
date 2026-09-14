@@ -5,13 +5,12 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.stereotype.Component;
 
-import java.security.Key;
 import java.util.Date;
+import javax.crypto.SecretKey;
 
 @Component
 public class JwtTokenProvider {
@@ -21,7 +20,7 @@ public class JwtTokenProvider {
     private static final String TOKEN_TYPE_ACCESS = "access";
     private static final String TOKEN_TYPE_REFRESH = "refresh";
 
-    private final Key key;
+    private final SecretKey key;
     private final long accessExpirationSeconds;
     private final long refreshExpirationSeconds;
 
@@ -52,12 +51,14 @@ public class JwtTokenProvider {
         Date expiry = new Date(now.getTime() + expirationSeconds * 1000);
 
         return Jwts.builder()
-                .setSubject(subject)
+                .subject(subject)
                 .claim(CLAIM_ROLE, role.name())
                 .claim(CLAIM_TOKEN_TYPE, tokenType)
-                .setIssuedAt(now)
-                .setExpiration(expiry)
-                .signWith(key, SignatureAlgorithm.HS256)
+                .issuedAt(now)
+                .expiration(expiry)
+                // 0.12.x의 signWith(key)는 키 길이로 알고리즘을 추론한다. 기존 토큰과 헤더를
+                // 동일하게 유지하려면 HS256을 명시해야 한다.
+                .signWith(key, Jwts.SIG.HS256)
                 .compact();
     }
 
@@ -71,16 +72,16 @@ public class JwtTokenProvider {
     }
 
     public String getSubject(String token) {
-        return parseClaims(token).getBody().getSubject();
+        return parseClaims(token).getPayload().getSubject();
     }
 
     public String getRole(String token) {
-        Object role = parseClaims(token).getBody().get(CLAIM_ROLE);
+        Object role = parseClaims(token).getPayload().get(CLAIM_ROLE);
         return role == null ? null : role.toString();
     }
 
     public String getTokenType(String token) {
-        Object tokenType = parseClaims(token).getBody().get(CLAIM_TOKEN_TYPE);
+        Object tokenType = parseClaims(token).getPayload().get(CLAIM_TOKEN_TYPE);
         return tokenType == null ? null : tokenType.toString();
     }
 
@@ -94,7 +95,7 @@ public class JwtTokenProvider {
 
     private boolean validateTokenByType(String token, String expectedType) {
         try {
-            Claims claims = parseClaims(token).getBody();
+            Claims claims = parseClaims(token).getPayload();
             String tokenType = claims.get(CLAIM_TOKEN_TYPE, String.class);
             return expectedType.equals(tokenType);
         } catch (JwtException | IllegalArgumentException e) {
@@ -111,9 +112,9 @@ public class JwtTokenProvider {
     }
 
     private Jws<Claims> parseClaims(String token) {
-        return Jwts.parserBuilder()
-                .setSigningKey(key)
+        return Jwts.parser()
+                .verifyWith(key)
                 .build()
-                .parseClaimsJws(token);
+                .parseSignedClaims(token);
     }
 }
