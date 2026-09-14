@@ -1,5 +1,6 @@
 package com.example.cowmjucraft.domain.order.controller.admin;
 
+import com.example.cowmjucraft.domain.order.dto.request.AdminOrderBuyerEmailUpdateRequestDto;
 import com.example.cowmjucraft.domain.order.dto.request.AdminOrderCancelRequestDto;
 import com.example.cowmjucraft.domain.order.dto.request.AdminOrderCompletePageUpsertRequestDto;
 import com.example.cowmjucraft.domain.order.dto.request.AdminOrderPolicyUpdateRequestDto;
@@ -8,8 +9,9 @@ import com.example.cowmjucraft.domain.order.dto.response.AdminOrderListItemRespo
 import com.example.cowmjucraft.domain.order.dto.response.AdminOrderPolicyResponseDto;
 import com.example.cowmjucraft.domain.order.dto.response.AdminOrderStatusResponseDto;
 import com.example.cowmjucraft.domain.order.dto.response.OrderDetailResponseDto;
-import com.example.cowmjucraft.domain.order.entity.OrderStatus;
 import com.example.cowmjucraft.domain.order.entity.OrderFulfillmentMethod;
+import com.example.cowmjucraft.domain.order.entity.OrderStatus;
+import com.example.cowmjucraft.domain.order.service.AdminOrderBuyerEmailService;
 import com.example.cowmjucraft.domain.order.service.AdminOrderCompletePageService;
 import com.example.cowmjucraft.domain.order.service.AdminOrderPaymentService;
 import com.example.cowmjucraft.domain.order.service.AdminOrderPolicyService;
@@ -23,6 +25,7 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -41,6 +44,7 @@ public class AdminOrderController implements AdminOrderControllerDocs {
     private final AdminOrderRefundService adminOrderRefundService;
     private final AdminOrderCompletePageService adminOrderCompletePageService;
     private final AdminOrderPolicyService adminOrderPolicyService;
+    private final AdminOrderBuyerEmailService adminOrderBuyerEmailService;
 
     @GetMapping("/orders")
     @Override
@@ -118,5 +122,15 @@ public class AdminOrderController implements AdminOrderControllerDocs {
     @Override
     public ResponseEntity<ApiResult<AdminOrderStatusResponseDto>> confirmRefund(@PathVariable Long orderId) {
         return ApiResponse.of(SuccessType.SUCCESS, adminOrderRefundService.confirmRefund(orderId));
+    }
+
+    @PatchMapping("/orders/{orderId}/buyer-email")
+    @Override
+    public ResponseEntity<ApiResult<Void>> correctBuyerEmail(
+            @PathVariable Long orderId,
+            @Valid @RequestBody AdminOrderBuyerEmailUpdateRequestDto request
+    ) {
+        adminOrderBuyerEmailService.correctBuyerEmail(orderId, request.email());
+        return ApiResponse.of(SuccessType.SUCCESS);
     }
 }
