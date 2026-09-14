@@ -139,7 +139,22 @@ public record OrderDetailResponseDto(
             int unitPrice,
 
             @Schema(description = "라인 금액", example = "24000")
-            int lineAmount
+            int lineAmount,
+
+            @ArraySchema(arraySchema = @Schema(description = "선택한 옵션 목록"))
+            List<OptionInfo> options
+    ) {
+    }
+
+    public record OptionInfo(
+            @Schema(description = "옵션 그룹명 스냅샷", example = "색상")
+            String optionGroupNameSnapshot,
+
+            @Schema(description = "옵션값명 스냅샷", example = "블랙")
+            String optionValueNameSnapshot,
+
+            @Schema(description = "옵션 추가 금액 스냅샷", example = "1000")
+            int additionalPriceSnapshot
     ) {
     }
 }
