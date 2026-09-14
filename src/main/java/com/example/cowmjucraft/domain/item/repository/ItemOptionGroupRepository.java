@@ -12,5 +12,7 @@ public interface ItemOptionGroupRepository extends JpaRepository<ItemOptionGroup
 
     boolean existsByItemId(Long itemId);
 
+    boolean existsByItemIdAndRequiredTrue(Long itemId);
+
     boolean existsByItemIdAndSortOrder(Long itemId, int sortOrder);
 }

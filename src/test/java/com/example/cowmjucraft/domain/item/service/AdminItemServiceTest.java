@@ -104,17 +104,33 @@ class AdminItemServiceTest {
     }
 
     @Test
-    void update_옵션그룹있는상품_stockQty를null로강제한다() {
+    void update_필수옵션그룹있는상품_stockQty를null로강제한다() {
         // given
         ProjectItem item = item(1L);
         when(projectItemRepository.findById(1L)).thenReturn(Optional.of(item));
         when(itemOptionGroupRepository.existsByItemId(1L)).thenReturn(true);
+        when(itemOptionGroupRepository.existsByItemIdAndRequiredTrue(1L)).thenReturn(true);
 
         // when
         adminItemService.update(1L, updateRequest(99));
 
         // then
         assertThat(item.getStockQty()).isNull();
+    }
+
+    @Test
+    void update_선택사항옵션그룹만있는상품_stockQty그대로반영된다() {
+        // given — 옵션 그룹은 있지만 전부 required=false라, 옵션 없이도 상품 자체를 주문할 수 있어야 함
+        ProjectItem item = item(1L);
+        when(projectItemRepository.findById(1L)).thenReturn(Optional.of(item));
+        when(itemOptionGroupRepository.existsByItemId(1L)).thenReturn(true);
+        when(itemOptionGroupRepository.existsByItemIdAndRequiredTrue(1L)).thenReturn(false);
+
+        // when
+        adminItemService.update(1L, updateRequest(99));
+
+        // then
+        assertThat(item.getStockQty()).isEqualTo(99);
     }
 
     @Test
@@ -129,6 +145,35 @@ class AdminItemServiceTest {
 
         // then
         assertThat(item.getStockQty()).isEqualTo(99);
+    }
+
+    @Test
+    void update_옵션그룹있는상품을공동구매로변경시_ItemException발생() {
+        // given
+        ProjectItem item = item(1L);
+        when(projectItemRepository.findById(1L)).thenReturn(Optional.of(item));
+        when(itemOptionGroupRepository.existsByItemId(1L)).thenReturn(true);
+
+        // when & then
+        assertThatThrownBy(() -> adminItemService.update(1L, groupbuyUpdateRequest()))
+                .isInstanceOf(ItemException.class);
+    }
+
+    private AdminProjectItemUpdateRequestDto groupbuyUpdateRequest() {
+        return new AdminProjectItemUpdateRequestDto(
+                "상품",
+                "요약",
+                "설명",
+                10_000,
+                ItemSaleType.GROUPBUY,
+                ItemStatus.OPEN,
+                "thumb.png",
+                100,
+                0,
+                ItemType.PHYSICAL,
+                null,
+                null
+        );
     }
 
     private AdminProjectItemUpdateRequestDto updateRequest(Integer stockQty) {

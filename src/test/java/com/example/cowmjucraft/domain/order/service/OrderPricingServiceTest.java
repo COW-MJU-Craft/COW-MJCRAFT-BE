@@ -137,6 +137,27 @@ class OrderPricingServiceTest {
     }
 
     @Test
+    void calculate_선택사항옵션그룹만있는상품_옵션없이도상품재고로주문된다() {
+        // given — "선물포장" 그룹은 required=false. 옵션을 하나도 안 골라도 상품 자체는 주문 가능해야 함
+        // (AdminItemService 쪽에서 이 경우 상품 stockQty를 null로 강제하지 않으므로, 여기선 stockQty=5로 살아있음)
+        ProjectItem item = item(1L, 12_000, 5);
+        ItemOptionGroup giftWrapGroup = optionGroup(item, 100L, "선물포장", false, 0);
+
+        given(projectItemRepository.findAllById(Set.of(1L))).willReturn(List.of(item));
+        given(itemOptionGroupRepository.findByItemIdInOrderBySortOrderAsc(List.of(1L))).willReturn(List.of(giftWrapGroup));
+
+        // when — 옵션을 하나도 선택하지 않음
+        OrderPricingService.PriceQuote quote = orderPricingService.calculate(
+                List.of(itemRequest(1L, 2)),
+                OrderFulfillmentMethod.PICKUP
+        );
+
+        // then
+        assertThat(quote.lines()).hasSize(1);
+        assertThat(quote.totalAmount()).isEqualTo(24_000);
+    }
+
+    @Test
     void calculate_옵션추가금액이단가에반영된다() {
         // given
         ProjectItem item = item(1L, 12_000, 5);

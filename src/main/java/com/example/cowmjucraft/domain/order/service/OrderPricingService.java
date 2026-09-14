@@ -74,10 +74,14 @@ public class OrderPricingService {
             );
             validateOrderable(projectItem, selectedOptions, quantity);
 
-            int unitPrice = projectItem.getPrice()
-                    + selectedOptions.stream().mapToInt(ItemOptionValue::getAdditionalPrice).sum();
+            int unitPrice;
             int lineAmount;
             try {
+                int optionsAdditionalPrice = 0;
+                for (ItemOptionValue selectedOption : selectedOptions) {
+                    optionsAdditionalPrice = Math.addExact(optionsAdditionalPrice, selectedOption.getAdditionalPrice());
+                }
+                unitPrice = Math.addExact(projectItem.getPrice(), optionsAdditionalPrice);
                 lineAmount = Math.multiplyExact(unitPrice, quantity);
                 totalAmount = Math.addExact(totalAmount, lineAmount);
             } catch (ArithmeticException exception) {

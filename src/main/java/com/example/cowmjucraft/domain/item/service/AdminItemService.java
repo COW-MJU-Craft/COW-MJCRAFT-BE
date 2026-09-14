@@ -380,6 +380,7 @@ public class AdminItemService {
                 request.fundedQty(),
                 request.journalFileKey(),
                 request.stockQty(),
+                false,
                 false
         );
     }
@@ -392,6 +393,7 @@ public class AdminItemService {
         ItemType itemType = resolveItemType(project, request.itemType(), item.getItemType());
         validateDescription(itemType, request.description());
         boolean hasOptionGroups = itemOptionGroupRepository.existsByItemId(item.getId());
+        boolean hasRequiredOptionGroups = itemOptionGroupRepository.existsByItemIdAndRequiredTrue(item.getId());
         return normalize(
                 itemType,
                 request.price(),
@@ -401,7 +403,8 @@ public class AdminItemService {
                 request.fundedQty(),
                 request.journalFileKey(),
                 request.stockQty(),
-                hasOptionGroups
+                hasOptionGroups,
+                hasRequiredOptionGroups
         );
     }
 
@@ -414,7 +417,8 @@ public class AdminItemService {
             Integer fundedQty,
             String journalFileKey,
             Integer stockQty,
-            boolean hasOptionGroups
+            boolean hasOptionGroups,
+            boolean hasRequiredOptionGroups
     ) {
         if (itemType == ItemType.DIGITAL_JOURNAL) {
             if (price != 0) {
@@ -453,14 +457,21 @@ public class AdminItemService {
         Integer normalizedTargetQty = targetQty;
         Integer normalizedStockQty;
         if (saleType == ItemSaleType.GROUPBUY) {
+            if (hasOptionGroups) {
+                // 공동구매는 재고를 fundedQty/targetQty로 관리하므로 옵션(그룹 유무 무관)과 병행하지 않는다.
+                // 옵션 그룹을 가진 상품을 GROUPBUY로 전환하는 경로를 여기서 막는다(생성 시점 차단만으로는 부족 — 수정 시점에도 필요).
+                throw new ItemException(ItemErrorType.OPTION_NOT_SUPPORTED_FOR_SALE_TYPE);
+            }
             if (normalizedTargetQty == null || normalizedTargetQty < 1) {
                 throw new ItemException(ItemErrorType.GROUPBUY_VIOLATION, "targetQty must be >= 1 for GROUPBUY");
             }
             normalizedStockQty = null;
         } else {
             normalizedTargetQty = null;
-            if (hasOptionGroups) {
-                // 옵션 그룹이 있으면 재고는 옵션값 단위로만 관리 — 상품 레벨 stockQty는 무조건 null
+            if (hasRequiredOptionGroups) {
+                // 필수 옵션 그룹이 있으면 모든 주문이 그 그룹에서 값을 골라야 하므로, 재고는 옵션값 단위로만 관리 —
+                // 상품 레벨 stockQty는 무조건 null. (선택사항뿐인 옵션 그룹만 있는 경우는 상품 자체도 여전히
+                // 옵션 없이 주문 가능해야 하므로 stockQty를 그대로 살려둔다.)
                 normalizedStockQty = null;
             } else {
                 if (stockQty == null) {
