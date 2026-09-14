@@ -12,6 +12,7 @@ import com.example.cowmjucraft.domain.order.service.OrderCreateService;
 import com.example.cowmjucraft.domain.order.service.OrderDetailQueryService;
 import com.example.cowmjucraft.domain.order.service.OrderLookupIdService;
 import com.example.cowmjucraft.domain.order.service.OrderQueryByTokenService;
+import com.example.cowmjucraft.domain.order.service.OrderQuoteService;
 import com.example.cowmjucraft.global.exception.GlobalExceptionHandler;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -36,6 +37,8 @@ class ClientOrderControllerViewTokenTest {
     private OrderQueryByTokenService orderQueryByTokenService;
     @Mock
     private OrderCompletePageService orderCompletePageService;
+    @Mock
+    private OrderQuoteService orderQuoteService;
 
     private MockMvc mockMvc;
 
@@ -46,7 +49,8 @@ class ClientOrderControllerViewTokenTest {
                         orderLookupIdService,
                         orderDetailQueryService,
                         orderQueryByTokenService,
-                        orderCompletePageService))
+                        orderCompletePageService,
+                        orderQuoteService))
                 .setControllerAdvice(new GlobalExceptionHandler())
                 .build();
     }
