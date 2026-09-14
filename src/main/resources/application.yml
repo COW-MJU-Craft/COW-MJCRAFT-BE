@@ -4,6 +4,10 @@ spring:
   jackson:
     time-zone: Asia/Seoul
   jpa:
+    # OSIV 비활성화: 영속성 컨텍스트를 트랜잭션 범위로 한정해 요청 전 구간의 DB 커넥션 점유를 막는다.
+    # 트랜잭션 밖 LAZY 접근은 LazyInitializationException으로 조기 노출된다(현 코드는 모든 LAZY 접근이
+    # @Transactional 서비스 메서드 안에서 일어나 안전하다 — 검증 완료).
+    open-in-view: false
     properties:
       hibernate:
         jdbc:
