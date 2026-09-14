@@ -95,6 +95,19 @@ class AdminItemOptionServiceTest {
     }
 
     @Test
+    void createOptionGroup_공동구매상품_ItemException발생() {
+        // given
+        ProjectItem item = groupbuyItem(1L);
+        when(projectItemRepository.findById(1L)).thenReturn(Optional.of(item));
+
+        // when & then
+        assertThatThrownBy(() -> adminItemOptionService.createOptionGroup(
+                1L,
+                new AdminItemOptionGroupCreateRequestDto("색상", true, 0)
+        )).isInstanceOf(ItemException.class);
+    }
+
+    @Test
     void updateOptionGroup_다른상품의그룹_ItemException발생() {
         // given
         ProjectItem otherItem = item(2L);
@@ -183,6 +196,25 @@ class AdminItemOptionServiceTest {
                 null,
                 null,
                 50
+        );
+        ReflectionTestUtils.setField(item, "id", id);
+        return item;
+    }
+
+    private ProjectItem groupbuyItem(Long id) {
+        ProjectItem item = new ProjectItem(
+                null,
+                "공동구매 상품",
+                "summary",
+                "description",
+                12000,
+                ItemSaleType.GROUPBUY,
+                ItemStatus.OPEN,
+                ItemType.PHYSICAL,
+                "thumb.png",
+                null,
+                100,
+                0
         );
         ReflectionTestUtils.setField(item, "id", id);
         return item;

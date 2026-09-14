@@ -8,6 +8,7 @@ import com.example.cowmjucraft.domain.item.dto.response.AdminItemOptionGroupResp
 import com.example.cowmjucraft.domain.item.dto.response.AdminItemOptionValueResponseDto;
 import com.example.cowmjucraft.domain.item.entity.ItemOptionGroup;
 import com.example.cowmjucraft.domain.item.entity.ItemOptionValue;
+import com.example.cowmjucraft.domain.item.entity.ItemSaleType;
 import com.example.cowmjucraft.domain.item.entity.ProjectItem;
 import com.example.cowmjucraft.domain.item.exception.ItemErrorType;
 import com.example.cowmjucraft.domain.item.exception.ItemException;
@@ -49,6 +50,10 @@ public class AdminItemOptionService {
     @Transactional
     public AdminItemOptionGroupResponseDto createOptionGroup(Long itemId, AdminItemOptionGroupCreateRequestDto request) {
         ProjectItem item = findItem(itemId);
+        if (item.getSaleType() != ItemSaleType.NORMAL) {
+            // 공동구매 상품은 재고를 fundedQty/targetQty로 별도 관리하므로 옵션(옵션값 단위 재고)과 병행하지 않는다.
+            throw new ItemException(ItemErrorType.OPTION_NOT_SUPPORTED_FOR_SALE_TYPE, "itemId=" + itemId);
+        }
         if (itemOptionGroupRepository.existsByItemIdAndSortOrder(itemId, request.sortOrder())) {
             throw new ItemException(ItemErrorType.SORT_ORDER_CONFLICT, "itemId=" + itemId);
         }

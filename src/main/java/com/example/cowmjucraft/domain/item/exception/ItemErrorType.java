@@ -19,6 +19,7 @@ public enum ItemErrorType implements ErrorCode {
     OPTION_GROUP_NOT_BELONG_TO_ITEM(409, "해당 상품의 옵션 그룹이 아닙니다."),
     OPTION_VALUE_NOT_BELONG_TO_GROUP(409, "해당 옵션 그룹의 값이 아닙니다."),
     OPTION_VALUE_IN_USE(409, "이미 주문에 사용된 옵션 값은 삭제할 수 없습니다."),
+    OPTION_NOT_SUPPORTED_FOR_SALE_TYPE(409, "일반 판매(NORMAL) 상품에만 옵션을 추가할 수 있습니다."),
 
     ITEM_TYPE_MISMATCH(422, "상품 유형이 프로젝트 카테고리와 맞지 않습니다."),
     DIGITAL_JOURNAL_VIOLATION(422, "디지털 저널 상품 규칙을 위반했습니다."),
