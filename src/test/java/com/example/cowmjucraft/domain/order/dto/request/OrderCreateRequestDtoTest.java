@@ -33,7 +33,7 @@ class OrderCreateRequestDtoTest {
     }
 
     private OrderCreateRequestDto requestWithItems(int count) {
-        List<OrderCreateItemRequestDto> items = Collections.nCopies(count, new OrderCreateItemRequestDto(1L, 1));
+        List<OrderCreateItemRequestDto> items = Collections.nCopies(count, new OrderCreateItemRequestDto(1L, 1, null));
         return new OrderCreateRequestDto(
                 "guest-id", "password", "홍길동", true, true, true, items, null, null
         );

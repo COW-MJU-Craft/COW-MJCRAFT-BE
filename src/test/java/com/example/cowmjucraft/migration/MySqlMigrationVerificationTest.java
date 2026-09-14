@@ -117,6 +117,23 @@ class MySqlMigrationVerificationTest {
     }
 
     @Test
+    void 주문옵션_마이그레이션_옵션값참조FK가반영된다() {
+        Integer fkCount = jdbcTemplate.queryForObject(
+                """
+                        SELECT COUNT(*)
+                        FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE
+                        WHERE TABLE_SCHEMA = DATABASE()
+                          AND TABLE_NAME = 'order_item_options'
+                          AND COLUMN_NAME = 'option_value_id'
+                          AND REFERENCED_TABLE_NAME = 'item_option_values'
+                        """,
+                Integer.class
+        );
+
+        assertThat(fkCount).isEqualTo(1);
+    }
+
+    @Test
     void 마이그레이션된_스키마에서_핵심_리포지토리가_동작한다() {
         Project project = new Project(
                 "테스트 프로젝트",

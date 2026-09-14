@@ -21,6 +21,7 @@ import com.example.cowmjucraft.domain.item.exception.ItemException;
 import com.example.cowmjucraft.domain.item.repository.ItemOptionGroupRepository;
 import com.example.cowmjucraft.domain.item.repository.ItemOptionValueRepository;
 import com.example.cowmjucraft.domain.item.repository.ProjectItemRepository;
+import com.example.cowmjucraft.domain.order.repository.OrderItemOptionRepository;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -38,6 +39,8 @@ class AdminItemOptionServiceTest {
     private ItemOptionGroupRepository itemOptionGroupRepository;
     @Mock
     private ItemOptionValueRepository itemOptionValueRepository;
+    @Mock
+    private OrderItemOptionRepository orderItemOptionRepository;
 
     private AdminItemOptionService adminItemOptionService;
 
@@ -46,7 +49,8 @@ class AdminItemOptionServiceTest {
         adminItemOptionService = new AdminItemOptionService(
                 projectItemRepository,
                 itemOptionGroupRepository,
-                itemOptionValueRepository
+                itemOptionValueRepository,
+                orderItemOptionRepository
         );
     }
 
@@ -142,6 +146,22 @@ class AdminItemOptionServiceTest {
 
         when(itemOptionGroupRepository.findById(10L)).thenReturn(Optional.of(group));
         when(itemOptionValueRepository.findById(100L)).thenReturn(Optional.of(value));
+
+        // when & then
+        assertThatThrownBy(() -> adminItemOptionService.deleteOptionValue(1L, 10L, 100L))
+                .isInstanceOf(ItemException.class);
+    }
+
+    @Test
+    void deleteOptionValue_이미주문에사용됨_ItemException발생() {
+        // given
+        ProjectItem item = item(1L);
+        ItemOptionGroup group = optionGroup(item, 10L, "색상", 0);
+        ItemOptionValue value = optionValue(group, 100L, "블랙", 500, 10, 0);
+
+        when(itemOptionGroupRepository.findById(10L)).thenReturn(Optional.of(group));
+        when(itemOptionValueRepository.findById(100L)).thenReturn(Optional.of(value));
+        when(orderItemOptionRepository.existsByOptionValueId(100L)).thenReturn(true);
 
         // when & then
         assertThatThrownBy(() -> adminItemOptionService.deleteOptionValue(1L, 10L, 100L))

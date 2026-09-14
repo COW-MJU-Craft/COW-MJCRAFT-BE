@@ -54,4 +54,8 @@ public class ItemOptionValue extends BaseTimeEntity {
         this.stockQty = stockQty;
         this.sortOrder = sortOrder;
     }
+
+    public void updateStockQty(Integer stockQty) {
+        this.stockQty = stockQty;
+    }
 }

@@ -38,7 +38,10 @@ public record OrderQuoteResponseDto(
             int unitPrice,
 
             @Schema(description = "단가 × 수량", example = "6000")
-            int lineAmount
+            int lineAmount,
+
+            @Schema(description = "선택한 옵션 값 이름 목록 (옵션 없으면 빈 배열)")
+            List<String> optionNames
     ) {
     }
 }
