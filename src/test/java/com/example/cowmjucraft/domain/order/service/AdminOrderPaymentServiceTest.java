@@ -6,6 +6,7 @@ import com.example.cowmjucraft.domain.item.entity.ItemType;
 import com.example.cowmjucraft.domain.item.entity.ProjectItem;
 import com.example.cowmjucraft.domain.item.repository.ProjectItemRepository;
 import com.example.cowmjucraft.domain.order.entity.MailOutboxEventType;
+import com.example.cowmjucraft.domain.customer.entity.Customer;
 import com.example.cowmjucraft.domain.order.entity.Order;
 import com.example.cowmjucraft.domain.order.entity.OrderBuyer;
 import com.example.cowmjucraft.domain.order.entity.OrderBuyerType;
@@ -107,6 +108,7 @@ class AdminOrderPaymentServiceTest {
     private Order order() {
         Order order = new Order(
                 "ORD-20260505120000-123456",
+                testCustomer(),
                 project(1L),
                 1L,
                 OrderStatus.PENDING_DEPOSIT,
@@ -160,5 +162,9 @@ class AdminOrderPaymentServiceTest {
                 "instagram",
                 "hong@example.com"
         );
+    }
+
+    private Customer testCustomer() {
+        return new Customer("buyer@mju.ac.kr");
     }
 }
