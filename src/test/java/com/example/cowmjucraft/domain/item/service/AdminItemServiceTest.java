@@ -1,6 +1,7 @@
 package com.example.cowmjucraft.domain.item.service;
 
 import com.example.cowmjucraft.domain.item.dto.request.AdminItemImageOrderPatchRequestDto;
+import com.example.cowmjucraft.domain.item.dto.request.AdminProjectItemUpdateRequestDto;
 import com.example.cowmjucraft.domain.item.entity.ItemImage;
 import com.example.cowmjucraft.domain.item.entity.ItemSaleType;
 import com.example.cowmjucraft.domain.item.entity.ItemStatus;
@@ -8,9 +9,14 @@ import com.example.cowmjucraft.domain.item.entity.ItemType;
 import com.example.cowmjucraft.domain.item.entity.ProjectItem;
 import com.example.cowmjucraft.domain.item.exception.ItemException;
 import com.example.cowmjucraft.domain.item.repository.ItemImageRepository;
+import com.example.cowmjucraft.domain.item.repository.ItemOptionGroupRepository;
 import com.example.cowmjucraft.domain.item.repository.ProjectItemRepository;
+import com.example.cowmjucraft.domain.project.entity.Project;
+import com.example.cowmjucraft.domain.project.entity.ProjectCategory;
+import com.example.cowmjucraft.domain.project.entity.ProjectStatus;
 import com.example.cowmjucraft.domain.project.repository.ProjectRepository;
 import com.example.cowmjucraft.global.cloud.S3PresignFacade;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
@@ -35,6 +41,8 @@ class AdminItemServiceTest {
     @Mock
     private ItemImageRepository itemImageRepository;
     @Mock
+    private ItemOptionGroupRepository itemOptionGroupRepository;
+    @Mock
     private S3PresignFacade s3PresignFacade;
 
     private AdminItemService adminItemService;
@@ -45,6 +53,7 @@ class AdminItemServiceTest {
                 projectRepository,
                 projectItemRepository,
                 itemImageRepository,
+                itemOptionGroupRepository,
                 s3PresignFacade
         );
     }
@@ -94,9 +103,65 @@ class AdminItemServiceTest {
                 .isInstanceOf(ItemException.class);
     }
 
-    private ProjectItem item(Long id) {
-        ProjectItem item = new ProjectItem(
+    @Test
+    void update_옵션그룹있는상품_stockQty를null로강제한다() {
+        // given
+        ProjectItem item = item(1L);
+        when(projectItemRepository.findById(1L)).thenReturn(Optional.of(item));
+        when(itemOptionGroupRepository.existsByItemId(1L)).thenReturn(true);
+
+        // when
+        adminItemService.update(1L, updateRequest(99));
+
+        // then
+        assertThat(item.getStockQty()).isNull();
+    }
+
+    @Test
+    void update_옵션그룹없는상품_stockQty그대로반영된다() {
+        // given
+        ProjectItem item = item(1L);
+        when(projectItemRepository.findById(1L)).thenReturn(Optional.of(item));
+        when(itemOptionGroupRepository.existsByItemId(1L)).thenReturn(false);
+
+        // when
+        adminItemService.update(1L, updateRequest(99));
+
+        // then
+        assertThat(item.getStockQty()).isEqualTo(99);
+    }
+
+    private AdminProjectItemUpdateRequestDto updateRequest(Integer stockQty) {
+        return new AdminProjectItemUpdateRequestDto(
+                "상품",
+                "요약",
+                "설명",
+                10_000,
+                ItemSaleType.NORMAL,
+                ItemStatus.OPEN,
+                "thumb.png",
                 null,
+                null,
+                ItemType.PHYSICAL,
+                null,
+                stockQty
+        );
+    }
+
+    private ProjectItem item(Long id) {
+        Project project = new Project(
+                "프로젝트",
+                "요약",
+                "설명",
+                "thumb.png",
+                List.of(),
+                LocalDate.now().plusDays(7),
+                ProjectStatus.OPEN,
+                ProjectCategory.GOODS
+        );
+        ReflectionTestUtils.setField(project, "id", 100L);
+        ProjectItem item = new ProjectItem(
+                project,
                 "상품",
                 "요약",
                 "설명",
