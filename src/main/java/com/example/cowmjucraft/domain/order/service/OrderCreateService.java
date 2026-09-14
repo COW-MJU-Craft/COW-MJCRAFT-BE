@@ -2,6 +2,7 @@ package com.example.cowmjucraft.domain.order.service;
 
 import com.example.cowmjucraft.domain.customer.entity.Customer;
 import com.example.cowmjucraft.domain.customer.service.CustomerAccountService;
+import com.example.cowmjucraft.domain.item.entity.ItemOptionValue;
 import com.example.cowmjucraft.domain.order.dto.request.OrderCreateBuyerRequestDto;
 import com.example.cowmjucraft.domain.order.dto.request.OrderCreateFulfillmentRequestDto;
 import com.example.cowmjucraft.domain.order.dto.request.OrderCreateRequestDto;
@@ -12,12 +13,14 @@ import com.example.cowmjucraft.domain.order.entity.OrderBuyer;
 import com.example.cowmjucraft.domain.order.entity.OrderFulfillment;
 import com.example.cowmjucraft.domain.order.entity.OrderFulfillmentMethod;
 import com.example.cowmjucraft.domain.order.entity.OrderItem;
+import com.example.cowmjucraft.domain.order.entity.OrderItemOption;
 import com.example.cowmjucraft.domain.order.entity.OrderStatus;
 import com.example.cowmjucraft.domain.order.exception.OrderErrorType;
 import com.example.cowmjucraft.domain.order.exception.OrderException;
 import com.example.cowmjucraft.domain.order.repository.OrderAuthRepository;
 import com.example.cowmjucraft.domain.order.repository.OrderBuyerRepository;
 import com.example.cowmjucraft.domain.order.repository.OrderFulfillmentRepository;
+import com.example.cowmjucraft.domain.order.repository.OrderItemOptionRepository;
 import com.example.cowmjucraft.domain.order.repository.OrderItemRepository;
 import com.example.cowmjucraft.domain.order.repository.OrderRepository;
 import com.example.cowmjucraft.domain.project.entity.Project;
@@ -28,6 +31,7 @@ import java.security.SecureRandom;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import lombok.RequiredArgsConstructor;
@@ -45,6 +49,7 @@ public class OrderCreateService {
 
     private final OrderRepository orderRepository;
     private final OrderItemRepository orderItemRepository;
+    private final OrderItemOptionRepository orderItemOptionRepository;
     private final OrderBuyerRepository orderBuyerRepository;
     private final OrderFulfillmentRepository orderFulfillmentRepository;
     private final OrderAuthRepository orderAuthRepository;
@@ -135,6 +140,24 @@ public class OrderCreateService {
                 ))
                 .toList();
         orderItemRepository.saveAll(orderItems);
+
+        List<OrderItemOption> orderItemOptions = new ArrayList<>();
+        for (int i = 0; i < lines.size(); i++) {
+            OrderPricingService.PriceLine line = lines.get(i);
+            OrderItem savedOrderItem = orderItems.get(i);
+            for (ItemOptionValue selectedOption : line.selectedOptions()) {
+                orderItemOptions.add(new OrderItemOption(
+                        savedOrderItem,
+                        selectedOption,
+                        selectedOption.getOptionGroup().getName(),
+                        selectedOption.getName(),
+                        selectedOption.getAdditionalPrice()
+                ));
+            }
+        }
+        if (!orderItemOptions.isEmpty()) {
+            orderItemOptionRepository.saveAll(orderItemOptions);
+        }
 
         OrderCreateBuyerRequestDto buyer = request.buyer();
         orderBuyerRepository.save(new OrderBuyer(

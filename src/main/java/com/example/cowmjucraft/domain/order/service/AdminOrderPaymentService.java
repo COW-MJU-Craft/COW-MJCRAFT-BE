@@ -1,21 +1,27 @@
 package com.example.cowmjucraft.domain.order.service;
 
+import com.example.cowmjucraft.domain.item.entity.ItemOptionValue;
 import com.example.cowmjucraft.domain.item.entity.ItemSaleType;
 import com.example.cowmjucraft.domain.item.entity.ProjectItem;
+import com.example.cowmjucraft.domain.item.repository.ItemOptionValueRepository;
 import com.example.cowmjucraft.domain.item.repository.ProjectItemRepository;
 import com.example.cowmjucraft.domain.order.dto.response.AdminOrderStatusResponseDto;
 import com.example.cowmjucraft.domain.order.entity.MailOutboxEventType;
 import com.example.cowmjucraft.domain.order.entity.Order;
 import com.example.cowmjucraft.domain.order.entity.OrderBuyer;
 import com.example.cowmjucraft.domain.order.entity.OrderItem;
+import com.example.cowmjucraft.domain.order.entity.OrderItemOption;
 import com.example.cowmjucraft.domain.order.entity.OrderStatus;
 import com.example.cowmjucraft.domain.order.exception.OrderErrorType;
 import com.example.cowmjucraft.domain.order.exception.OrderException;
 import com.example.cowmjucraft.domain.order.repository.OrderBuyerRepository;
+import com.example.cowmjucraft.domain.order.repository.OrderItemOptionRepository;
 import com.example.cowmjucraft.domain.order.repository.OrderItemRepository;
 import com.example.cowmjucraft.domain.order.repository.OrderRepository;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,7 +32,9 @@ public class AdminOrderPaymentService {
 
     private final OrderRepository orderRepository;
     private final OrderItemRepository orderItemRepository;
+    private final OrderItemOptionRepository orderItemOptionRepository;
     private final ProjectItemRepository projectItemRepository;
+    private final ItemOptionValueRepository itemOptionValueRepository;
     private final OrderBuyerRepository orderBuyerRepository;
     private final OrderViewTokenService orderViewTokenService;
     private final MailOutboxService mailOutboxService;
@@ -47,7 +55,20 @@ public class AdminOrderPaymentService {
             throw new OrderException(OrderErrorType.ORDER_ITEMS_EMPTY, "orderId=" + orderId);
         }
 
+        List<Long> orderItemIds = orderItems.stream().map(OrderItem::getId).toList();
+        Map<Long, List<OrderItemOption>> optionsByOrderItemId = orderItemOptionRepository
+                .findByOrderItemIdIn(orderItemIds).stream()
+                .collect(Collectors.groupingBy(option -> option.getOrderItem().getId()));
+
         for (OrderItem orderItem : orderItems) {
+            List<OrderItemOption> selectedOptions = optionsByOrderItemId.getOrDefault(orderItem.getId(), List.of());
+            if (!selectedOptions.isEmpty()) {
+                for (OrderItemOption selectedOption : selectedOptions) {
+                    deductOptionStock(selectedOption, orderItem.getQuantity());
+                }
+                continue;
+            }
+
             ProjectItem projectItem = projectItemRepository.findByIdForUpdate(orderItem.getProjectItem().getId())
                     .orElseThrow(() -> new OrderException(
                             OrderErrorType.ITEM_NOT_FOUND,
@@ -77,6 +98,22 @@ public class AdminOrderPaymentService {
         );
 
         return new AdminOrderStatusResponseDto(order.getId(), order.getStatus().name());
+    }
+
+    private void deductOptionStock(OrderItemOption selectedOption, int orderQty) {
+        Long optionValueId = selectedOption.getOptionValue().getId();
+        ItemOptionValue optionValue = itemOptionValueRepository.findByIdForUpdate(optionValueId)
+                .orElseThrow(() -> new OrderException(OrderErrorType.ITEM_NOT_FOUND, "optionValueId=" + optionValueId));
+
+        Integer stockQty = optionValue.getStockQty();
+        if (stockQty == null) {
+            // null = 무제한 재고 — 차감하지 않는다.
+            return;
+        }
+        if (stockQty < orderQty) {
+            throw new OrderException(OrderErrorType.INSUFFICIENT_STOCK, "optionValueId=" + optionValueId);
+        }
+        optionValue.updateStockQty(stockQty - orderQty);
     }
 
     private void applyPaidQuantity(ProjectItem projectItem, int orderQty) {

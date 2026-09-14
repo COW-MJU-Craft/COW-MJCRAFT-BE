@@ -6,11 +6,13 @@ import com.example.cowmjucraft.domain.order.entity.OrderBuyer;
 import com.example.cowmjucraft.domain.order.entity.OrderFulfillment;
 import com.example.cowmjucraft.domain.order.entity.OrderFulfillmentMethod;
 import com.example.cowmjucraft.domain.order.entity.OrderItem;
+import com.example.cowmjucraft.domain.order.entity.OrderItemOption;
 import com.example.cowmjucraft.domain.order.entity.OrderStatus;
 import com.example.cowmjucraft.domain.order.exception.OrderErrorType;
 import com.example.cowmjucraft.domain.order.exception.OrderException;
 import com.example.cowmjucraft.domain.order.repository.OrderBuyerRepository;
 import com.example.cowmjucraft.domain.order.repository.OrderFulfillmentRepository;
+import com.example.cowmjucraft.domain.order.repository.OrderItemOptionRepository;
 import com.example.cowmjucraft.domain.order.repository.OrderItemRepository;
 import com.example.cowmjucraft.domain.order.repository.OrderRepository;
 import com.example.cowmjucraft.domain.project.entity.Project;
@@ -46,6 +48,8 @@ public class AdminOrderExportService {
     private static final DateTimeFormatter ORDER_DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
     private static final DateTimeFormatter FILE_DATE_FORMATTER = DateTimeFormatter.BASIC_ISO_DATE;
     private static final String ITEM_SEPARATOR = " | ";
+    private static final String OPTION_SEPARATOR = "/";
+    private static final String NO_OPTION_PLACEHOLDER = "-";
     private static final String[] EXCEL_HEADERS = {
             "주문일자",
             "주문번호",
@@ -57,6 +61,7 @@ public class AdminOrderExportService {
             "총액",
             "주문상품",
             "상품별 수량",
+            "옵션",
             "수령방식",
             "주소",
             "환불은행",
@@ -66,6 +71,7 @@ public class AdminOrderExportService {
     private final ProjectRepository projectRepository;
     private final OrderRepository orderRepository;
     private final OrderItemRepository orderItemRepository;
+    private final OrderItemOptionRepository orderItemOptionRepository;
     private final OrderBuyerRepository orderBuyerRepository;
     private final OrderFulfillmentRepository orderFulfillmentRepository;
 
@@ -117,7 +123,7 @@ public class AdminOrderExportService {
         );
 
         if (orders.isEmpty()) {
-            return new AdminOrderExportResponseDto(filename, createExcel(orders, Map.of(), Map.of(), Map.of()));
+            return new AdminOrderExportResponseDto(filename, createExcel(orders, Map.of(), Map.of(), Map.of(), Map.of()));
         }
 
         List<Long> orderIds = orders.stream().map(Order::getId).toList();
@@ -132,15 +138,26 @@ public class AdminOrderExportService {
                         item -> item.getOrder().getId(),
                         Collectors.toList()
                 ));
+        List<Long> orderItemIds = items.values().stream()
+                .flatMap(List::stream)
+                .map(OrderItem::getId)
+                .toList();
+        Map<Long, List<OrderItemOption>> optionsByOrderItemId = orderItemOptionRepository
+                .findByOrderItemIdIn(orderItemIds).stream()
+                .collect(Collectors.groupingBy(option -> option.getOrderItem().getId()));
 
-        return new AdminOrderExportResponseDto(filename, createExcel(orders, buyers, fulfillments, items));
+        return new AdminOrderExportResponseDto(
+                filename,
+                createExcel(orders, buyers, fulfillments, items, optionsByOrderItemId)
+        );
     }
 
     private byte[] createExcel(
             List<Order> orders,
             Map<Long, OrderBuyer> buyers,
             Map<Long, OrderFulfillment> fulfillments,
-            Map<Long, List<OrderItem>> itemsByOrderId
+            Map<Long, List<OrderItem>> itemsByOrderId,
+            Map<Long, List<OrderItemOption>> optionsByOrderItemId
     ) {
         try (Workbook workbook = new XSSFWorkbook();
              ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
@@ -162,7 +179,7 @@ public class AdminOrderExportService {
 
             int rowIndex = 1;
             for (Order order : orders) {
-                appendOrderRow(sheet.createRow(rowIndex++), order, buyers, fulfillments, itemsByOrderId);
+                appendOrderRow(sheet.createRow(rowIndex++), order, buyers, fulfillments, itemsByOrderId, optionsByOrderItemId);
             }
 
             workbook.write(outputStream);
@@ -177,7 +194,8 @@ public class AdminOrderExportService {
             Order order,
             Map<Long, OrderBuyer> buyers,
             Map<Long, OrderFulfillment> fulfillments,
-            Map<Long, List<OrderItem>> itemsByOrderId
+            Map<Long, List<OrderItem>> itemsByOrderId,
+            Map<Long, List<OrderItemOption>> optionsByOrderItemId
     ) {
         Long orderId = order.getId();
         OrderBuyer buyer = getBuyer(orderId, buyers);
@@ -189,6 +207,9 @@ public class AdminOrderExportService {
                 .collect(Collectors.joining(ITEM_SEPARATOR));
         String itemQuantities = items.stream()
                 .map(item -> Integer.toString(item.getQuantity()))
+                .collect(Collectors.joining(ITEM_SEPARATOR));
+        String itemOptions = items.stream()
+                .map(item -> formatOptions(optionsByOrderItemId.getOrDefault(item.getId(), Collections.emptyList())))
                 .collect(Collectors.joining(ITEM_SEPARATOR));
 
         appendTextCells(
@@ -203,11 +224,21 @@ public class AdminOrderExportService {
                 Integer.toString(order.getFinalAmount()),
                 itemNames,
                 itemQuantities,
+                itemOptions,
                 fulfillment.getMethod().name(),
                 buildAddress(fulfillment),
                 buyer.getRefundBank(),
                 buyer.getRefundAccount()
         );
+    }
+
+    private String formatOptions(List<OrderItemOption> options) {
+        if (options.isEmpty()) {
+            return NO_OPTION_PLACEHOLDER;
+        }
+        return options.stream()
+                .map(OrderItemOption::getOptionValueNameSnapshot)
+                .collect(Collectors.joining(OPTION_SEPARATOR));
     }
 
     private OrderBuyer getBuyer(Long orderId, Map<Long, OrderBuyer> buyers) {

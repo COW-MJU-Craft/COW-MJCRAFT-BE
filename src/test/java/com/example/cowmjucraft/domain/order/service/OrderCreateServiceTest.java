@@ -5,8 +5,12 @@ import com.example.cowmjucraft.domain.customer.entity.Customer;
 import com.example.cowmjucraft.domain.customer.service.CustomerAccountService;
 import com.example.cowmjucraft.domain.item.entity.ItemSaleType;
 import com.example.cowmjucraft.domain.item.entity.ItemStatus;
+import com.example.cowmjucraft.domain.item.entity.ItemOptionGroup;
+import com.example.cowmjucraft.domain.item.entity.ItemOptionValue;
 import com.example.cowmjucraft.domain.item.entity.ItemType;
 import com.example.cowmjucraft.domain.item.entity.ProjectItem;
+import com.example.cowmjucraft.domain.item.repository.ItemOptionGroupRepository;
+import com.example.cowmjucraft.domain.item.repository.ItemOptionValueRepository;
 import com.example.cowmjucraft.domain.item.repository.ProjectItemRepository;
 import com.example.cowmjucraft.domain.order.dto.request.OrderCreateBuyerRequestDto;
 import com.example.cowmjucraft.domain.order.dto.request.OrderCreateFulfillmentRequestDto;
@@ -14,12 +18,14 @@ import com.example.cowmjucraft.domain.order.dto.request.OrderCreateItemRequestDt
 import com.example.cowmjucraft.domain.order.dto.request.OrderCreateRequestDto;
 import com.example.cowmjucraft.domain.order.entity.Order;
 import com.example.cowmjucraft.domain.order.entity.OrderBuyerType;
+import com.example.cowmjucraft.domain.order.entity.OrderItemOption;
 import com.example.cowmjucraft.domain.order.entity.OrderFulfillmentMethod;
 import com.example.cowmjucraft.domain.order.entity.OrderPolicy;
 import com.example.cowmjucraft.domain.order.exception.OrderException;
 import com.example.cowmjucraft.domain.order.repository.OrderAuthRepository;
 import com.example.cowmjucraft.domain.order.repository.OrderBuyerRepository;
 import com.example.cowmjucraft.domain.order.repository.OrderFulfillmentRepository;
+import com.example.cowmjucraft.domain.order.repository.OrderItemOptionRepository;
 import com.example.cowmjucraft.domain.order.repository.OrderItemRepository;
 import com.example.cowmjucraft.domain.order.repository.OrderPolicyRepository;
 import com.example.cowmjucraft.domain.order.repository.OrderRepository;
@@ -54,6 +60,8 @@ class OrderCreateServiceTest {
     @Mock
     private OrderItemRepository orderItemRepository;
     @Mock
+    private OrderItemOptionRepository orderItemOptionRepository;
+    @Mock
     private OrderBuyerRepository orderBuyerRepository;
     @Mock
     private OrderFulfillmentRepository orderFulfillmentRepository;
@@ -61,6 +69,10 @@ class OrderCreateServiceTest {
     private OrderAuthRepository orderAuthRepository;
     @Mock
     private ProjectItemRepository projectItemRepository;
+    @Mock
+    private ItemOptionGroupRepository itemOptionGroupRepository;
+    @Mock
+    private ItemOptionValueRepository itemOptionValueRepository;
     @Mock
     private PasswordEncoder passwordEncoder;
     @Mock
@@ -85,11 +97,14 @@ class OrderCreateServiceTest {
                 .thenReturn(Optional.of(representativeProject));
         OrderPricingService orderPricingService = new OrderPricingService(
                 projectItemRepository,
+                itemOptionGroupRepository,
+                itemOptionValueRepository,
                 orderPolicyRepository
         );
         orderCreateService = new OrderCreateService(
                 orderRepository,
                 orderItemRepository,
+                orderItemOptionRepository,
                 orderBuyerRepository,
                 orderFulfillmentRepository,
                 orderAuthRepository,
@@ -219,8 +234,8 @@ class OrderCreateServiceTest {
                 baseRequest.refundAgreed(),
                 baseRequest.cancelRiskAgreed(),
                 List.of(
-                        new OrderCreateItemRequestDto(2L, 1),
-                        new OrderCreateItemRequestDto(3L, 1)
+                        new OrderCreateItemRequestDto(2L, 1, null),
+                        new OrderCreateItemRequestDto(3L, 1, null)
                 ),
                 baseRequest.buyer(),
                 baseRequest.fulfillment()
@@ -246,6 +261,92 @@ class OrderCreateServiceTest {
         assertThat(response.projectOrderNo()).isEqualTo(1L);
         assertThat(response.orderNo()).matches("P20-1-\\d{8}-\\d{6}");
         assertThat(secondProject.getLastOrderNo()).isZero();
+    }
+
+    @Test
+    void createOrder_옵션선택시_OrderItemOption이저장된다() {
+        // given
+        ProjectItem item = normalItemWithOptions(1L);
+        ItemOptionGroup colorGroup = optionGroup(item, 20L, "색상", true, 0);
+        ItemOptionValue black = optionValue(colorGroup, 200L, "블랙", 500, 10, 0);
+
+        when(orderAuthRepository.existsByLookupId("guest-mju-001")).thenReturn(false);
+        when(projectItemRepository.findAllById(Set.of(1L))).thenReturn(List.of(item));
+        when(itemOptionGroupRepository.findByItemIdInOrderBySortOrderAsc(List.of(1L))).thenReturn(List.of(colorGroup));
+        when(itemOptionValueRepository.findAllById(Set.of(200L))).thenReturn(List.of(black));
+        when(orderRepository.save(any(Order.class))).thenAnswer(invocation -> {
+            Order order = invocation.getArgument(0);
+            ReflectionTestUtils.setField(order, "id", 10L);
+            return order;
+        });
+        when(passwordEncoder.encode("Pa$$w0rd!")).thenReturn("encoded-password");
+        when(orderViewTokenService.issueNewToken(any(Order.class), any())).thenReturn("raw-token");
+        when(orderViewTokenService.buildOrderViewUrl("raw-token")).thenReturn("https://example.com/orders/view?token=raw-token");
+
+        // when
+        orderCreateService.createOrder(requestWithOption(2, 200L));
+
+        // then
+        @SuppressWarnings("unchecked")
+        ArgumentCaptor<List<OrderItemOption>> captor = ArgumentCaptor.forClass(List.class);
+        verify(orderItemOptionRepository).saveAll(captor.capture());
+        assertThat(captor.getValue()).hasSize(1);
+        assertThat(captor.getValue().getFirst().getOptionValueNameSnapshot()).isEqualTo("블랙");
+        assertThat(captor.getValue().getFirst().getAdditionalPriceSnapshot()).isEqualTo(500);
+    }
+
+    private ProjectItem normalItemWithOptions(Long id) {
+        ProjectItem item = new ProjectItem(
+                representativeProject,
+                "머그컵",
+                "summary",
+                "description",
+                12_000,
+                ItemSaleType.NORMAL,
+                ItemStatus.OPEN,
+                ItemType.PHYSICAL,
+                "thumb.png",
+                null,
+                null,
+                null,
+                null
+        );
+        ReflectionTestUtils.setField(item, "id", id);
+        return item;
+    }
+
+    private ItemOptionGroup optionGroup(ProjectItem item, Long id, String name, boolean required, int sortOrder) {
+        ItemOptionGroup group = new ItemOptionGroup(item, name, required, sortOrder);
+        ReflectionTestUtils.setField(group, "id", id);
+        return group;
+    }
+
+    private ItemOptionValue optionValue(
+            ItemOptionGroup group,
+            Long id,
+            String name,
+            int additionalPrice,
+            Integer stockQty,
+            int sortOrder
+    ) {
+        ItemOptionValue value = new ItemOptionValue(group, name, additionalPrice, stockQty, sortOrder);
+        ReflectionTestUtils.setField(value, "id", id);
+        return value;
+    }
+
+    private OrderCreateRequestDto requestWithOption(int quantity, Long optionValueId) {
+        OrderCreateRequestDto base = request(quantity);
+        return new OrderCreateRequestDto(
+                base.lookupId(),
+                base.password(),
+                base.depositorName(),
+                base.privacyAgreed(),
+                base.refundAgreed(),
+                base.cancelRiskAgreed(),
+                List.of(new OrderCreateItemRequestDto(1L, quantity, List.of(optionValueId))),
+                base.buyer(),
+                base.fulfillment()
+        );
     }
 
     private ProjectItem groupbuyItem(Long id, int targetQty, int fundedQty) {
@@ -350,7 +451,7 @@ class OrderCreateServiceTest {
                 true,
                 true,
                 true,
-                List.of(new OrderCreateItemRequestDto(1L, quantity)),
+                List.of(new OrderCreateItemRequestDto(1L, quantity, null)),
                 new OrderCreateBuyerRequestDto(
                         OrderBuyerType.STUDENT,
                         "SEOUL",
@@ -384,7 +485,7 @@ class OrderCreateServiceTest {
                 true,
                 true,
                 true,
-                List.of(new OrderCreateItemRequestDto(1L, quantity)),
+                List.of(new OrderCreateItemRequestDto(1L, quantity, null)),
                 new OrderCreateBuyerRequestDto(
                         OrderBuyerType.STUDENT,
                         "SEOUL",

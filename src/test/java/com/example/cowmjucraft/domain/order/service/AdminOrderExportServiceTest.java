@@ -6,6 +6,8 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 
+import com.example.cowmjucraft.domain.item.entity.ItemOptionGroup;
+import com.example.cowmjucraft.domain.item.entity.ItemOptionValue;
 import com.example.cowmjucraft.domain.item.entity.ItemSaleType;
 import com.example.cowmjucraft.domain.item.entity.ItemStatus;
 import com.example.cowmjucraft.domain.item.entity.ItemType;
@@ -18,10 +20,12 @@ import com.example.cowmjucraft.domain.order.entity.OrderBuyerType;
 import com.example.cowmjucraft.domain.order.entity.OrderFulfillment;
 import com.example.cowmjucraft.domain.order.entity.OrderFulfillmentMethod;
 import com.example.cowmjucraft.domain.order.entity.OrderItem;
+import com.example.cowmjucraft.domain.order.entity.OrderItemOption;
 import com.example.cowmjucraft.domain.order.entity.OrderStatus;
 import com.example.cowmjucraft.domain.order.exception.OrderException;
 import com.example.cowmjucraft.domain.order.repository.OrderBuyerRepository;
 import com.example.cowmjucraft.domain.order.repository.OrderFulfillmentRepository;
+import com.example.cowmjucraft.domain.order.repository.OrderItemOptionRepository;
 import com.example.cowmjucraft.domain.order.repository.OrderItemRepository;
 import com.example.cowmjucraft.domain.order.repository.OrderRepository;
 import com.example.cowmjucraft.domain.project.entity.Project;
@@ -55,6 +59,8 @@ class AdminOrderExportServiceTest {
     @Mock
     private OrderItemRepository orderItemRepository;
     @Mock
+    private OrderItemOptionRepository orderItemOptionRepository;
+    @Mock
     private OrderBuyerRepository orderBuyerRepository;
     @Mock
     private OrderFulfillmentRepository orderFulfillmentRepository;
@@ -67,6 +73,7 @@ class AdminOrderExportServiceTest {
                 projectRepository,
                 orderRepository,
                 orderItemRepository,
+                orderItemOptionRepository,
                 orderBuyerRepository,
                 orderFulfillmentRepository
         );
@@ -80,10 +87,12 @@ class AdminOrderExportServiceTest {
         Order order = order(10L, project, createdAt);
         OrderBuyer buyer = buyer(order, "=홍길동");
         OrderFulfillment fulfillment = fulfillment(order, OrderFulfillmentMethod.DELIVERY);
-        List<OrderItem> items = List.of(
-                orderItem(100L, order, project, "티셔츠, 검정", 2),
-                orderItem(200L, order, project, "스티커 \"A\"", 1)
-        );
+        OrderItem shirtItem = orderItem(100L, order, project, "티셔츠, 검정", 2);
+        OrderItem stickerItem = orderItem(200L, order, project, "스티커 \"A\"", 1);
+        List<OrderItem> items = List.of(shirtItem, stickerItem);
+        ItemOptionGroup colorGroup = new ItemOptionGroup(shirtItem.getProjectItem(), "색상", true, 0);
+        ItemOptionValue black = new ItemOptionValue(colorGroup, "블랙", 0, 10, 0);
+        OrderItemOption shirtOption = new OrderItemOption(shirtItem, black, "색상", "블랙", 0);
         LocalDate startDate = LocalDate.of(2026, 9, 1);
         LocalDate endDate = LocalDate.of(2026, 9, 5);
 
@@ -99,6 +108,8 @@ class AdminOrderExportServiceTest {
         given(orderFulfillmentRepository.findAllByOrderIdIn(List.of(10L))).willReturn(List.of(fulfillment));
         given(orderItemRepository.findAllByOrderIdInOrderByOrderIdAndProjectItemId(List.of(10L)))
                 .willReturn(items);
+        given(orderItemOptionRepository.findByOrderItemIdIn(List.of(100L, 200L)))
+                .willReturn(List.of(shirtOption));
 
         // when
         AdminOrderExportResponseDto response = adminOrderExportService.exportProjectOrders(
@@ -123,8 +134,10 @@ class AdminOrderExportServiceTest {
             assertThat(row.getCell(3).getStringCellValue()).isEqualTo("=홍길동");
             assertThat(row.getCell(8).getStringCellValue()).isEqualTo("티셔츠, 검정 | 스티커 \"A\"");
             assertThat(row.getCell(9).getStringCellValue()).isEqualTo("2 | 1");
-            assertThat(row.getCell(11).getStringCellValue()).isEqualTo("04524 서울시 중구 101호");
-            assertThat(row.getLastCellNum()).isEqualTo((short) 14);
+            assertThat(header.getCell(10).getStringCellValue()).isEqualTo("옵션");
+            assertThat(row.getCell(10).getStringCellValue()).isEqualTo("블랙 | -");
+            assertThat(row.getCell(12).getStringCellValue()).isEqualTo("04524 서울시 중구 101호");
+            assertThat(row.getLastCellNum()).isEqualTo((short) 15);
         }
     }
 
@@ -154,9 +167,9 @@ class AdminOrderExportServiceTest {
 
             assertThat(response.filename()).isEqualTo("주문목록_20260905-20260905.xlsx");
             assertThat(sheet.getPhysicalNumberOfRows()).isEqualTo(1);
-            assertThat(sheet.getRow(0).getCell(13).getStringCellValue()).isEqualTo("환불계좌");
+            assertThat(sheet.getRow(0).getCell(14).getStringCellValue()).isEqualTo("환불계좌");
         }
-        verifyNoInteractions(orderBuyerRepository, orderFulfillmentRepository, orderItemRepository);
+        verifyNoInteractions(orderBuyerRepository, orderFulfillmentRepository, orderItemRepository, orderItemOptionRepository);
     }
 
     @Test
@@ -278,7 +291,9 @@ class AdminOrderExportServiceTest {
                 10
         );
         ReflectionTestUtils.setField(item, "id", id);
-        return new OrderItem(order, item, quantity, 10000, 10000 * quantity, name);
+        OrderItem orderItem = new OrderItem(order, item, quantity, 10000, 10000 * quantity, name);
+        ReflectionTestUtils.setField(orderItem, "id", id);
+        return orderItem;
     }
 
     private Customer testCustomer() {

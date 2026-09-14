@@ -5,6 +5,7 @@ import com.example.cowmjucraft.domain.item.entity.ItemStatus;
 import com.example.cowmjucraft.domain.item.entity.ItemType;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.swagger.v3.oas.annotations.media.Schema;
+import java.util.List;
 
 @Schema(description = "프로젝트 물품 목록 응답")
 public record ProjectItemListResponseDto(
@@ -51,6 +52,9 @@ public record ProjectItemListResponseDto(
 
         @JsonInclude(JsonInclude.Include.NON_NULL)
         @Schema(description = "남은 수량 (GROUPBUY 전용)", example = "60")
-        Integer remainingQty
+        Integer remainingQty,
+
+        @Schema(description = "옵션 그룹 목록 (옵션 없는 상품은 빈 배열)")
+        List<ProjectItemOptionGroupResponseDto> options
 ) {
 }

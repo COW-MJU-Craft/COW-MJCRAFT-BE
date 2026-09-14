@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static com.example.cowmjucraft.domain.order.OrderTestFixtures.project;
 import static org.mockito.BDDMockito.given;
 
+import com.example.cowmjucraft.domain.item.entity.ProjectItem;
 import com.example.cowmjucraft.domain.order.dto.response.OrderDetailResponseDto;
 import com.example.cowmjucraft.domain.order.entity.Order;
 import com.example.cowmjucraft.domain.order.entity.OrderBuyer;
@@ -11,11 +12,14 @@ import com.example.cowmjucraft.domain.order.entity.OrderBuyerType;
 import com.example.cowmjucraft.domain.order.entity.OrderCompletePage;
 import com.example.cowmjucraft.domain.order.entity.OrderFulfillment;
 import com.example.cowmjucraft.domain.order.entity.OrderFulfillmentMethod;
+import com.example.cowmjucraft.domain.order.entity.OrderItem;
+import com.example.cowmjucraft.domain.order.entity.OrderItemOption;
 import com.example.cowmjucraft.domain.order.entity.OrderStatus;
 import com.example.cowmjucraft.domain.order.repository.OrderAuthRepository;
 import com.example.cowmjucraft.domain.order.repository.OrderBuyerRepository;
 import com.example.cowmjucraft.domain.order.repository.OrderCompletePageRepository;
 import com.example.cowmjucraft.domain.order.repository.OrderFulfillmentRepository;
+import com.example.cowmjucraft.domain.order.repository.OrderItemOptionRepository;
 import com.example.cowmjucraft.domain.order.repository.OrderItemRepository;
 import com.example.cowmjucraft.domain.order.repository.OrderRepository;
 import com.example.cowmjucraft.domain.order.repository.OrderViewTokenRepository;
@@ -27,6 +31,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 
 @ExtendWith(MockitoExtension.class)
 class OrderDetailQueryServiceTest {
@@ -37,6 +42,8 @@ class OrderDetailQueryServiceTest {
     private OrderViewTokenRepository orderViewTokenRepository;
     @Mock
     private OrderItemRepository orderItemRepository;
+    @Mock
+    private OrderItemOptionRepository orderItemOptionRepository;
     @Mock
     private OrderBuyerRepository orderBuyerRepository;
     @Mock
@@ -61,6 +68,8 @@ class OrderDetailQueryServiceTest {
     private OrderFulfillment fulfillment;
     @Mock
     private OrderCompletePage orderCompletePage;
+    @Mock
+    private ProjectItem projectItem;
 
     @Test
     void getByOrderId_운송장정보존재_상세응답에포함() {
@@ -83,5 +92,36 @@ class OrderDetailQueryServiceTest {
 
         // then
         assertThat(response.fulfillment().trackingInformation()).isEqualTo("CJ대한통운 1234-5678");
+    }
+
+    @Test
+    void getByOrderId_옵션선택된주문항목존재_옵션목록이응답에포함된다() {
+        // given
+        OrderItem orderItem = new OrderItem(order, projectItem, 1, 13000, 13000, "후드티");
+        ReflectionTestUtils.setField(orderItem, "id", 1L);
+        OrderItemOption orderItemOption = new OrderItemOption(orderItem, null, "색상", "블랙", 1000);
+
+        given(orderRepository.findById(10L)).willReturn(Optional.of(order));
+        given(order.getId()).willReturn(10L);
+        given(order.getRepresentativeProject()).willReturn(project(1L));
+        given(order.getProjectOrderNo()).willReturn(1L);
+        given(order.getStatus()).willReturn(OrderStatus.PENDING_DEPOSIT);
+        given(orderBuyerRepository.findById(10L)).willReturn(Optional.of(buyer));
+        given(buyer.getBuyerType()).willReturn(OrderBuyerType.STUDENT);
+        given(orderFulfillmentRepository.findById(10L)).willReturn(Optional.of(fulfillment));
+        given(fulfillment.getMethod()).willReturn(OrderFulfillmentMethod.DELIVERY);
+        given(orderCompletePageRepository.findFirstByOrderByIdAsc()).willReturn(Optional.of(orderCompletePage));
+        given(orderItemRepository.findAllByOrderIdOrderByProjectItemIdAsc(10L)).willReturn(List.of(orderItem));
+        given(orderItemOptionRepository.findByOrderItemIdIn(List.of(1L))).willReturn(List.of(orderItemOption));
+        given(projectItem.getId()).willReturn(100L);
+
+        // when
+        OrderDetailResponseDto response = orderDetailQueryService.getByOrderId(10L);
+
+        // then
+        assertThat(response.items()).hasSize(1);
+        assertThat(response.items().get(0).options())
+                .extracting("optionGroupNameSnapshot", "optionValueNameSnapshot", "additionalPriceSnapshot")
+                .containsExactly(org.assertj.core.groups.Tuple.tuple("색상", "블랙", 1000));
     }
 }
