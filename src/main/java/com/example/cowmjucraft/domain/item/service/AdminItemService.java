@@ -19,6 +19,7 @@ import com.example.cowmjucraft.domain.item.exception.ItemErrorType;
 import com.example.cowmjucraft.domain.item.exception.ItemException;
 import com.example.cowmjucraft.domain.item.repository.ItemImageRepository;
 import com.example.cowmjucraft.domain.item.repository.ProjectItemRepository;
+import com.example.cowmjucraft.domain.order.repository.OrderItemRepository;
 import com.example.cowmjucraft.global.cloud.S3PresignFacade;
 import com.example.cowmjucraft.domain.project.entity.Project;
 import com.example.cowmjucraft.domain.project.entity.ProjectCategory;
@@ -43,6 +44,7 @@ public class AdminItemService {
     private final ProjectRepository projectRepository;
     private final ProjectItemRepository projectItemRepository;
     private final ItemImageRepository itemImageRepository;
+    private final OrderItemRepository orderItemRepository;
     private final S3PresignFacade s3PresignFacade;
 
     @Transactional
@@ -144,6 +146,9 @@ public class AdminItemService {
     public void delete(Long itemId) {
         ProjectItem item = projectItemRepository.findById(itemId)
                 .orElseThrow(() -> new ItemException(ItemErrorType.ITEM_NOT_FOUND));
+        if (orderItemRepository.existsByProjectItemId(itemId)) {
+            throw new ItemException(ItemErrorType.ITEM_DELETE_CONFLICT, "itemId=" + itemId);
+        }
         projectItemRepository.delete(item);
     }
 

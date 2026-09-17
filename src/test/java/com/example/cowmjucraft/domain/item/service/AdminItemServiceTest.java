@@ -9,6 +9,7 @@ import com.example.cowmjucraft.domain.item.entity.ProjectItem;
 import com.example.cowmjucraft.domain.item.exception.ItemException;
 import com.example.cowmjucraft.domain.item.repository.ItemImageRepository;
 import com.example.cowmjucraft.domain.item.repository.ProjectItemRepository;
+import com.example.cowmjucraft.domain.order.repository.OrderItemRepository;
 import com.example.cowmjucraft.domain.project.repository.ProjectRepository;
 import com.example.cowmjucraft.global.cloud.S3PresignFacade;
 import java.util.List;
@@ -22,6 +23,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -35,6 +37,8 @@ class AdminItemServiceTest {
     @Mock
     private ItemImageRepository itemImageRepository;
     @Mock
+    private OrderItemRepository orderItemRepository;
+    @Mock
     private S3PresignFacade s3PresignFacade;
 
     private AdminItemService adminItemService;
@@ -45,6 +49,7 @@ class AdminItemServiceTest {
                 projectRepository,
                 projectItemRepository,
                 itemImageRepository,
+                orderItemRepository,
                 s3PresignFacade
         );
     }
@@ -92,6 +97,33 @@ class AdminItemServiceTest {
         // when & then
         assertThatThrownBy(() -> adminItemService.patchImageOrder(1L, request))
                 .isInstanceOf(ItemException.class);
+    }
+
+    @Test
+    void delete_주문없는상품_정상삭제된다() {
+        // given
+        ProjectItem item = item(1L);
+        when(projectItemRepository.findById(1L)).thenReturn(Optional.of(item));
+        when(orderItemRepository.existsByProjectItemId(1L)).thenReturn(false);
+
+        // when
+        adminItemService.delete(1L);
+
+        // then
+        verify(projectItemRepository).delete(item);
+    }
+
+    @Test
+    void delete_주문있는상품_ITEM_DELETE_CONFLICT예외발생() {
+        // given
+        ProjectItem item = item(1L);
+        when(projectItemRepository.findById(1L)).thenReturn(Optional.of(item));
+        when(orderItemRepository.existsByProjectItemId(1L)).thenReturn(true);
+
+        // when & then
+        assertThatThrownBy(() -> adminItemService.delete(1L))
+                .isInstanceOf(ItemException.class);
+        verify(projectItemRepository, never()).delete(item);
     }
 
     private ProjectItem item(Long id) {

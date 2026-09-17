@@ -14,6 +14,7 @@ public enum ItemErrorType implements ErrorCode {
 
     SORT_ORDER_CONFLICT(409, "이미 사용 중인 정렬 순서입니다."),
     IMAGE_NOT_BELONG_TO_ITEM(409, "해당 상품의 이미지가 아닙니다."),
+    ITEM_DELETE_CONFLICT(409, "상품에 연결된 주문이 있어 삭제할 수 없습니다."),
 
     ITEM_TYPE_MISMATCH(422, "상품 유형이 프로젝트 카테고리와 맞지 않습니다."),
     DIGITAL_JOURNAL_VIOLATION(422, "디지털 저널 상품 규칙을 위반했습니다."),
