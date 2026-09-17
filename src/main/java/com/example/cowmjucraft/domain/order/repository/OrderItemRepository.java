@@ -34,5 +34,7 @@ public interface OrderItemRepository extends JpaRepository<OrderItem, Long> {
             @Param("statuses") Collection<OrderStatus> statuses
     );
 
+    boolean existsByProjectItemId(Long projectItemId);
+
     void deleteByProjectItemIdIn(List<Long> projectItemIds);
 }
