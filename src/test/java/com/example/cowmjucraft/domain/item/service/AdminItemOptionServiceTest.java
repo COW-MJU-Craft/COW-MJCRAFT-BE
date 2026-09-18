@@ -58,7 +58,7 @@ class AdminItemOptionServiceTest {
     void createOptionGroup_정상생성() {
         // given
         ProjectItem item = item(1L);
-        when(projectItemRepository.findById(1L)).thenReturn(Optional.of(item));
+        when(projectItemRepository.findByIdAndArchivedAtIsNull(1L)).thenReturn(Optional.of(item));
         when(itemOptionGroupRepository.existsByItemIdAndSortOrder(1L, 0)).thenReturn(false);
         when(itemOptionGroupRepository.save(any(ItemOptionGroup.class))).thenAnswer(invocation -> {
             ItemOptionGroup group = invocation.getArgument(0);
@@ -84,7 +84,7 @@ class AdminItemOptionServiceTest {
     void createOptionGroup_정렬순서중복_ItemException발생() {
         // given
         ProjectItem item = item(1L);
-        when(projectItemRepository.findById(1L)).thenReturn(Optional.of(item));
+        when(projectItemRepository.findByIdAndArchivedAtIsNull(1L)).thenReturn(Optional.of(item));
         when(itemOptionGroupRepository.existsByItemIdAndSortOrder(1L, 0)).thenReturn(true);
 
         // when & then
@@ -98,7 +98,7 @@ class AdminItemOptionServiceTest {
     void createOptionGroup_공동구매상품_ItemException발생() {
         // given
         ProjectItem item = groupbuyItem(1L);
-        when(projectItemRepository.findById(1L)).thenReturn(Optional.of(item));
+        when(projectItemRepository.findByIdAndArchivedAtIsNull(1L)).thenReturn(Optional.of(item));
 
         // when & then
         assertThatThrownBy(() -> adminItemOptionService.createOptionGroup(

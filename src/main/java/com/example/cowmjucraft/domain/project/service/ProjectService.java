@@ -54,7 +54,7 @@ public class ProjectService {
 
     @Transactional(readOnly = true)
     public ProjectDetailResponseDto getProject(Long projectId) {
-        Project project = projectRepository.findById(projectId)
+        Project project = projectRepository.findByIdAndArchivedAtIsNull(projectId)
                 .orElseThrow(() -> new ProjectException(ProjectErrorType.PROJECT_NOT_FOUND));
 
         Set<String> keySet = new LinkedHashSet<>();

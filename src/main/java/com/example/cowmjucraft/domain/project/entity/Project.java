@@ -15,6 +15,7 @@ import jakarta.persistence.Lob;
 import jakarta.persistence.OrderColumn;
 import jakarta.persistence.Table;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.AccessLevel;
@@ -73,6 +74,9 @@ public class Project extends BaseTimeEntity {
     @Column(name = "last_order_no", nullable = false)
     private long lastOrderNo;
 
+    @Column(name = "archived_at")
+    private LocalDateTime archivedAt;
+
     public Project(
             String title,
             String summary,
@@ -127,6 +131,16 @@ public class Project extends BaseTimeEntity {
     public long issueNextOrderNo() {
         this.lastOrderNo = Math.incrementExact(this.lastOrderNo);
         return this.lastOrderNo;
+    }
+
+    public boolean isArchived() {
+        return archivedAt != null;
+    }
+
+    public void archive(LocalDateTime archivedAt) {
+        if (this.archivedAt == null) {
+            this.archivedAt = archivedAt;
+        }
     }
 
     private void replaceImageKeys(List<String> imageKeys) {

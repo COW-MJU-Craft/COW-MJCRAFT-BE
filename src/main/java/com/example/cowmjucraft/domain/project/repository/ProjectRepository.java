@@ -12,12 +12,15 @@ import org.springframework.data.repository.query.Param;
 
 public interface ProjectRepository extends JpaRepository<Project, Long> {
 
+    Optional<Project> findByIdAndArchivedAtIsNull(Long id);
+
     @Lock(LockModeType.PESSIMISTIC_WRITE)
-    @Query("select p from Project p where p.id = :projectId")
+    @Query("select p from Project p where p.id = :projectId and p.archivedAt is null")
     Optional<Project> findByIdForUpdate(@Param("projectId") Long projectId);
 
     @Query("""
     select p from Project p
+    where p.archivedAt is null
     order by
         case when p.pinned = true then 0 else 1 end,
         case when p.pinned = true and p.pinnedOrder is null then 1 else 0 end,
@@ -33,6 +36,7 @@ public interface ProjectRepository extends JpaRepository<Project, Long> {
     @Query("""
     select p from Project p
     where p.status = :status
+      and p.archivedAt is null
     order by
         case when p.pinned = true then 0 else 1 end,
         case when p.pinned = true and p.pinnedOrder is null then 1 else 0 end,
@@ -45,6 +49,6 @@ public interface ProjectRepository extends JpaRepository<Project, Long> {
 """)
     List<Project> findAllByStatusOrderedForPublic(@Param("status") ProjectStatus status);
 
-    @Query("select p from Project p where p.pinned = true")
+    @Query("select p from Project p where p.pinned = true and p.archivedAt is null")
     List<Project> findAllPinned();
 }

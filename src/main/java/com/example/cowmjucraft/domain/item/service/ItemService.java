@@ -44,10 +44,10 @@ public class ItemService {
 
     @Transactional(readOnly = true)
     public List<ProjectItemListResponseDto> getItems(Long projectId) {
-        Project project = projectRepository.findById(projectId)
+        Project project = projectRepository.findByIdAndArchivedAtIsNull(projectId)
                 .orElseThrow(() -> new ItemException(ItemErrorType.PROJECT_NOT_FOUND));
 
-        List<ProjectItem> items = projectItemRepository.findByProjectIdOrderByCreatedAtDescIdDesc(project.getId());
+        List<ProjectItem> items = projectItemRepository.findByProjectIdAndArchivedAtIsNullOrderByCreatedAtDescIdDesc(project.getId());
         Set<String> keySet = new LinkedHashSet<>();
         for (ProjectItem item : items) {
             addIfValidKey(keySet, item.getThumbnailKey());
@@ -63,8 +63,11 @@ public class ItemService {
 
     @Transactional(readOnly = true)
     public ProjectItemDetailResponseDto getItem(Long itemId) {
-        ProjectItem item = projectItemRepository.findById(itemId)
+        ProjectItem item = projectItemRepository.findByIdAndArchivedAtIsNull(itemId)
                 .orElseThrow(() -> new ItemException(ItemErrorType.ITEM_NOT_FOUND));
+        if (item.getProject().isArchived()) {
+            throw new ItemException(ItemErrorType.ITEM_NOT_FOUND);
+        }
 
         List<ItemImage> itemImages = itemImageRepository.findByItemIdOrderBySortOrderAsc(itemId);
         Set<String> keySet = new LinkedHashSet<>();
@@ -90,8 +93,11 @@ public class ItemService {
 
     @Transactional(readOnly = true)
     public ProjectItemJournalPresignGetResponseDto createJournalPresignGet(Long itemId) {
-        ProjectItem item = projectItemRepository.findById(itemId)
+        ProjectItem item = projectItemRepository.findByIdAndArchivedAtIsNull(itemId)
                 .orElseThrow(() -> new ItemException(ItemErrorType.ITEM_NOT_FOUND));
+        if (item.getProject().isArchived()) {
+            throw new ItemException(ItemErrorType.ITEM_NOT_FOUND);
+        }
         if (item.getItemType() != ItemType.DIGITAL_JOURNAL) {
             throw new ItemException(ItemErrorType.DIGITAL_JOURNAL_VIOLATION, "itemType must be DIGITAL_JOURNAL");
         }
