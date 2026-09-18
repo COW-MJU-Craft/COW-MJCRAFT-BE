@@ -18,6 +18,7 @@ public interface ProjectRepository extends JpaRepository<Project, Long> {
 
     @Query("""
     select p from Project p
+    where p.deletedAt is null
     order by
         case when p.pinned = true then 0 else 1 end,
         case when p.pinned = true and p.pinnedOrder is null then 1 else 0 end,
@@ -32,7 +33,7 @@ public interface ProjectRepository extends JpaRepository<Project, Long> {
 
     @Query("""
     select p from Project p
-    where p.status = :status
+    where p.status = :status and p.deletedAt is null
     order by
         case when p.pinned = true then 0 else 1 end,
         case when p.pinned = true and p.pinnedOrder is null then 1 else 0 end,
@@ -45,6 +46,6 @@ public interface ProjectRepository extends JpaRepository<Project, Long> {
 """)
     List<Project> findAllByStatusOrderedForPublic(@Param("status") ProjectStatus status);
 
-    @Query("select p from Project p where p.pinned = true")
+    @Query("select p from Project p where p.pinned = true and p.deletedAt is null")
     List<Project> findAllPinned();
 }

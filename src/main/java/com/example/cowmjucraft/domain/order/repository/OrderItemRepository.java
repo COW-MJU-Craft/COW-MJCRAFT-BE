@@ -33,6 +33,4 @@ public interface OrderItemRepository extends JpaRepository<OrderItem, Long> {
             @Param("projectId") Long projectId,
             @Param("statuses") Collection<OrderStatus> statuses
     );
-
-    void deleteByProjectItemIdIn(List<Long> projectItemIds);
 }

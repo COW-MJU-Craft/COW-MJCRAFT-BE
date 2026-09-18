@@ -125,6 +125,20 @@ class OrderPricingServiceTest {
     }
 
     @Test
+    void calculate_soft삭제된상품이면_OrderException발생() {
+        // given — soft delete된 상품은 조회는 되지만 신규 주문에 담을 수 없다.
+        ProjectItem deleted = item(1L, 10_000, 5);
+        deleted.softDelete(java.time.LocalDateTime.now());
+        given(projectItemRepository.findAllById(Set.of(1L))).willReturn(List.of(deleted));
+
+        // when & then
+        assertThatThrownBy(() -> orderPricingService.calculate(
+                List.of(itemRequest(1L, 1)),
+                OrderFulfillmentMethod.PICKUP
+        )).isInstanceOf(OrderException.class);
+    }
+
+    @Test
     void calculate_재고보다많은수량이면_OrderException발생() {
         // given
         given(projectItemRepository.findAllById(Set.of(1L))).willReturn(List.of(item(1L, 10_000, 1)));

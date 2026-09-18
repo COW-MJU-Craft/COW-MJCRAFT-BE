@@ -24,6 +24,7 @@ import com.example.cowmjucraft.global.cloud.S3PresignFacade;
 import com.example.cowmjucraft.domain.project.entity.Project;
 import com.example.cowmjucraft.domain.project.entity.ProjectCategory;
 import com.example.cowmjucraft.domain.project.repository.ProjectRepository;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashSet;
@@ -51,6 +52,9 @@ public class AdminItemService {
     public AdminProjectItemResponseDto create(Long projectId, AdminProjectItemCreateRequestDto request) {
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new ItemException(ItemErrorType.PROJECT_NOT_FOUND));
+        if (project.isDeleted()) {
+            throw new ItemException(ItemErrorType.PROJECT_NOT_FOUND);
+        }
 
         NormalizedItemRequest normalized = normalizeCreate(project, request);
         ProjectItem item = new ProjectItem(
@@ -77,6 +81,9 @@ public class AdminItemService {
     public AdminProjectItemResponseDto update(Long itemId, AdminProjectItemUpdateRequestDto request) {
         ProjectItem item = projectItemRepository.findById(itemId)
                 .orElseThrow(() -> new ItemException(ItemErrorType.ITEM_NOT_FOUND));
+        if (item.isDeleted()) {
+            throw new ItemException(ItemErrorType.ITEM_NOT_FOUND);
+        }
 
         NormalizedItemRequest normalized = normalizeUpdate(item.getProject(), item, request);
         item.update(
@@ -129,6 +136,9 @@ public class AdminItemService {
     ) {
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new ItemException(ItemErrorType.PROJECT_NOT_FOUND));
+        if (project.isDeleted()) {
+            throw new ItemException(ItemErrorType.PROJECT_NOT_FOUND);
+        }
         ProjectCategory category = project.getCategory() == null ? ProjectCategory.GOODS : project.getCategory();
         if (category != ProjectCategory.JOURNAL) {
             throw new ItemException(ItemErrorType.PROJECT_CATEGORY_MISMATCH, "project category must be JOURNAL");
@@ -144,15 +154,24 @@ public class AdminItemService {
 
     @Transactional
     public void delete(Long itemId) {
+        // 물리 삭제 대신 soft delete — 주문 이력(order_items)의 FK RESTRICT에 걸리지 않고,
+        // 결제 완료/입금 대기 주문의 상품 내역을 보존한다. S3 객체도 이력 보존을 위해 남긴다.
         ProjectItem item = projectItemRepository.findById(itemId)
                 .orElseThrow(() -> new ItemException(ItemErrorType.ITEM_NOT_FOUND));
-        projectItemRepository.delete(item);
+        // 이미 삭제된 상품은 존재하지 않는 것으로 취급(admin에게도 숨김).
+        if (item.isDeleted()) {
+            throw new ItemException(ItemErrorType.ITEM_NOT_FOUND);
+        }
+        item.softDelete(LocalDateTime.now());
     }
 
     @Transactional
     public void deleteThumbnail(Long itemId) {
         ProjectItem item = projectItemRepository.findById(itemId)
                 .orElseThrow(() -> new ItemException(ItemErrorType.ITEM_NOT_FOUND));
+        if (item.isDeleted()) {
+            throw new ItemException(ItemErrorType.ITEM_NOT_FOUND);
+        }
 
         String key = toNonBlankString(item.getThumbnailKey());
         if (key != null) {
@@ -170,6 +189,9 @@ public class AdminItemService {
     public void deleteJournalFile(Long itemId) {
         ProjectItem item = projectItemRepository.findById(itemId)
                 .orElseThrow(() -> new ItemException(ItemErrorType.ITEM_NOT_FOUND));
+        if (item.isDeleted()) {
+            throw new ItemException(ItemErrorType.ITEM_NOT_FOUND);
+        }
         if (item.getItemType() != ItemType.DIGITAL_JOURNAL) {
             throw new ItemException(ItemErrorType.DIGITAL_JOURNAL_VIOLATION, "itemType must be DIGITAL_JOURNAL");
         }
@@ -206,6 +228,9 @@ public class AdminItemService {
     public AdminProjectItemDetailResponseDto getItem(Long itemId) {
         ProjectItem item = projectItemRepository.findById(itemId)
                 .orElseThrow(() -> new ItemException(ItemErrorType.ITEM_NOT_FOUND));
+        if (item.isDeleted()) {
+            throw new ItemException(ItemErrorType.ITEM_NOT_FOUND);
+        }
         List<ItemImage> images = itemImageRepository.findByItemIdOrderBySortOrderAsc(itemId);
 
         Set<String> keySet = new LinkedHashSet<>();
@@ -230,6 +255,9 @@ public class AdminItemService {
     public List<ProjectItemImageResponseDto> addImages(Long itemId, AdminItemImageCreateRequestDto request) {
         ProjectItem item = projectItemRepository.findById(itemId)
                 .orElseThrow(() -> new ItemException(ItemErrorType.ITEM_NOT_FOUND));
+        if (item.isDeleted()) {
+            throw new ItemException(ItemErrorType.ITEM_NOT_FOUND);
+        }
 
         List<AdminItemImageCreateRequestDto.ImageRequestDto> images = request.images();
         if (images == null || images.isEmpty()) {
@@ -283,6 +311,9 @@ public class AdminItemService {
     ) {
         ProjectItem item = projectItemRepository.findById(itemId)
                 .orElseThrow(() -> new ItemException(ItemErrorType.ITEM_NOT_FOUND));
+        if (item.isDeleted()) {
+            throw new ItemException(ItemErrorType.ITEM_NOT_FOUND);
+        }
 
         List<Long> imageIds = request.imageIds();
         if (imageIds == null || imageIds.isEmpty()) {
@@ -339,6 +370,9 @@ public class AdminItemService {
         if (!image.getItem().getId().equals(itemId)) {
             throw new ItemException(ItemErrorType.IMAGE_NOT_BELONG_TO_ITEM);
         }
+        if (image.getItem().isDeleted()) {
+            throw new ItemException(ItemErrorType.ITEM_NOT_FOUND);
+        }
         itemImageRepository.delete(image);
     }
 
@@ -346,6 +380,9 @@ public class AdminItemService {
     public ProjectItemJournalPresignGetResponseDto createJournalPresignGet(Long itemId) {
         ProjectItem item = projectItemRepository.findById(itemId)
                 .orElseThrow(() -> new ItemException(ItemErrorType.ITEM_NOT_FOUND));
+        if (item.isDeleted()) {
+            throw new ItemException(ItemErrorType.ITEM_NOT_FOUND);
+        }
         if (item.getItemType() != ItemType.DIGITAL_JOURNAL) {
             throw new ItemException(ItemErrorType.DIGITAL_JOURNAL_VIOLATION, "itemType must be DIGITAL_JOURNAL");
         }
@@ -572,7 +609,10 @@ public class AdminItemService {
     }
 
     private void ensureItemExists(Long itemId) {
-        if (!projectItemRepository.existsById(itemId)) {
+        // 삭제된 상품은 존재하지 않는 것으로 취급 — presign 발급 등도 막는다.
+        ProjectItem item = projectItemRepository.findById(itemId)
+                .orElseThrow(() -> new ItemException(ItemErrorType.ITEM_NOT_FOUND));
+        if (item.isDeleted()) {
             throw new ItemException(ItemErrorType.ITEM_NOT_FOUND);
         }
     }

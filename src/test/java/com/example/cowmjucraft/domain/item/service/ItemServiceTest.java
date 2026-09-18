@@ -145,6 +145,44 @@ class ItemServiceTest {
         assertThat(response.options()).isEmpty();
     }
 
+    @Test
+    void getItem_soft삭제된상품_ItemException발생() {
+        // given
+        Project project = project(10L);
+        ProjectItem deleted = item(project, 1L);
+        deleted.softDelete(java.time.LocalDateTime.now());
+        when(projectItemRepository.findById(1L)).thenReturn(Optional.of(deleted));
+
+        // when & then — 삭제된 상품은 사용자에게 404로 감춰진다.
+        assertThatThrownBy(() -> itemService.getItem(1L))
+                .isInstanceOf(ItemException.class);
+    }
+
+    @Test
+    void getItems_soft삭제된프로젝트_ItemException발생() {
+        // given
+        Project deleted = project(10L);
+        deleted.softDelete(java.time.LocalDateTime.now());
+        when(projectRepository.findById(10L)).thenReturn(Optional.of(deleted));
+
+        // when & then
+        assertThatThrownBy(() -> itemService.getItems(10L))
+                .isInstanceOf(ItemException.class);
+    }
+
+    @Test
+    void createJournalPresignGet_soft삭제된상품_ItemException발생() {
+        // given
+        Project project = project(10L);
+        ProjectItem deleted = item(project, 1L);
+        deleted.softDelete(java.time.LocalDateTime.now());
+        when(projectItemRepository.findById(1L)).thenReturn(Optional.of(deleted));
+
+        // when & then — 삭제 검증이 itemType 검증보다 먼저라, 삭제된 상품은 404로 감춰진다.
+        assertThatThrownBy(() -> itemService.createJournalPresignGet(1L))
+                .isInstanceOf(ItemException.class);
+    }
+
     private Project project(Long id) {
         Project project = new Project(
                 "프로젝트",

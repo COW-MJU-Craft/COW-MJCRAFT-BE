@@ -11,13 +11,18 @@ import org.springframework.data.repository.query.Param;
 
 public interface ProjectItemRepository extends JpaRepository<ProjectItem, Long> {
 
-    List<ProjectItem> findByProjectIdOrderByCreatedAtDescIdDesc(Long projectId);
+    // soft delete된 상품은 client·admin 목록 모두에서 제외한다(deleted_at IS NULL).
+    @Query("""
+    select pi from ProjectItem pi
+    where pi.project.id = :projectId and pi.deletedAt is null
+    order by pi.createdAt desc, pi.id desc
+""")
+    List<ProjectItem> findByProjectIdOrderByCreatedAtDescIdDesc(@Param("projectId") Long projectId);
 
+    // 삭제 stamp 대상 수집 등 내부 처리용 — 삭제된 항목까지 전부 반환한다.
     List<ProjectItem> findByProjectId(Long projectId);
 
     boolean existsByProjectId(Long projectId);
-
-    void deleteByProjectId(Long projectId);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select pi from ProjectItem pi where pi.id = :id")

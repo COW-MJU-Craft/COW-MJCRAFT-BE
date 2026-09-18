@@ -62,7 +62,8 @@ public class OrderPricingService {
             AggregationKey key = entry.getKey();
             int quantity = entry.getValue();
             ProjectItem projectItem = projectItemById.get(key.projectItemId());
-            if (projectItem == null) {
+            // soft delete된 상품은 신규 주문에 담을 수 없다 — 조회되지 않은 것과 동일하게 취급한다.
+            if (projectItem == null || projectItem.isDeleted()) {
                 throw new OrderException(OrderErrorType.ITEM_NOT_FOUND, "projectItemId=" + key.projectItemId());
             }
 
