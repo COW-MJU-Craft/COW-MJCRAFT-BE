@@ -24,6 +24,7 @@ import com.example.cowmjucraft.global.cloud.S3PresignFacade;
 import com.example.cowmjucraft.domain.project.entity.Project;
 import com.example.cowmjucraft.domain.project.entity.ProjectCategory;
 import com.example.cowmjucraft.domain.project.repository.ProjectRepository;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashSet;
@@ -49,7 +50,7 @@ public class AdminItemService {
 
     @Transactional
     public AdminProjectItemResponseDto create(Long projectId, AdminProjectItemCreateRequestDto request) {
-        Project project = projectRepository.findById(projectId)
+        Project project = projectRepository.findByIdAndArchivedAtIsNull(projectId)
                 .orElseThrow(() -> new ItemException(ItemErrorType.PROJECT_NOT_FOUND));
 
         NormalizedItemRequest normalized = normalizeCreate(project, request);
@@ -75,7 +76,7 @@ public class AdminItemService {
 
     @Transactional
     public AdminProjectItemResponseDto update(Long itemId, AdminProjectItemUpdateRequestDto request) {
-        ProjectItem item = projectItemRepository.findById(itemId)
+        ProjectItem item = projectItemRepository.findByIdAndArchivedAtIsNull(itemId)
                 .orElseThrow(() -> new ItemException(ItemErrorType.ITEM_NOT_FOUND));
 
         NormalizedItemRequest normalized = normalizeUpdate(item.getProject(), item, request);
@@ -127,7 +128,7 @@ public class AdminItemService {
             Long projectId,
             AdminItemPresignPutBatchRequestDto request
     ) {
-        Project project = projectRepository.findById(projectId)
+        Project project = projectRepository.findByIdAndArchivedAtIsNull(projectId)
                 .orElseThrow(() -> new ItemException(ItemErrorType.PROJECT_NOT_FOUND));
         ProjectCategory category = project.getCategory() == null ? ProjectCategory.GOODS : project.getCategory();
         if (category != ProjectCategory.JOURNAL) {
@@ -144,14 +145,14 @@ public class AdminItemService {
 
     @Transactional
     public void delete(Long itemId) {
-        ProjectItem item = projectItemRepository.findById(itemId)
+        ProjectItem item = projectItemRepository.findByIdAndArchivedAtIsNull(itemId)
                 .orElseThrow(() -> new ItemException(ItemErrorType.ITEM_NOT_FOUND));
-        projectItemRepository.delete(item);
+        item.archive(LocalDateTime.now());
     }
 
     @Transactional
     public void deleteThumbnail(Long itemId) {
-        ProjectItem item = projectItemRepository.findById(itemId)
+        ProjectItem item = projectItemRepository.findByIdAndArchivedAtIsNull(itemId)
                 .orElseThrow(() -> new ItemException(ItemErrorType.ITEM_NOT_FOUND));
 
         String key = toNonBlankString(item.getThumbnailKey());
@@ -168,7 +169,7 @@ public class AdminItemService {
 
     @Transactional
     public void deleteJournalFile(Long itemId) {
-        ProjectItem item = projectItemRepository.findById(itemId)
+        ProjectItem item = projectItemRepository.findByIdAndArchivedAtIsNull(itemId)
                 .orElseThrow(() -> new ItemException(ItemErrorType.ITEM_NOT_FOUND));
         if (item.getItemType() != ItemType.DIGITAL_JOURNAL) {
             throw new ItemException(ItemErrorType.DIGITAL_JOURNAL_VIOLATION, "itemType must be DIGITAL_JOURNAL");
@@ -190,7 +191,7 @@ public class AdminItemService {
 
     @Transactional(readOnly = true)
     public List<AdminProjectItemResponseDto> getItems(Long projectId) {
-        List<ProjectItem> items = projectItemRepository.findByProjectIdOrderByCreatedAtDescIdDesc(projectId);
+        List<ProjectItem> items = projectItemRepository.findByProjectIdAndArchivedAtIsNullOrderByCreatedAtDescIdDesc(projectId);
         Set<String> keySet = new LinkedHashSet<>();
         for (ProjectItem item : items) {
             addIfValidKey(keySet, item.getThumbnailKey());
@@ -228,7 +229,7 @@ public class AdminItemService {
 
     @Transactional
     public List<ProjectItemImageResponseDto> addImages(Long itemId, AdminItemImageCreateRequestDto request) {
-        ProjectItem item = projectItemRepository.findById(itemId)
+        ProjectItem item = projectItemRepository.findByIdAndArchivedAtIsNull(itemId)
                 .orElseThrow(() -> new ItemException(ItemErrorType.ITEM_NOT_FOUND));
 
         List<AdminItemImageCreateRequestDto.ImageRequestDto> images = request.images();
@@ -281,7 +282,7 @@ public class AdminItemService {
             Long itemId,
             AdminItemImageOrderPatchRequestDto request
     ) {
-        ProjectItem item = projectItemRepository.findById(itemId)
+        ProjectItem item = projectItemRepository.findByIdAndArchivedAtIsNull(itemId)
                 .orElseThrow(() -> new ItemException(ItemErrorType.ITEM_NOT_FOUND));
 
         List<Long> imageIds = request.imageIds();
@@ -344,7 +345,7 @@ public class AdminItemService {
 
     @Transactional(readOnly = true)
     public ProjectItemJournalPresignGetResponseDto createJournalPresignGet(Long itemId) {
-        ProjectItem item = projectItemRepository.findById(itemId)
+        ProjectItem item = projectItemRepository.findByIdAndArchivedAtIsNull(itemId)
                 .orElseThrow(() -> new ItemException(ItemErrorType.ITEM_NOT_FOUND));
         if (item.getItemType() != ItemType.DIGITAL_JOURNAL) {
             throw new ItemException(ItemErrorType.DIGITAL_JOURNAL_VIOLATION, "itemType must be DIGITAL_JOURNAL");
@@ -572,7 +573,7 @@ public class AdminItemService {
     }
 
     private void ensureItemExists(Long itemId) {
-        if (!projectItemRepository.existsById(itemId)) {
+        if (!projectItemRepository.existsByIdAndArchivedAtIsNull(itemId)) {
             throw new ItemException(ItemErrorType.ITEM_NOT_FOUND);
         }
     }

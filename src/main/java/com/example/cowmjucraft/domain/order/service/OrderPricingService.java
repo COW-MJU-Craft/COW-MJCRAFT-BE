@@ -135,6 +135,8 @@ public class OrderPricingService {
     /** 상품 종류만큼 select이 나가지 않도록 한 번에 조회한다. 순서는 호출부의 요청 순서를 그대로 따른다. */
     private Map<Long, ProjectItem> findProjectItems(Collection<Long> projectItemIds) {
         return projectItemRepository.findAllById(projectItemIds).stream()
+                .filter(item -> !item.isArchived())
+                .filter(item -> !item.getProject().isArchived())
                 .collect(Collectors.toMap(ProjectItem::getId, Function.identity()));
     }
 

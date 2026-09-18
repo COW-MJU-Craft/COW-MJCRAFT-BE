@@ -68,8 +68,8 @@ class ItemServiceTest {
         Project project = project(10L);
         ProjectItem mugItem = item(project, 1L);
         ProjectItem stickerItem = item(project, 2L);
-        when(projectRepository.findById(10L)).thenReturn(Optional.of(project));
-        when(projectItemRepository.findByProjectIdOrderByCreatedAtDescIdDesc(10L))
+        when(projectRepository.findByIdAndArchivedAtIsNull(10L)).thenReturn(Optional.of(project));
+        when(projectItemRepository.findByProjectIdAndArchivedAtIsNullOrderByCreatedAtDescIdDesc(10L))
                 .thenReturn(List.of(mugItem, stickerItem));
 
         ItemOptionGroup colorGroup = optionGroup(mugItem, 100L, "색상", 0);
@@ -97,7 +97,7 @@ class ItemServiceTest {
     @Test
     void getItems_프로젝트없음_ItemException발생() {
         // given
-        when(projectRepository.findById(10L)).thenReturn(Optional.empty());
+        when(projectRepository.findByIdAndArchivedAtIsNull(10L)).thenReturn(Optional.empty());
 
         // when & then
         assertThatThrownBy(() -> itemService.getItems(10L))
@@ -109,7 +109,7 @@ class ItemServiceTest {
         // given
         Project project = project(10L);
         ProjectItem mugItem = item(project, 1L);
-        when(projectItemRepository.findById(1L)).thenReturn(Optional.of(mugItem));
+        when(projectItemRepository.findByIdAndArchivedAtIsNull(1L)).thenReturn(Optional.of(mugItem));
         when(itemImageRepository.findByItemIdOrderBySortOrderAsc(1L)).thenReturn(List.of());
 
         ItemOptionGroup colorGroup = optionGroup(mugItem, 100L, "색상", 0);
@@ -133,7 +133,7 @@ class ItemServiceTest {
         // given
         Project project = project(10L);
         ProjectItem stickerItem = item(project, 2L);
-        when(projectItemRepository.findById(2L)).thenReturn(Optional.of(stickerItem));
+        when(projectItemRepository.findByIdAndArchivedAtIsNull(2L)).thenReturn(Optional.of(stickerItem));
         when(itemImageRepository.findByItemIdOrderBySortOrderAsc(2L)).thenReturn(List.of());
         when(itemOptionGroupRepository.findByItemIdInOrderBySortOrderAsc(List.of(2L)))
                 .thenReturn(List.of());

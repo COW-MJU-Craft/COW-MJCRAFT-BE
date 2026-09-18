@@ -11,15 +11,15 @@ import org.springframework.data.repository.query.Param;
 
 public interface ProjectItemRepository extends JpaRepository<ProjectItem, Long> {
 
-    List<ProjectItem> findByProjectIdOrderByCreatedAtDescIdDesc(Long projectId);
+    List<ProjectItem> findByProjectIdAndArchivedAtIsNullOrderByCreatedAtDescIdDesc(Long projectId);
 
-    List<ProjectItem> findByProjectId(Long projectId);
+    List<ProjectItem> findByProjectIdAndArchivedAtIsNull(Long projectId);
 
-    boolean existsByProjectId(Long projectId);
+    Optional<ProjectItem> findByIdAndArchivedAtIsNull(Long id);
 
-    void deleteByProjectId(Long projectId);
+    boolean existsByIdAndArchivedAtIsNull(Long id);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
-    @Query("select pi from ProjectItem pi where pi.id = :id")
+    @Query("select pi from ProjectItem pi where pi.id = :id and pi.archivedAt is null")
     Optional<ProjectItem> findByIdForUpdate(@Param("id") Long id);
 }

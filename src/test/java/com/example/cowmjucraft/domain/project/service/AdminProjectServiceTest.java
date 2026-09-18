@@ -1,20 +1,19 @@
 package com.example.cowmjucraft.domain.project.service;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static com.example.cowmjucraft.domain.order.OrderTestFixtures.project;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 
-import com.example.cowmjucraft.domain.item.repository.ItemImageRepository;
+import com.example.cowmjucraft.domain.item.entity.ItemSaleType;
+import com.example.cowmjucraft.domain.item.entity.ItemStatus;
+import com.example.cowmjucraft.domain.item.entity.ItemType;
+import com.example.cowmjucraft.domain.item.entity.ProjectItem;
 import com.example.cowmjucraft.domain.item.repository.ProjectItemRepository;
-import com.example.cowmjucraft.domain.order.repository.OrderItemRepository;
-import com.example.cowmjucraft.domain.order.repository.OrderRepository;
-import com.example.cowmjucraft.domain.payout.repository.PayoutRepository;
 import com.example.cowmjucraft.domain.project.dto.response.AdminProjectResponseDto;
+import com.example.cowmjucraft.domain.project.entity.Project;
 import com.example.cowmjucraft.domain.project.entity.ProjectStatus;
-import com.example.cowmjucraft.domain.project.exception.ProjectException;
 import com.example.cowmjucraft.domain.project.repository.ProjectRepository;
 import com.example.cowmjucraft.global.cloud.S3PresignFacade;
 import java.util.List;
@@ -33,14 +32,6 @@ class AdminProjectServiceTest {
     @Mock
     private ProjectItemRepository projectItemRepository;
     @Mock
-    private ItemImageRepository itemImageRepository;
-    @Mock
-    private OrderItemRepository orderItemRepository;
-    @Mock
-    private OrderRepository orderRepository;
-    @Mock
-    private PayoutRepository payoutRepository;
-    @Mock
     private S3PresignFacade s3PresignFacade;
 
     private AdminProjectService adminProjectService;
@@ -50,10 +41,6 @@ class AdminProjectServiceTest {
         adminProjectService = new AdminProjectService(
                 projectRepository,
                 projectItemRepository,
-                itemImageRepository,
-                orderItemRepository,
-                orderRepository,
-                payoutRepository,
                 s3PresignFacade
         );
     }
@@ -87,14 +74,34 @@ class AdminProjectServiceTest {
     }
 
     @Test
-    void delete_대표주문이있는프로젝트_ProjectException발생() {
+    void delete_프로젝트와_하위상품을_archive처리한다() {
         // given
-        given(projectRepository.findById(1L)).willReturn(Optional.of(project(1L)));
-        given(orderRepository.existsByRepresentativeProjectId(1L)).willReturn(true);
+        Project project = project(1L);
+        ProjectItem item = new ProjectItem(
+                project,
+                "item",
+                "summary",
+                "description",
+                10_000,
+                ItemSaleType.NORMAL,
+                ItemStatus.OPEN,
+                ItemType.PHYSICAL,
+                "thumb.png",
+                null,
+                null,
+                null,
+                10
+        );
+        given(projectRepository.findById(1L)).willReturn(Optional.of(project));
+        given(projectItemRepository.findByProjectIdAndArchivedAtIsNull(1L)).willReturn(List.of(item));
 
-        // when & then
-        assertThatThrownBy(() -> adminProjectService.delete(1L))
-                .isInstanceOf(ProjectException.class);
-        verifyNoMoreInteractions(projectItemRepository, itemImageRepository, payoutRepository, s3PresignFacade);
+        // when
+        adminProjectService.delete(1L);
+
+        // then
+        assertThat(project.isArchived()).isTrue();
+        assertThat(item.isArchived()).isTrue();
+        verify(projectItemRepository).findByProjectIdAndArchivedAtIsNull(1L);
+        verifyNoMoreInteractions(s3PresignFacade);
     }
 }

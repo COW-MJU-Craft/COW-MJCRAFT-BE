@@ -141,7 +141,7 @@ public class AdminItemOptionService {
     }
 
     private ProjectItem findItem(Long itemId) {
-        return projectItemRepository.findById(itemId)
+        return projectItemRepository.findByIdAndArchivedAtIsNull(itemId)
                 .orElseThrow(() -> new ItemException(ItemErrorType.ITEM_NOT_FOUND));
     }
 

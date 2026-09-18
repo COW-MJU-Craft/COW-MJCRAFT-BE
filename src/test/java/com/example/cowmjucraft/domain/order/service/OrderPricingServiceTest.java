@@ -21,6 +21,7 @@ import com.example.cowmjucraft.domain.order.entity.OrderFulfillmentMethod;
 import com.example.cowmjucraft.domain.order.entity.OrderPolicy;
 import com.example.cowmjucraft.domain.order.exception.OrderException;
 import com.example.cowmjucraft.domain.order.repository.OrderPolicyRepository;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -294,6 +295,20 @@ class OrderPricingServiceTest {
 
         // then
         assertThat(quote.lines()).hasSize(1);
+    }
+
+    @Test
+    void calculate_archive상품이면_OrderException발생() {
+        // given
+        ProjectItem item = item(1L, 10_000, 1);
+        ReflectionTestUtils.setField(item, "archivedAt", LocalDateTime.now());
+        given(projectItemRepository.findAllById(Set.of(1L))).willReturn(List.of(item));
+
+        // when & then
+        assertThatThrownBy(() -> orderPricingService.calculate(
+                List.of(itemRequest(1L, 1)),
+                OrderFulfillmentMethod.PICKUP
+        )).isInstanceOf(OrderException.class);
     }
 
     private OrderCreateItemRequestDto itemRequest(Long projectItemId, int quantity) {

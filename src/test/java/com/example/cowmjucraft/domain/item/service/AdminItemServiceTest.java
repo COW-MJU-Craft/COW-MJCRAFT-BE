@@ -66,7 +66,7 @@ class AdminItemServiceTest {
         ItemImage image2 = itemImage(item, 2L, 1);
         ItemImage image3 = itemImage(item, 3L, 2);
 
-        when(projectItemRepository.findById(1L)).thenReturn(Optional.of(item));
+        when(projectItemRepository.findByIdAndArchivedAtIsNull(1L)).thenReturn(Optional.of(item));
         when(itemImageRepository.countByItemId(1L)).thenReturn(3L);
         when(itemImageRepository.findAllById(List.of(3L, 1L, 2L)))
                 .thenReturn(List.of(image1, image2, image3));
@@ -91,7 +91,7 @@ class AdminItemServiceTest {
         ItemImage image1 = itemImage(item, 1L, 0);
         ItemImage otherImage = itemImage(otherItem, 2L, 0);
 
-        when(projectItemRepository.findById(1L)).thenReturn(Optional.of(item));
+        when(projectItemRepository.findByIdAndArchivedAtIsNull(1L)).thenReturn(Optional.of(item));
         when(itemImageRepository.countByItemId(1L)).thenReturn(2L);
         when(itemImageRepository.findAllById(List.of(1L, 2L)))
                 .thenReturn(List.of(image1, otherImage));
@@ -107,7 +107,7 @@ class AdminItemServiceTest {
     void update_필수옵션그룹있는상품_stockQty를null로강제한다() {
         // given
         ProjectItem item = item(1L);
-        when(projectItemRepository.findById(1L)).thenReturn(Optional.of(item));
+        when(projectItemRepository.findByIdAndArchivedAtIsNull(1L)).thenReturn(Optional.of(item));
         when(itemOptionGroupRepository.existsByItemId(1L)).thenReturn(true);
         when(itemOptionGroupRepository.existsByItemIdAndRequiredTrue(1L)).thenReturn(true);
 
@@ -122,7 +122,7 @@ class AdminItemServiceTest {
     void update_선택사항옵션그룹만있는상품_stockQty그대로반영된다() {
         // given — 옵션 그룹은 있지만 전부 required=false라, 옵션 없이도 상품 자체를 주문할 수 있어야 함
         ProjectItem item = item(1L);
-        when(projectItemRepository.findById(1L)).thenReturn(Optional.of(item));
+        when(projectItemRepository.findByIdAndArchivedAtIsNull(1L)).thenReturn(Optional.of(item));
         when(itemOptionGroupRepository.existsByItemId(1L)).thenReturn(true);
         when(itemOptionGroupRepository.existsByItemIdAndRequiredTrue(1L)).thenReturn(false);
 
@@ -137,7 +137,7 @@ class AdminItemServiceTest {
     void update_옵션그룹없는상품_stockQty그대로반영된다() {
         // given
         ProjectItem item = item(1L);
-        when(projectItemRepository.findById(1L)).thenReturn(Optional.of(item));
+        when(projectItemRepository.findByIdAndArchivedAtIsNull(1L)).thenReturn(Optional.of(item));
         when(itemOptionGroupRepository.existsByItemId(1L)).thenReturn(false);
 
         // when
@@ -151,12 +151,25 @@ class AdminItemServiceTest {
     void update_옵션그룹있는상품을공동구매로변경시_ItemException발생() {
         // given
         ProjectItem item = item(1L);
-        when(projectItemRepository.findById(1L)).thenReturn(Optional.of(item));
+        when(projectItemRepository.findByIdAndArchivedAtIsNull(1L)).thenReturn(Optional.of(item));
         when(itemOptionGroupRepository.existsByItemId(1L)).thenReturn(true);
 
         // when & then
         assertThatThrownBy(() -> adminItemService.update(1L, groupbuyUpdateRequest()))
                 .isInstanceOf(ItemException.class);
+    }
+
+    @Test
+    void delete_상품을_archive처리한다() {
+        // given
+        ProjectItem item = item(1L);
+        when(projectItemRepository.findByIdAndArchivedAtIsNull(1L)).thenReturn(Optional.of(item));
+
+        // when
+        adminItemService.delete(1L);
+
+        // then
+        assertThat(item.isArchived()).isTrue();
     }
 
     private AdminProjectItemUpdateRequestDto groupbuyUpdateRequest() {

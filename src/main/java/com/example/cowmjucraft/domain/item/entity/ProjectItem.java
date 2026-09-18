@@ -14,6 +14,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.Lob;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import java.time.LocalDateTime;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -71,6 +72,9 @@ public class ProjectItem extends BaseTimeEntity {
 
     @Column(name = "stock_qty")
     private Integer stockQty;
+
+    @Column(name = "archived_at")
+    private LocalDateTime archivedAt;
 
     public ProjectItem(
             Project project,
@@ -228,6 +232,16 @@ public class ProjectItem extends BaseTimeEntity {
 
     public void updateFundedQty(Integer fundedQty) {
         this.fundedQty = fundedQty;
+    }
+
+    public boolean isArchived() {
+        return archivedAt != null;
+    }
+
+    public void archive(LocalDateTime archivedAt) {
+        if (this.archivedAt == null) {
+            this.archivedAt = archivedAt;
+        }
     }
 
     public void clearThumbnail() {
