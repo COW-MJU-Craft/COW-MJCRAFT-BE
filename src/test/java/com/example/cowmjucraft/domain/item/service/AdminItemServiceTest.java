@@ -2,6 +2,7 @@ package com.example.cowmjucraft.domain.item.service;
 
 import com.example.cowmjucraft.domain.item.dto.request.AdminItemImageOrderPatchRequestDto;
 import com.example.cowmjucraft.domain.item.dto.request.AdminProjectItemUpdateRequestDto;
+import com.example.cowmjucraft.domain.item.dto.response.AdminProjectItemDetailResponseDto;
 import com.example.cowmjucraft.domain.item.entity.ItemImage;
 import com.example.cowmjucraft.domain.item.entity.ItemSaleType;
 import com.example.cowmjucraft.domain.item.entity.ItemStatus;
@@ -186,6 +187,35 @@ class AdminItemServiceTest {
     }
 
     @Test
+    void getItem_정상상품_상세응답을반환한다() {
+        // given
+        ProjectItem item = item(1L);
+        when(projectItemRepository.findById(1L)).thenReturn(Optional.of(item));
+        // itemImageRepository/presign은 Mockito 기본값(빈 리스트/빈 맵)으로 충분
+
+        // when
+        AdminProjectItemDetailResponseDto response = adminItemService.getItem(1L);
+
+        // then
+        assertThat(response.id()).isEqualTo(1L);
+        assertThat(response.name()).isEqualTo("상품");
+    }
+
+    @Test
+    void deleteThumbnail_정상_썸네일키제거하고_S3삭제요청() {
+        // given
+        ProjectItem item = item(1L);
+        when(projectItemRepository.findById(1L)).thenReturn(Optional.of(item));
+
+        // when
+        adminItemService.deleteThumbnail(1L);
+
+        // then
+        assertThat(item.getThumbnailKey()).isNull();
+        verify(s3PresignFacade).deleteByKeys(List.of("thumb.png"));
+    }
+
+    @Test
     void getItem_soft삭제된상품_admin에게도_ItemException발생() {
         // given — 목록뿐 아니라 id 직접 조회도 삭제 항목은 404로 숨긴다.
         ProjectItem item = item(1L);
@@ -195,6 +225,117 @@ class AdminItemServiceTest {
         // when & then
         assertThatThrownBy(() -> adminItemService.getItem(1L))
                 .isInstanceOf(ItemException.class);
+    }
+
+    @Test
+    void update_soft삭제된상품_ItemException발생() {
+        // given
+        ProjectItem item = item(1L);
+        item.softDelete(java.time.LocalDateTime.now());
+        when(projectItemRepository.findById(1L)).thenReturn(Optional.of(item));
+
+        // when & then
+        assertThatThrownBy(() -> adminItemService.update(1L, updateRequest(10)))
+                .isInstanceOf(ItemException.class);
+    }
+
+    @Test
+    void deleteThumbnail_soft삭제된상품_ItemException발생() {
+        // given
+        ProjectItem item = item(1L);
+        item.softDelete(java.time.LocalDateTime.now());
+        when(projectItemRepository.findById(1L)).thenReturn(Optional.of(item));
+
+        // when & then
+        assertThatThrownBy(() -> adminItemService.deleteThumbnail(1L))
+                .isInstanceOf(ItemException.class);
+    }
+
+    @Test
+    void deleteJournalFile_soft삭제된상품_ItemException발생() {
+        // given
+        ProjectItem item = item(1L);
+        item.softDelete(java.time.LocalDateTime.now());
+        when(projectItemRepository.findById(1L)).thenReturn(Optional.of(item));
+
+        // when & then
+        assertThatThrownBy(() -> adminItemService.deleteJournalFile(1L))
+                .isInstanceOf(ItemException.class);
+    }
+
+    @Test
+    void addImages_soft삭제된상품_ItemException발생() {
+        // given
+        ProjectItem item = item(1L);
+        item.softDelete(java.time.LocalDateTime.now());
+        when(projectItemRepository.findById(1L)).thenReturn(Optional.of(item));
+
+        // when & then — findActiveItem이 request보다 먼저 검증하므로 request는 null이어도 된다.
+        assertThatThrownBy(() -> adminItemService.addImages(1L, null))
+                .isInstanceOf(ItemException.class);
+    }
+
+    @Test
+    void createJournalPresignGet_soft삭제된상품_ItemException발생() {
+        // given
+        ProjectItem item = item(1L);
+        item.softDelete(java.time.LocalDateTime.now());
+        when(projectItemRepository.findById(1L)).thenReturn(Optional.of(item));
+
+        // when & then
+        assertThatThrownBy(() -> adminItemService.createJournalPresignGet(1L))
+                .isInstanceOf(ItemException.class);
+    }
+
+    @Test
+    void deleteImage_soft삭제된상품의이미지_ItemException발생() {
+        // given
+        ProjectItem item = item(1L);
+        item.softDelete(java.time.LocalDateTime.now());
+        ItemImage image = itemImage(item, 10L, 0);
+        when(itemImageRepository.findById(10L)).thenReturn(Optional.of(image));
+
+        // when & then
+        assertThatThrownBy(() -> adminItemService.deleteImage(1L, 10L))
+                .isInstanceOf(ItemException.class);
+    }
+
+    @Test
+    void create_soft삭제된프로젝트_ItemException발생() {
+        // given
+        Project project = deletedProject(100L);
+        when(projectRepository.findById(100L)).thenReturn(Optional.of(project));
+
+        // when & then — 삭제된 프로젝트에는 상품을 생성할 수 없다(findActiveProject가 먼저 검증).
+        assertThatThrownBy(() -> adminItemService.create(100L, null))
+                .isInstanceOf(ItemException.class);
+    }
+
+    @Test
+    void createJournalFilePresignPutBatch_soft삭제된프로젝트_ItemException발생() {
+        // given
+        Project project = deletedProject(100L);
+        when(projectRepository.findById(100L)).thenReturn(Optional.of(project));
+
+        // when & then
+        assertThatThrownBy(() -> adminItemService.createJournalFilePresignPutBatch(100L, null))
+                .isInstanceOf(ItemException.class);
+    }
+
+    private Project deletedProject(Long id) {
+        Project project = new Project(
+                "프로젝트",
+                "요약",
+                "설명",
+                "thumb.png",
+                List.of(),
+                LocalDate.now().plusDays(7),
+                ProjectStatus.OPEN,
+                ProjectCategory.GOODS
+        );
+        ReflectionTestUtils.setField(project, "id", id);
+        project.softDelete(java.time.LocalDateTime.now());
+        return project;
     }
 
     private AdminProjectItemUpdateRequestDto groupbuyUpdateRequest() {
