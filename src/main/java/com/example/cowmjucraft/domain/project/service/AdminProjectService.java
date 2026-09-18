@@ -1,12 +1,7 @@
 package com.example.cowmjucraft.domain.project.service;
 
-import com.example.cowmjucraft.domain.item.entity.ItemImage;
 import com.example.cowmjucraft.domain.item.entity.ProjectItem;
-import com.example.cowmjucraft.domain.item.repository.ItemImageRepository;
 import com.example.cowmjucraft.domain.item.repository.ProjectItemRepository;
-import com.example.cowmjucraft.domain.order.repository.OrderItemRepository;
-import com.example.cowmjucraft.domain.order.repository.OrderRepository;
-import com.example.cowmjucraft.domain.payout.repository.PayoutRepository;
 import com.example.cowmjucraft.domain.project.dto.request.AdminProjectCreateRequestDto;
 import com.example.cowmjucraft.domain.project.dto.request.AdminProjectOrderPatchRequestDto;
 import com.example.cowmjucraft.domain.project.dto.request.AdminProjectPresignPutBatchRequestDto;
@@ -21,6 +16,7 @@ import com.example.cowmjucraft.domain.project.repository.ProjectRepository;
 import com.example.cowmjucraft.domain.project.exception.ProjectErrorType;
 import com.example.cowmjucraft.domain.project.exception.ProjectException;
 import com.example.cowmjucraft.global.cloud.S3PresignFacade;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashSet;
@@ -39,27 +35,15 @@ public class AdminProjectService {
 
     private final ProjectRepository projectRepository;
     private final ProjectItemRepository projectItemRepository;
-    private final ItemImageRepository itemImageRepository;
-    private final OrderItemRepository orderItemRepository;
-    private final OrderRepository orderRepository;
-    private final PayoutRepository payoutRepository;
     private final S3PresignFacade s3PresignFacade;
 
     public AdminProjectService(
             ProjectRepository projectRepository,
             ProjectItemRepository projectItemRepository,
-            ItemImageRepository itemImageRepository,
-            OrderItemRepository orderItemRepository,
-            OrderRepository orderRepository,
-            PayoutRepository payoutRepository,
             S3PresignFacade s3PresignFacade
     ) {
         this.projectRepository = projectRepository;
         this.projectItemRepository = projectItemRepository;
-        this.itemImageRepository = itemImageRepository;
-        this.orderItemRepository = orderItemRepository;
-        this.orderRepository = orderRepository;
-        this.payoutRepository = payoutRepository;
         this.s3PresignFacade = s3PresignFacade;
     }
 
@@ -99,48 +83,17 @@ public class AdminProjectService {
 
     @Transactional
     public void delete(Long projectId) {
+        // 물리 삭제 대신 soft delete — 주문(order_items)·정산(payout) 이력을 파괴하지 않는다.
+        // 프로젝트를 삭제하면 소속 상품도 함께 숨겨야 하므로 하위 ProjectItem도 같이 stamp한다.
+        // S3 객체는 이력 보존을 위해 남겨둔다(정리는 S3 삭제 Outbox 이슈에서 별도 처리).
+        // 이미 삭제된 프로젝트는 findProject에서 PROJECT_NOT_FOUND로 처리된다.
         Project project = findProject(projectId);
 
-        if (orderRepository.existsByRepresentativeProjectId(projectId)) {
-            throw new ProjectException(ProjectErrorType.PROJECT_DELETE_CONFLICT, "projectId=" + projectId);
-        }
-
-        List<ProjectItem> items = projectItemRepository.findByProjectId(projectId);
-        List<Long> itemIds = items.stream().map(ProjectItem::getId).toList();
-
-        // S3 키 수집
-        List<String> s3KeysToDelete = new ArrayList<>();
-        addS3KeyIfValid(s3KeysToDelete, project.getThumbnailKey());
-        project.getImageKeys().forEach(k -> addS3KeyIfValid(s3KeysToDelete, k));
-
-        if (!itemIds.isEmpty()) {
-            List<ItemImage> itemImages = itemImageRepository.findByItemIdIn(itemIds);
-            itemImages.forEach(img -> addS3KeyIfValid(s3KeysToDelete, img.getImageKey()));
-            items.forEach(item -> {
-                addS3KeyIfValid(s3KeysToDelete, item.getThumbnailKey());
-                addS3KeyIfValid(s3KeysToDelete, item.getJournalFileKey());
-            });
-
-            // OrderItem 삭제 (Order는 건드리지 않음)
-            orderItemRepository.deleteByProjectItemIdIn(itemIds);
-
-            // ItemImage 삭제
-            itemImageRepository.deleteByItemIdIn(itemIds);
-
-            // ProjectItem 삭제
-            projectItemRepository.deleteByProjectId(projectId);
-        }
-
-        // Payout 삭제 (cascade로 PayoutItem도 삭제)
-        payoutRepository.findByProjectId(projectId).ifPresent(payoutRepository::delete);
-
-        // Project 삭제 (cascade로 project_images도 삭제)
-        projectRepository.delete(project);
-
-        // S3 파일 삭제
-        if (!s3KeysToDelete.isEmpty()) {
-            s3PresignFacade.deleteByKeys(s3KeysToDelete);
-        }
+        LocalDateTime now = LocalDateTime.now();
+        project.softDelete(now);
+        projectItemRepository.findByProjectId(projectId).stream()
+                .filter(item -> !item.isDeleted())
+                .forEach(item -> item.softDelete(now));
     }
 
     @Transactional(readOnly = true)
@@ -212,7 +165,10 @@ public class AdminProjectService {
 
         validateOrders(items);
 
-        List<Project> projects = projectRepository.findAllById(ids);
+        // soft delete된 프로젝트는 순서 변경 대상에서 제외 — 아래 size 검증에서 NOT_FOUND로 이어진다.
+        List<Project> projects = projectRepository.findAllById(ids).stream()
+                .filter(project -> !project.isDeleted())
+                .toList();
         if (projects.size() != ids.size()) {
             Set<Long> foundIds = projects.stream().map(Project::getId).collect(Collectors.toSet());
             ids.removeAll(foundIds);
@@ -246,9 +202,14 @@ public class AdminProjectService {
         return new AdminProjectOrderPatchResponseDto(updatedPinnedCount, updatedManualCount);
     }
 
+    // soft delete된 프로젝트는 admin 단건 조회·수정·삭제에서도 숨긴다(목록뿐 아니라 id 직접 접근도 차단).
     private Project findProject(Long projectId) {
-        return projectRepository.findById(projectId)
+        Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new ProjectException(ProjectErrorType.PROJECT_NOT_FOUND));
+        if (project.isDeleted()) {
+            throw new ProjectException(ProjectErrorType.PROJECT_NOT_FOUND);
+        }
+        return project;
     }
 
     private void validateOrders(List<AdminProjectOrderPatchRequestDto.ItemDto> items) {
@@ -498,13 +459,6 @@ public class AdminProjectService {
         }
         for (String value : values) {
             addIfValidKey(keys, value);
-        }
-    }
-
-    private void addS3KeyIfValid(List<String> keys, String value) {
-        String k = toNonBlankString(value);
-        if (k != null) {
-            keys.add(k);
         }
     }
 

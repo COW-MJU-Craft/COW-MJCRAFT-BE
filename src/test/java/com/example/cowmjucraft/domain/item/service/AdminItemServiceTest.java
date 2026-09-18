@@ -28,6 +28,8 @@ import org.springframework.test.util.ReflectionTestUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -156,6 +158,42 @@ class AdminItemServiceTest {
 
         // when & then
         assertThatThrownBy(() -> adminItemService.update(1L, groupbuyUpdateRequest()))
+                .isInstanceOf(ItemException.class);
+    }
+
+    @Test
+    void delete_상품을_softDelete하고_물리삭제하지않는다() {
+        // given
+        ProjectItem item = item(1L);
+        when(projectItemRepository.findById(1L)).thenReturn(Optional.of(item));
+
+        // when
+        adminItemService.delete(1L);
+
+        // then: 주문 이력 FK 보존을 위해 물리 삭제 대신 soft delete만 수행한다.
+        assertThat(item.isDeleted()).isTrue();
+        verify(projectItemRepository, never()).delete(any());
+    }
+
+    @Test
+    void delete_존재하지않는상품_ItemException발생() {
+        // given
+        when(projectItemRepository.findById(1L)).thenReturn(Optional.empty());
+
+        // when & then
+        assertThatThrownBy(() -> adminItemService.delete(1L))
+                .isInstanceOf(ItemException.class);
+    }
+
+    @Test
+    void getItem_soft삭제된상품_admin에게도_ItemException발생() {
+        // given — 목록뿐 아니라 id 직접 조회도 삭제 항목은 404로 숨긴다.
+        ProjectItem item = item(1L);
+        item.softDelete(java.time.LocalDateTime.now());
+        when(projectItemRepository.findById(1L)).thenReturn(Optional.of(item));
+
+        // when & then
+        assertThatThrownBy(() -> adminItemService.getItem(1L))
                 .isInstanceOf(ItemException.class);
     }
 

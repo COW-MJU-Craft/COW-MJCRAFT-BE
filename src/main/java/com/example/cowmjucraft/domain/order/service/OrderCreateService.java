@@ -98,6 +98,10 @@ public class OrderCreateService {
                         ProjectErrorType.PROJECT_NOT_FOUND,
                         "projectId=" + representativeProjectId
                 ));
+        // soft delete된 프로젝트로는 신규 주문을 받지 않는다.
+        if (representativeProject.isDeleted()) {
+            throw new ProjectException(ProjectErrorType.PROJECT_NOT_FOUND, "projectId=" + representativeProjectId);
+        }
         long projectOrderNo = representativeProject.issueNextOrderNo();
 
         // 이메일만으로 고객 행을 만들거나 재사용한다.

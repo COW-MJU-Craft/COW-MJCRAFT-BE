@@ -15,6 +15,7 @@ import jakarta.persistence.Lob;
 import jakarta.persistence.OrderColumn;
 import jakarta.persistence.Table;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.AccessLevel;
@@ -73,6 +74,9 @@ public class Project extends BaseTimeEntity {
     @Column(name = "last_order_no", nullable = false)
     private long lastOrderNo;
 
+    @Column(name = "deleted_at")
+    private LocalDateTime deletedAt;
+
     public Project(
             String title,
             String summary,
@@ -127,6 +131,15 @@ public class Project extends BaseTimeEntity {
     public long issueNextOrderNo() {
         this.lastOrderNo = Math.incrementExact(this.lastOrderNo);
         return this.lastOrderNo;
+    }
+
+    /** soft delete — 물리 삭제 대신 삭제 시각만 남긴다. 주문·정산 이력은 보존된다. */
+    public void softDelete(LocalDateTime deletedAt) {
+        this.deletedAt = deletedAt;
+    }
+
+    public boolean isDeleted() {
+        return deletedAt != null;
     }
 
     private void replaceImageKeys(List<String> imageKeys) {
