@@ -5,6 +5,7 @@ import static com.example.cowmjucraft.domain.order.OrderTestFixtures.project;
 import static org.mockito.BDDMockito.given;
 
 import com.example.cowmjucraft.domain.order.dto.response.AdminOrderTrackingInformationResponseDto;
+import com.example.cowmjucraft.domain.customer.entity.Customer;
 import com.example.cowmjucraft.domain.order.entity.Order;
 import com.example.cowmjucraft.domain.order.entity.OrderFulfillment;
 import com.example.cowmjucraft.domain.order.entity.OrderFulfillmentMethod;
@@ -85,6 +86,7 @@ class AdminOrderTrackingInformationServiceTest {
         LocalDateTime now = LocalDateTime.now();
         Order order = new Order(
                 "ORD-" + id,
+                testCustomer(),
                 project(1L),
                 1L,
                 status,
@@ -116,5 +118,9 @@ class AdminOrderTrackingInformationServiceTest {
                 null,
                 null
         );
+    }
+
+    private Customer testCustomer() {
+        return new Customer("buyer@mju.ac.kr");
     }
 }

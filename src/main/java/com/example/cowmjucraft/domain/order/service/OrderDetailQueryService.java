@@ -6,6 +6,8 @@ import com.example.cowmjucraft.domain.order.entity.OrderAuth;
 import com.example.cowmjucraft.domain.order.entity.OrderBuyer;
 import com.example.cowmjucraft.domain.order.entity.OrderCompletePage;
 import com.example.cowmjucraft.domain.order.entity.OrderFulfillment;
+import com.example.cowmjucraft.domain.order.entity.OrderItem;
+import com.example.cowmjucraft.domain.order.entity.OrderItemOption;
 import com.example.cowmjucraft.domain.order.entity.OrderViewToken;
 import com.example.cowmjucraft.domain.order.exception.OrderErrorType;
 import com.example.cowmjucraft.domain.order.exception.OrderException;
@@ -13,13 +15,17 @@ import com.example.cowmjucraft.domain.order.repository.OrderAuthRepository;
 import com.example.cowmjucraft.domain.order.repository.OrderBuyerRepository;
 import com.example.cowmjucraft.domain.order.repository.OrderCompletePageRepository;
 import com.example.cowmjucraft.domain.order.repository.OrderFulfillmentRepository;
+import com.example.cowmjucraft.domain.order.repository.OrderItemOptionRepository;
 import com.example.cowmjucraft.domain.order.repository.OrderItemRepository;
 import com.example.cowmjucraft.domain.order.repository.OrderRepository;
 import com.example.cowmjucraft.domain.order.repository.OrderViewTokenRepository;
 
 import com.example.cowmjucraft.global.security.CredentialMatcher;
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,6 +37,7 @@ public class OrderDetailQueryService {
     private final OrderAuthRepository orderAuthRepository;
     private final OrderViewTokenRepository orderViewTokenRepository;
     private final OrderItemRepository orderItemRepository;
+    private final OrderItemOptionRepository orderItemOptionRepository;
     private final OrderBuyerRepository orderBuyerRepository;
     private final OrderFulfillmentRepository orderFulfillmentRepository;
     private final OrderRepository orderRepository;
@@ -92,13 +99,25 @@ public class OrderDetailQueryService {
         String paymentInformation = orderCompletePage.getPaymentInformation();
 
 
-        List<OrderDetailResponseDto.ItemInfo> items = orderItemRepository.findAllByOrderIdOrderByProjectItemIdAsc(orderId).stream()
+        List<OrderItem> orderItems = orderItemRepository.findAllByOrderIdOrderByProjectItemIdAsc(orderId);
+        Map<Long, List<OrderItemOption>> optionsByOrderItemId = orderItemOptionRepository
+                .findByOrderItemIdIn(orderItems.stream().map(OrderItem::getId).toList()).stream()
+                .collect(Collectors.groupingBy(option -> option.getOrderItem().getId()));
+
+        List<OrderDetailResponseDto.ItemInfo> items = orderItems.stream()
                 .map(item -> new OrderDetailResponseDto.ItemInfo(
                         item.getProjectItem().getId(),
                         item.getItemNameSnapshot(),
                         item.getQuantity(),
                         item.getUnitPrice(),
-                        item.getLineAmount()
+                        item.getLineAmount(),
+                        optionsByOrderItemId.getOrDefault(item.getId(), Collections.emptyList()).stream()
+                                .map(option -> new OrderDetailResponseDto.OptionInfo(
+                                        option.getOptionGroupNameSnapshot(),
+                                        option.getOptionValueNameSnapshot(),
+                                        option.getAdditionalPriceSnapshot()
+                                ))
+                                .toList()
                 ))
                 .toList();
 

@@ -64,7 +64,7 @@ class ClientOrderQuoteControllerTest {
         // given
         given(orderQuoteService.quote(any(OrderQuoteRequestDto.class)))
                 .willReturn(new OrderQuoteResponseDto(
-                        List.of(new OrderQuoteResponseDto.ItemDto(1L, 10L, "키링", 2, 3_000, 6_000)),
+                        List.of(new OrderQuoteResponseDto.ItemDto(1L, 10L, "키링", 2, 3_000, 6_000, List.of())),
                         6_000,
                         3_500,
                         9_500

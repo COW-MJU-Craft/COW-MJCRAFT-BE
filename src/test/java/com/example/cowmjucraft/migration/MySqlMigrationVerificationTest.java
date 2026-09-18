@@ -101,6 +101,39 @@ class MySqlMigrationVerificationTest {
     }
 
     @Test
+    void 상품옵션_마이그레이션_옵션값재고컬럼이_nullable로반영된다() {
+        String isNullable = jdbcTemplate.queryForObject(
+                """
+                        SELECT IS_NULLABLE
+                        FROM INFORMATION_SCHEMA.COLUMNS
+                        WHERE TABLE_SCHEMA = DATABASE()
+                          AND TABLE_NAME = 'item_option_values'
+                          AND COLUMN_NAME = 'stock_qty'
+                        """,
+                String.class
+        );
+
+        assertThat(isNullable).isEqualTo("YES");
+    }
+
+    @Test
+    void 주문옵션_마이그레이션_옵션값참조FK가반영된다() {
+        Integer fkCount = jdbcTemplate.queryForObject(
+                """
+                        SELECT COUNT(*)
+                        FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE
+                        WHERE TABLE_SCHEMA = DATABASE()
+                          AND TABLE_NAME = 'order_item_options'
+                          AND COLUMN_NAME = 'option_value_id'
+                          AND REFERENCED_TABLE_NAME = 'item_option_values'
+                        """,
+                Integer.class
+        );
+
+        assertThat(fkCount).isEqualTo(1);
+    }
+
+    @Test
     void 마이그레이션된_스키마에서_핵심_리포지토리가_동작한다() {
         Project project = new Project(
                 "테스트 프로젝트",

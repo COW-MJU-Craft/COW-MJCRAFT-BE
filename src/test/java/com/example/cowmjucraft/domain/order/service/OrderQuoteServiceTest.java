@@ -34,13 +34,13 @@ class OrderQuoteServiceTest {
         OrderQuoteService orderQuoteService = new OrderQuoteService(orderPricingService);
         ProjectItem projectItem = projectItem();
         OrderPricingService.PriceQuote priceQuote = new OrderPricingService.PriceQuote(
-                List.of(new OrderPricingService.PriceLine(projectItem, 2, 3_000, 6_000)),
+                List.of(new OrderPricingService.PriceLine(projectItem, List.of(), 2, 3_000, 6_000)),
                 6_000,
                 3_500,
                 9_500
         );
         OrderQuoteRequestDto request = new OrderQuoteRequestDto(
-                List.of(new OrderCreateItemRequestDto(1L, 2)),
+                List.of(new OrderCreateItemRequestDto(1L, 2, null)),
                 OrderFulfillmentMethod.DELIVERY
         );
         given(orderPricingService.calculate(anyList(), eq(OrderFulfillmentMethod.DELIVERY)))
@@ -54,7 +54,7 @@ class OrderQuoteServiceTest {
         assertThat(response.shippingFee()).isEqualTo(3_500);
         assertThat(response.finalAmount()).isEqualTo(9_500);
         assertThat(response.items()).containsExactly(
-                new OrderQuoteResponseDto.ItemDto(1L, 10L, "키링", 2, 3_000, 6_000)
+                new OrderQuoteResponseDto.ItemDto(1L, 10L, "키링", 2, 3_000, 6_000, List.of())
         );
         verify(orderPricingService).calculate(request.items(), OrderFulfillmentMethod.DELIVERY);
     }

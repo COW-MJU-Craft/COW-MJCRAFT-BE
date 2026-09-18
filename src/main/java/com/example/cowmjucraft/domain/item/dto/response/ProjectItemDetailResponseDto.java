@@ -61,6 +61,9 @@ public record ProjectItemDetailResponseDto(
 
         @JsonInclude(JsonInclude.Include.NON_NULL)
         @Schema(description = "남은 수량 (GROUPBUY 전용)", example = "60")
-        Integer remainingQty
+        Integer remainingQty,
+
+        @Schema(description = "옵션 그룹 목록 (옵션 없는 상품은 빈 배열)")
+        List<ProjectItemOptionGroupResponseDto> options
 ) {
 }

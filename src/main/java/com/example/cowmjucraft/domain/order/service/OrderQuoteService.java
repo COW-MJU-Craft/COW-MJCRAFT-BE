@@ -1,5 +1,6 @@
 package com.example.cowmjucraft.domain.order.service;
 
+import com.example.cowmjucraft.domain.item.entity.ItemOptionValue;
 import com.example.cowmjucraft.domain.order.dto.request.OrderQuoteRequestDto;
 import com.example.cowmjucraft.domain.order.dto.response.OrderQuoteResponseDto;
 import lombok.RequiredArgsConstructor;
@@ -26,7 +27,8 @@ public class OrderQuoteService {
                                 line.projectItem().getName(),
                                 line.quantity(),
                                 line.unitPrice(),
-                                line.lineAmount()
+                                line.lineAmount(),
+                                line.selectedOptions().stream().map(ItemOptionValue::getName).toList()
                         ))
                         .toList(),
                 quote.totalAmount(),
