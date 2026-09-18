@@ -46,6 +46,9 @@ public class ItemService {
     public List<ProjectItemListResponseDto> getItems(Long projectId) {
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new ItemException(ItemErrorType.PROJECT_NOT_FOUND));
+        if (project.isDeleted()) {
+            throw new ItemException(ItemErrorType.PROJECT_NOT_FOUND);
+        }
 
         List<ProjectItem> items = projectItemRepository.findByProjectIdOrderByCreatedAtDescIdDesc(project.getId());
         Set<String> keySet = new LinkedHashSet<>();
@@ -65,6 +68,9 @@ public class ItemService {
     public ProjectItemDetailResponseDto getItem(Long itemId) {
         ProjectItem item = projectItemRepository.findById(itemId)
                 .orElseThrow(() -> new ItemException(ItemErrorType.ITEM_NOT_FOUND));
+        if (item.isDeleted()) {
+            throw new ItemException(ItemErrorType.ITEM_NOT_FOUND);
+        }
 
         List<ItemImage> itemImages = itemImageRepository.findByItemIdOrderBySortOrderAsc(itemId);
         Set<String> keySet = new LinkedHashSet<>();
@@ -92,6 +98,9 @@ public class ItemService {
     public ProjectItemJournalPresignGetResponseDto createJournalPresignGet(Long itemId) {
         ProjectItem item = projectItemRepository.findById(itemId)
                 .orElseThrow(() -> new ItemException(ItemErrorType.ITEM_NOT_FOUND));
+        if (item.isDeleted()) {
+            throw new ItemException(ItemErrorType.ITEM_NOT_FOUND);
+        }
         if (item.getItemType() != ItemType.DIGITAL_JOURNAL) {
             throw new ItemException(ItemErrorType.DIGITAL_JOURNAL_VIOLATION, "itemType must be DIGITAL_JOURNAL");
         }

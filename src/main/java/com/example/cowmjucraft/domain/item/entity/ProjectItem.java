@@ -14,6 +14,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.Lob;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import java.time.LocalDateTime;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -71,6 +72,9 @@ public class ProjectItem extends BaseTimeEntity {
 
     @Column(name = "stock_qty")
     private Integer stockQty;
+
+    @Column(name = "deleted_at")
+    private LocalDateTime deletedAt;
 
     public ProjectItem(
             Project project,
@@ -236,5 +240,14 @@ public class ProjectItem extends BaseTimeEntity {
 
     public void clearJournalFileKey() {
         this.journalFileKey = null;
+    }
+
+    /** soft delete — 물리 삭제 대신 삭제 시각만 남긴다. 주문 이력(order_items)은 보존된다. */
+    public void softDelete(LocalDateTime deletedAt) {
+        this.deletedAt = deletedAt;
+    }
+
+    public boolean isDeleted() {
+        return deletedAt != null;
     }
 }

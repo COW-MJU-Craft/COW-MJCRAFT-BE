@@ -56,6 +56,9 @@ public class ProjectService {
     public ProjectDetailResponseDto getProject(Long projectId) {
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new ProjectException(ProjectErrorType.PROJECT_NOT_FOUND));
+        if (project.isDeleted()) {
+            throw new ProjectException(ProjectErrorType.PROJECT_NOT_FOUND);
+        }
 
         Set<String> keySet = new LinkedHashSet<>();
         addIfValidKey(keySet, project.getThumbnailKey());

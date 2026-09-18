@@ -117,6 +117,9 @@ public class PayoutService {
 
     public PayoutDetailResponse getPayoutDetailByProjectId(Long projectId) {
         Project project = projectRepository.findById(projectId).orElseThrow(() -> new PayoutException(PayoutErrorType.PROJECT_NOT_FOUND));
+        if (project.isDeleted()) {
+            throw new PayoutException(PayoutErrorType.PROJECT_NOT_FOUND);
+        }
 
         if (project.getStatus() != ProjectStatus.CLOSED) {
             throw new PayoutException(PayoutErrorType.PROJECT_NOT_CLOSED);

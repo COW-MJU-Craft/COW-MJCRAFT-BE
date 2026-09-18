@@ -14,7 +14,6 @@ import org.springframework.data.repository.query.Param;
 
 public interface OrderRepository extends JpaRepository<Order, Long> {
 
-    boolean existsByRepresentativeProjectId(Long projectId);
     boolean existsByIdAndRepresentativeProjectId(Long orderId, Long projectId);
     /** 고객의 주문 목록. 최신 주문이 먼저 온다. */
     List<Order> findAllByCustomerIdOrderByCreatedAtDescIdDesc(Long customerId);
