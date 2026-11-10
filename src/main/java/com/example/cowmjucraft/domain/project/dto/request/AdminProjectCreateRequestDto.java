@@ -44,6 +44,9 @@ public record AdminProjectCreateRequestDto(
         ProjectStatus status,
 
         @Schema(description = "프로젝트 카테고리", example = "GOODS")
-        ProjectCategory category
+        ProjectCategory category,
+
+        @Schema(description = "OPEN 전환 시 출시 공지 자동 등록 여부 (미입력 시 등록)", example = "true")
+        Boolean publishLaunchNotice
 ) {
 }

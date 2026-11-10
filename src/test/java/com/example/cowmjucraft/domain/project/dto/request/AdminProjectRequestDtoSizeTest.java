@@ -77,14 +77,14 @@ class AdminProjectRequestDtoSizeTest {
     private AdminProjectCreateRequestDto createRequest(List<String> imageKeys) {
         return new AdminProjectCreateRequestDto(
                 "제목", "요약", "설명", "thumb.png", imageKeys,
-                LocalDate.now().plusDays(7), ProjectStatus.OPEN, ProjectCategory.GOODS
+                LocalDate.now().plusDays(7), ProjectStatus.OPEN, ProjectCategory.GOODS, null
         );
     }
 
     private AdminProjectUpdateRequestDto updateRequest(List<String> imageKeys) {
         return new AdminProjectUpdateRequestDto(
                 "제목", "요약", "설명", "thumb.png", imageKeys,
-                LocalDate.now().plusDays(7), ProjectStatus.OPEN, ProjectCategory.GOODS
+                LocalDate.now().plusDays(7), ProjectStatus.OPEN, ProjectCategory.GOODS, null
         );
     }
 

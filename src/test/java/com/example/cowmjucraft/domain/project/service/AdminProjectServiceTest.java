@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static com.example.cowmjucraft.domain.order.OrderTestFixtures.project;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -15,17 +16,22 @@ import com.example.cowmjucraft.domain.item.entity.ItemStatus;
 import com.example.cowmjucraft.domain.item.entity.ItemType;
 import com.example.cowmjucraft.domain.item.entity.ProjectItem;
 import com.example.cowmjucraft.domain.item.repository.ProjectItemRepository;
+import com.example.cowmjucraft.domain.project.dto.request.AdminProjectCreateRequestDto;
+import com.example.cowmjucraft.domain.project.dto.request.AdminProjectUpdateRequestDto;
 import com.example.cowmjucraft.domain.project.dto.response.AdminProjectResponseDto;
+import com.example.cowmjucraft.domain.project.entity.ProjectCategory;
 import com.example.cowmjucraft.domain.project.entity.Project;
 import com.example.cowmjucraft.domain.project.entity.ProjectStatus;
 import com.example.cowmjucraft.domain.project.exception.ProjectException;
 import com.example.cowmjucraft.domain.project.repository.ProjectRepository;
 import com.example.cowmjucraft.global.cloud.S3PresignFacade;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -39,6 +45,8 @@ class AdminProjectServiceTest {
     private ProjectItemRepository projectItemRepository;
     @Mock
     private S3PresignFacade s3PresignFacade;
+    @Mock
+    private ProjectLaunchNoticePublisher launchNoticePublisher;
 
     private AdminProjectService adminProjectService;
 
@@ -47,7 +55,8 @@ class AdminProjectServiceTest {
         adminProjectService = new AdminProjectService(
                 projectRepository,
                 projectItemRepository,
-                s3PresignFacade
+                s3PresignFacade,
+                launchNoticePublisher
         );
     }
 
@@ -120,6 +129,61 @@ class AdminProjectServiceTest {
         // when & then
         assertThatThrownBy(() -> adminProjectService.getProject(1L))
                 .isInstanceOf(ProjectException.class);
+    }
+
+    @Test
+    void create_OPEN생성_출시공지발행기에_이전상태null과_요청값전달() {
+        // given
+        AdminProjectCreateRequestDto request = new AdminProjectCreateRequestDto(
+                "제목", "요약", "설명", "thumb.png", List.of(),
+                LocalDate.now().plusDays(7), ProjectStatus.OPEN, ProjectCategory.GOODS, null
+        );
+        given(projectRepository.save(any(Project.class))).willAnswer(invocation -> {
+            Project saved = invocation.getArgument(0);
+            ReflectionTestUtils.setField(saved, "id", 10L);
+            return saved;
+        });
+
+        // when
+        adminProjectService.create(request);
+
+        // then
+        ArgumentCaptor<Project> captor = ArgumentCaptor.forClass(Project.class);
+        verify(launchNoticePublisher).publishIfLaunched(captor.capture(), isNull(), isNull());
+        assertThat(captor.getValue().getId()).isEqualTo(10L);
+    }
+
+    @Test
+    void update_PREPARING에서OPEN전환_이전상태PREPARING으로_발행기호출() {
+        // given
+        Project project = project(1L);
+        ReflectionTestUtils.setField(project, "status", ProjectStatus.PREPARING);
+        given(projectRepository.findById(1L)).willReturn(Optional.of(project));
+        AdminProjectUpdateRequestDto request = new AdminProjectUpdateRequestDto(
+                "제목", "요약", "설명", "thumb.png", List.of(),
+                LocalDate.now().plusDays(7), ProjectStatus.OPEN, ProjectCategory.GOODS, false
+        );
+
+        // when
+        adminProjectService.update(1L, request);
+
+        // then
+        verify(launchNoticePublisher).publishIfLaunched(project, ProjectStatus.PREPARING, false);
+        assertThat(project.getStatus()).isEqualTo(ProjectStatus.OPEN);
+    }
+
+    @Test
+    void getProject_출시공지ID_응답에포함() {
+        // given
+        Project project = project(1L);
+        project.markLaunchNoticePublished(77L);
+        given(projectRepository.findById(1L)).willReturn(Optional.of(project));
+
+        // when
+        AdminProjectResponseDto response = adminProjectService.getProject(1L);
+
+        // then
+        assertThat(response.launchNoticeId()).isEqualTo(77L);
     }
 
     private ProjectItem projectItem(Project project, Long id) {

@@ -36,15 +36,18 @@ public class AdminProjectService {
     private final ProjectRepository projectRepository;
     private final ProjectItemRepository projectItemRepository;
     private final S3PresignFacade s3PresignFacade;
+    private final ProjectLaunchNoticePublisher launchNoticePublisher;
 
     public AdminProjectService(
             ProjectRepository projectRepository,
             ProjectItemRepository projectItemRepository,
-            S3PresignFacade s3PresignFacade
+            S3PresignFacade s3PresignFacade,
+            ProjectLaunchNoticePublisher launchNoticePublisher
     ) {
         this.projectRepository = projectRepository;
         this.projectItemRepository = projectItemRepository;
         this.s3PresignFacade = s3PresignFacade;
+        this.launchNoticePublisher = launchNoticePublisher;
     }
 
     @Transactional
@@ -60,6 +63,7 @@ public class AdminProjectService {
                 resolveCategory(request.category())
         );
         Project saved = projectRepository.save(project);
+        launchNoticePublisher.publishIfLaunched(saved, null, request.publishLaunchNotice());
         Map<String, String> urls = presignGetForProject(saved);
         return toAdminResponse(saved, urls);
     }
@@ -67,6 +71,7 @@ public class AdminProjectService {
     @Transactional
     public AdminProjectResponseDto update(Long projectId, AdminProjectUpdateRequestDto request) {
         Project project = findProject(projectId);
+        ProjectStatus previousStatus = project.getStatus();
         project.updateBasic(
                 request.title(),
                 request.summary(),
@@ -77,6 +82,7 @@ public class AdminProjectService {
                 request.status(),
                 request.category()
         );
+        launchNoticePublisher.publishIfLaunched(project, previousStatus, request.publishLaunchNotice());
         Map<String, String> urls = presignGetForProject(project);
         return toAdminResponse(project, urls);
     }
@@ -345,6 +351,7 @@ public class AdminProjectService {
                 project.isPinned(),
                 project.getPinnedOrder(),
                 project.getManualOrder(),
+                project.getLaunchNoticeId(),
                 project.getCreatedAt(),
                 project.getUpdatedAt()
         );

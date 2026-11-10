@@ -77,6 +77,10 @@ public class Project extends BaseTimeEntity {
     @Column(name = "deleted_at")
     private LocalDateTime deletedAt;
 
+    /** 자동 등록된 출시 공지 ID. 값이 있으면 이미 출시 공지를 등록한 프로젝트다. */
+    @Column(name = "launch_notice_id")
+    private Long launchNoticeId;
+
     public Project(
             String title,
             String summary,
@@ -131,6 +135,14 @@ public class Project extends BaseTimeEntity {
     public long issueNextOrderNo() {
         this.lastOrderNo = Math.incrementExact(this.lastOrderNo);
         return this.lastOrderNo;
+    }
+
+    public boolean hasLaunchNotice() {
+        return this.launchNoticeId != null;
+    }
+
+    public void markLaunchNoticePublished(Long noticeId) {
+        this.launchNoticeId = noticeId;
     }
 
     /** soft delete — 물리 삭제 대신 삭제 시각만 남긴다. 주문·정산 이력은 보존된다. */
