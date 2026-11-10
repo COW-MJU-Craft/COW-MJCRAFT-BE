@@ -52,6 +52,9 @@ public record AdminProjectResponseDto(
         @Schema(description = "수동 정렬 순서", example = "3")
         Integer manualOrder,
 
+        @Schema(description = "자동 등록된 출시 공지 ID (없으면 null)", example = "12")
+        Long launchNoticeId,
+
         @Schema(description = "생성일시")
         LocalDateTime createdAt,
 
