@@ -46,6 +46,13 @@ management:
     health:
       show-details: never
 
+# GA4 유입 분석 연동. 비어 있으면 분석 API만 503으로 응답하고 서버는 정상 기동한다.
+analytics:
+  ga:
+    property-id: ${GA_PROPERTY_ID:}
+    credentials-base64: ${GA_CREDENTIALS_BASE64:}
+    cache-ttl: ${GA_CACHE_TTL:PT15M}
+
 app:
   # 인증·조회 엔드포인트 요청 제한. 값은 재배포 없이 환경변수로 조정한다.
   # 단일 인스턴스 전제의 인메모리 구현 — 스케일아웃 시 Redis 기반으로 교체해야 한다.
